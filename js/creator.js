@@ -1,0 +1,266 @@
+/* The species creator: sliders, presets, randomise, the live preview and starting a run.
+   D holds the design being edited. */
+
+/* ---------- creator ---------- */
+const PRESETS = {
+  round: { round: 1, taper: 0 },
+  block: { round: 0.22, taper: 0 },
+  peak: { round: 0.25, taper: 0.9 },
+};
+let D = {
+  name: 'Blorbs',
+  w: 4,
+  h: 4.5,
+  spd: 5,
+  hab: 0.2,
+  hue: 41,
+  sat: 100,
+  lt: 45,
+  round: 1,
+  taper: 0,
+  legs: 6,
+  preset: 'round',
+};
+$('#fHue').innerHTML = OKABE.map(
+  ([n, hex], k) => `<button data-v="${k}" aria-label="${n}" title="${n}" style="background:${hex}"></button>`
+).join('');
+
+$('#fHue').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const o = OKABE[+b.dataset.v];
+  D.hue = o[2];
+  D.sat = o[3];
+  D.lt = o[4];
+  syncCreator();
+};
+$('#fPreset').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  D.preset = b.dataset.v;
+  Object.assign(D, PRESETS[D.preset]);
+  syncCreator();
+};
+for (const [id, key, k] of [
+  ['#fW', 'w', 1],
+  ['#fH', 'h', 1],
+  ['#fS', 'spd', 1],
+  ['#fHab', 'hab', 0.01],
+  ['#fR', 'round', 1],
+  ['#fT', 'taper', 1],
+  ['#fLeg', 'legs', 1],
+])
+  $(id).oninput = e => {
+    D[key] = +e.target.value * k;
+    if (key === 'round' || key === 'taper') D.preset = null;
+    syncCreator();
+  };
+const SYL = [
+  'blor',
+  'zib',
+  'quo',
+  'mur',
+  'tak',
+  'vel',
+  'pim',
+  'dro',
+  'fen',
+  'lup',
+  'sna',
+  'gor',
+  'wib',
+  'tul',
+  'kra',
+  'mox',
+];
+$('#rnd').onclick = () => {
+  const r = (a, b) => a + rand() * (b - a),
+    pick = a => a[(rand() * a.length) | 0],
+    o = pick(OKABE),
+    pre = pick(Object.keys(PRESETS));
+  let nm = pick(SYL) + pick(SYL);
+  if (rand() < 0.5) nm += 's';
+  nm = nm[0].toUpperCase() + nm.slice(1);
+  Object.assign(D, {
+    name: nm,
+    w: +r(1.5, 6.5).toFixed(1),
+    h: +r(1.5, 6.5).toFixed(1),
+    spd: +r(2, 9).toFixed(1),
+    hab: +r(0, 0.85).toFixed(2),
+    hue: o[2],
+    sat: o[3],
+    lt: o[4],
+    preset: pre,
+    ...PRESETS[pre],
+    legs: pick([4, 6, 8]),
+  });
+  if (rand() < 0.5) {
+    D.round = +r(0, 1).toFixed(2);
+    D.taper = +r(0, 1).toFixed(2);
+    D.preset = null;
+  }
+  $('#fName').value = D.name;
+  syncCreator();
+};
+$('#fName').oninput = e => {
+  D.name = e.target.value;
+};
+let pvC = null;
+function updP() {
+  document.querySelectorAll('#creator input[type=range]').forEach(r => {
+    const p = (r.value - r.min) / (r.max - r.min);
+    r.style.setProperty('--p', `calc(${p * 100}% - ${p * 12 - 6}px)`);
+  });
+}
+function syncCreator() {
+  $('#fPreset')
+    .querySelectorAll('button')
+    .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === D.preset)));
+  $('#fHue')
+    .querySelectorAll('button')
+    .forEach(b => {
+      const o = OKABE[+b.dataset.v];
+      b.setAttribute('aria-pressed', String(o[2] === D.hue && o[4] === D.lt));
+    });
+  $('#fW').value = D.w;
+  $('#fH').value = D.h;
+  $('#fS').value = D.spd;
+  $('#fHab').value = Math.round(D.hab * 100);
+  $('#fR').value = D.round;
+  $('#fT').value = D.taper;
+  $('#fLeg').value = D.legs;
+  $('#oW').textContent = D.w.toFixed(1);
+  $('#oH').textContent = D.h.toFixed(1);
+  $('#oS').textContent = D.spd.toFixed(1);
+  $('#oHab').textContent = habTxt(D.hab);
+  $('#oR').textContent = D.round.toFixed(2);
+  $('#oT').textContent = D.taper.toFixed(2);
+  $('#oLeg').textContent = D.legs;
+  const c = { ...D, id: 0, dir: 0, walk: 0 };
+  compute(c);
+  pvC = c;
+  const b = burn(c, c.vL);
+  $('#budget').innerHTML =
+    `<b>${rangeTxt(c)}.</b> Habitat splits speed between land and water and sets how far from home ground it will go.`;
+  $('#pvChips').innerHTML =
+    `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
+    <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>
+    <span class="chip">Energy ${Math.round(c.cap)} · burns ${b.toFixed(2)}/s</span><span class="chip">Reach ${c.reach.toFixed(0)} px</span>`;
+  updP();
+}
+function drawPreview(t) {
+  const p = $('#pv'),
+    g = p.getContext('2d'),
+    Wp = 520,
+    Hp = 390;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#fcfcfb';
+  g.fillRect(0, 0, Wp, Hp);
+  g.strokeStyle = '#e3e8e5';
+  g.lineWidth = 1;
+  g.beginPath();
+  for (let x = 0.5; x < Wp; x += 13) {
+    g.moveTo(x, 0);
+    g.lineTo(x, Hp);
+  }
+  for (let y = 0.5; y < Hp; y += 13) {
+    g.moveTo(0, y);
+    g.lineTo(Wp, y);
+  }
+  g.stroke();
+  if (!pvC) return;
+  const k = 7;
+  pvC.walk = t * 3;
+  pvC.dir = -0.35 + Math.sin(t * 0.6) * 0.3;
+  drawCreature(g, pvC, 260, 175, k, 7, col(pvC), t, false, 1.1 / k);
+  g.strokeStyle = INK;
+  g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(40, 340);
+  g.lineTo(40 + 10 * k, 340);
+  g.moveTo(40, 335);
+  g.lineTo(40, 345);
+  g.moveTo(40 + 10 * k, 335);
+  g.lineTo(40 + 10 * k, 345);
+  g.stroke();
+  g.fillStyle = INK;
+  g.font = '12px "IBM Plex Mono", monospace';
+  g.fillText('10 px', 40, 360);
+  g.fillText(
+    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · fits ${
+      [10, 13, 16]
+        .filter(x => pvC.thick <= x)
+        .map(x => x + ' px')
+        .join(', ') || 'no'
+    } thicket gaps`,
+    40,
+    378
+  );
+}
+function openCreator(seed, design, canCancel) {
+  if (design && design.spd !== undefined && design.sat !== undefined)
+    D = { ...D, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+  const opts = [`<option value="">New random world</option>`];
+  const seen = new Set();
+  if (S && S.seed != null) {
+    opts.push(`<option value="${S.seed}">This world #${S.seed}</option>`);
+    seen.add(S.seed);
+  }
+  for (const r of saved.runs) {
+    if (seen.has(r.seed)) continue;
+    seen.add(r.seed);
+    opts.push(`<option value="${r.seed}">#${r.seed} · ${esc(r.name)}</option>`);
+  }
+  $('#fWorld').innerHTML = opts.join('');
+  $('#fWorld').value = seed != null ? String(seed) : '';
+  $('#fName').value = D.name;
+  $('#cancel').hidden = !(canCancel && S && !S.over);
+  $('#pastWrap').innerHTML = saved.runs.length
+    ? `<h3 class="sec" style="margin-top:22px">Past lineages</h3>${histHTML()}`
+    : '';
+  $('#pastWrap')
+    .querySelectorAll('[data-revisit]')
+    .forEach(
+      b =>
+        (b.onclick = () => {
+          const r = saved.runs[+b.dataset.revisit];
+          openCreator(r.seed, r.design, canCancel);
+        })
+    );
+  syncCreator();
+  $('#creator').hidden = false;
+  $('#sheet').hidden = true;
+}
+$('#cancel').onclick = () => {
+  $('#creator').hidden = true;
+  $('#sheet').hidden = false;
+  S.paused = false;
+  syncUI(true);
+};
+$('#go').onclick = () => {
+  D.name = ($('#fName').value.trim() || 'Blorbs').slice(0, 20);
+  const v = $('#fWorld').value;
+  const seed = v ? +v : (Math.random() * 1e6) | 0;
+  const d = {
+    name: D.name,
+    w: D.w,
+    h: D.h,
+    spd: D.spd,
+    hab: D.hab,
+    hue: D.hue,
+    sat: D.sat,
+    lt: D.lt,
+    round: D.round,
+    taper: D.taper,
+    legs: D.legs,
+  };
+  ensureAudio();
+  newGame(d, seed);
+  $('#creator').hidden = true;
+  $('#end').hidden = true;
+  $('#replayBar').hidden = true;
+  $('#sheet').hidden = false;
+  openSheet(true);
+  placeScale();
+  if (AC && AC.state === 'suspended') AC.resume();
+};

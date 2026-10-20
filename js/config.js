@@ -1,0 +1,90 @@
+/* EvoQuest configuration: every number worth tuning lives here. */
+
+/* ---- world size and creatures ---- */
+const MATURE = 15; // seconds old before a creature can breed
+const LIFE = 90; // maximum lifespan in seconds
+const W = 3008; // world width in px (GW cells of CS px)
+const H = 2096; // world height in px (GH cells of CS px)
+const CS = 16; // size of one terrain cell in px
+const GW = 188; // terrain grid width in cells
+const GH = 131; // terrain grid height in cells
+const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
+const RIVER = 14; // water speed (px/s) needed to swim across a river current
+const FOOD = 8; // energy gained from one piece of food
+const START = 20; // number of creatures released at the start
+const EDGE = 10; // width in cells of the guaranteed sea margin around the map
+const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
+
+/* ---- map rendering ---- */
+const TS = 1.2; // resolution of the pre-drawn map image (pixels per world px)
+const LO = 0.55; // resolution of the low-detail copy used when zoomed far out
+const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
+
+/* ---- colours ---- */
+// Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers
+// each entry: [name, hex, hue, saturation, lightness]
+const OKABE = [
+  ['Orange', '#E69F00', 41, 100, 45],
+  ['Sky blue', '#56B4E9', 202, 77, 63],
+  ['Bluish green', '#009E73', 164, 100, 31],
+  ['Yellow', '#F0E442', 56, 85, 60],
+  ['Blue', '#0072B2', 202, 100, 35],
+  ['Vermilion', '#D55E00', 26, 100, 42],
+  ['Reddish purple', '#CC79A7', 327, 46, 64],
+];
+// colours used to tag species in charts and the family tree
+const TAGS = ['#D55E00', '#0072B2', '#009E73', '#CC79A7', '#E69F00', '#56B4E9', '#F0E442', '#151918'];
+const INK = '#151918'; // the ink colour used for outlines and text
+
+/* ---- seasons and food ---- */
+// per season, how quickly each kind of place regrows food: f fast, n normal, s slow
+const SEASONS = [
+  {
+    name: 'Spring',
+    col: '#009E73',
+    grow: { plain: 'f', meadow: 'f', thicket: 's', island: 'n', water: 'n' },
+    ev: { flood: 5, drought: 1, quake: 3 },
+    msg: 'Spring. Meadows and plains regrow fast; the thaw brings floods.',
+  },
+  {
+    name: 'Summer',
+    col: '#F0E442',
+    grow: { plain: 's', meadow: 'f', thicket: 'n', island: 'f', water: 'n' },
+    ev: { flood: 1, drought: 5, quake: 3 },
+    msg: 'Summer. Open plains turn dry and yellow; meadows and islands thrive. Droughts are likely.',
+  },
+  {
+    name: 'Autumn',
+    col: '#E69F00',
+    grow: { plain: 's', meadow: 'n', thicket: 'f', island: 'f', water: 'n' },
+    ev: { flood: 3, drought: 2, quake: 4 },
+    msg: 'Autumn. Thickets and islands are fruiting; open land is going bare.',
+  },
+  {
+    name: 'Winter',
+    col: '#56B4E9',
+    grow: { plain: 's', meadow: 's', thicket: 's', island: 's', water: 's' },
+    ev: { flood: 4, drought: 1, quake: 3 },
+    msg: 'Winter. Snow on the peaks; food is slow to return on land and in the water. Storms bring floods.',
+  },
+];
+const SEASON_LEN = 90; // seconds per season
+// regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
+const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in scenario tests: milder seasons
+
+/* ---- world events ---- */
+// first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
+// meteor: chance an event is a meteor; major: chance an event is a major one
+const EVENTS = { first: [90, 60], gap: [100, 60], meteor: 0.05, major: 0.1 };
+
+/* ---- behaviour ---- */
+const MAXT = 22; // furthest a creature will plan, in seconds of travel
+// crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
+const CRW = { r: 80, half: 1.5, pow: 2 }; // tuned in scenario tests: keeps most runs at or below about 100
+
+/* ---- speciation ---- */
+// geo: trait difference needed between groups on separate land; eco: between two clusters on the same land
+// ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
+// age / cool: seconds a species must exist, and wait after a split, before it can split again
+// extra: how much harder each additional living species makes the next split
+const SPC = { geo: 0.18, eco: 0.34, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned: about one new species per 18-minute run
