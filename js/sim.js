@@ -121,6 +121,17 @@ function newGame(design, seed) {
       y = home[1];
     }
     const c = makeChild(base, x, y, 1.5);
+    // founders settle homes spread around the release spot, so they don't all share one patch of food
+    for (let t = 0; t < 12; t++) {
+      const b = rand() * TAU,
+        r = Math.sqrt(rand()) * HOME.founders,
+        hx = x + Math.cos(b) * r,
+        hy = y + Math.sin(b) * r;
+      if (inside(hx, hy) && allowed(c, cellI(hx, hy), cellT(hx, hy))) {
+        c.home = [hx, hy];
+        break;
+      }
+    }
     c.E = c.cap * 0.8;
     c.age = rand() * 20;
     S.creatures.push(c);

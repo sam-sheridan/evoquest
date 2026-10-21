@@ -14,7 +14,7 @@ const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
-const START = 20; // number of creatures released at the start
+const START = 30; // number of creatures released at the start
 const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
 // land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
 // between min and max, and aren't picked once land is below noFlood or above noDrought
@@ -116,8 +116,9 @@ const SHAKE = {
 // home ranges: each creature has a home (where it was born) and prefers food within r px of it; food further out
 // counts as pull extra seconds of travel for every r px beyond; below starving (share of full energy) creatures
 // range wider, up to 1 + hunger times r when nearly empty; a newborn's home lands up to disperse px from its
-// parent's home, which is how a population slowly spreads
-const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100 };
+// parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
+// around the release spot
+const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
 // food sites placed when a world is made: berries on land, algae in water
 const SITES = { land: 375, water: 125 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel

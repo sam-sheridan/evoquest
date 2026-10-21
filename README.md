@@ -1,6 +1,6 @@
 # EvoQuest
 
-Design a species, release 20 of them onto a randomly generated island world, and watch the world decide what
+Design a species, release 30 of them onto a randomly generated island world, and watch the world decide what
 they become. Food, terrain, seasons and world events shape their bodies over generations. Groups that get cut
 off, or that take up a different way of life, can split into new species.
 
@@ -46,7 +46,7 @@ be changed, its name in `js/config.js` is shown like `this`.
 ## 1. A run from start to finish
 
 1. **Design** a species in the creator. You set its name, body, look and which world to use.
-2. **Release.** 20 creatures (`START`) appear together on the main landmass. The release spot is chosen to
+2. **Release.** 30 creatures (`START`) appear together on the main landmass. The release spot is chosen to
    have as much food the design can reach as possible nearby. The founders start with 80% energy, ages spread
    between 0 and 20 seconds, and traits varied 1.5 times more than normal so selection has something to work on
    straight away.
@@ -77,7 +77,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
-| **Release 20 specimens** | Starts the run. |
+| **Release 30 specimens** | Starts the run. |
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar. It also shows the body size in pixels
@@ -242,8 +242,9 @@ shortest-route search (Dijkstra's algorithm). The search allows for terrain spee
 allowed into.
 
 - It only plans up to **22 seconds of travel** ahead (`MAXT`). If nothing is in range, it wanders.
-- **Home range.** Every creature has a **home**: for the founders, where they were released; for everyone else,
-  a spot up to 100 px from their parent's home (`HOME.disperse`). Food more than 250 px from home (`HOME.r`)
+- **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
+  a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
+  around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
   counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
   Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
   (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
