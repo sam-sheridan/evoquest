@@ -180,7 +180,7 @@ function genWorld(seed, att = 0) {
   let tries = 0,
     nl = 0,
     nw = 0;
-  while (nl < 300 && tries < 60000) {
+  while (nl < SITES.land && tries < SITES.land * 200) {
     tries++;
     const x = rng() * W,
       y = rng() * H,
@@ -196,7 +196,7 @@ function genWorld(seed, att = 0) {
     }
   }
   tries = 0;
-  while (nw < 100 && tries < 60000) {
+  while (nw < SITES.water && tries < SITES.water * 600) {
     tries++;
     const x = rng() * W,
       y = rng() * H,

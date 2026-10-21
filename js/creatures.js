@@ -116,6 +116,7 @@ function makeChild(p, x, y, spread = 1) {
     legs: p.legs,
     x,
     y,
+    home: [x, y], // where it prefers to look for food (see HOME)
     dir: rand() * TAU,
     face: 1,
     wander: rand() * TAU,

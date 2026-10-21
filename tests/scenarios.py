@@ -35,7 +35,7 @@ DESIGNS = [
 
 MEASURE = """(steps) => {
   const q = window.EvoQuestDebug, S = q.state, seasons = [[], [], [], []];
-  let min = 1e9, max = 0, over = 0, count = 0, maxLive = 1, explored10 = null;
+  let min = 1e9, max = 0, over = 0, count = 0, maxLive = 1, explored10 = null, pop10 = null, late = [];
   // exploration: which 4x4-cell blocks any creature has stood in, as a share of blocks with land, at 10 minutes
   const w = q.world, BW = Math.ceil(GW / 4), seen = new Uint8Array(BW * Math.ceil(GH / 4));
   const t0 = performance.now();
@@ -44,7 +44,9 @@ MEASURE = """(steps) => {
     q.step(0.05);
     if (i % 20 === 0 && S.t <= 600)
       for (const c of S.creatures) seen[((c.y / CS / 4) | 0) * BW + ((c.x / CS / 4) | 0)] = 1;
+    if (i % 40 === 0 && S.t > 1200) late.push(S.creatures.length);
     if (explored10 === null && S.t >= 600) {
+      pop10 = S.creatures.length;
       const land = new Uint8Array(seen.length);
       for (let k = 0; k < GW * GH; k++) if (isLand(w.type[k])) land[(((k / GW) | 0) >> 2) * BW + ((k % GW) >> 2)] = 1;
       let a = 0, b = 0;
@@ -62,7 +64,8 @@ MEASURE = """(steps) => {
   return { minutes: Math.round(S.t / 6) / 10, extinct: S.over, newSpecies: S.species.length - 1,
            maxLiveSpecies: maxLive, seasonAverages: seasons.map(avg), min: min === 1e9 ? 0 : min, max,
            pctOver100: count ? Math.round((over / count) * 100) : 0, worldEvents: S.events,
-           explored10, msPerStep: +((performance.now() - t0) / steps).toFixed(2) };
+           explored10, pop10, lateAvg: late.length ? Math.round(late.reduce((x, y) => x + y, 0) / late.length) : null,
+           lateMax: late.length ? Math.max(...late) : null, msPerStep: +((performance.now() - t0) / steps).toFixed(2) };
 }"""
 
 results = []
@@ -95,4 +98,6 @@ if alive:
     print(f"  new species per run: {[r['newSpecies'] for r in results]}")
     print(f"  most species alive at once: {max(r['maxLiveSpecies'] for r in results)}")
     print(f"  % of land explored at 10 minutes: {[r['explored10'] for r in results]}")
+    print(f"  population at 10 minutes: {[r['pop10'] for r in results]}")
+    print(f"  average population after 20 minutes: {[r['lateAvg'] for r in results]}")
     print(f"  ms per simulation step: {[r['msPerStep'] for r in results]}")

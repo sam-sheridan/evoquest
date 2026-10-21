@@ -183,19 +183,20 @@ A creature may breed when it eats **and** all of these are true:
 - it passes the **crowding roll**
 
 **Crowding roll:** count the other creatures within 80 px (`CRW.r`), stopping at 12. The chance of breeding
-is 1 ÷ (1 + (neighbours ÷ 1.5)²) (`CRW.half` = 1.5, `CRW.pow` = 2):
+is 1 ÷ (1 + (neighbours ÷ 2)²) (`CRW.half` = 2, `CRW.pow` = 2):
 
 | Neighbours within 80 px | Chance to breed |
 |---|---|
 | 0 | 100% |
-| 1 | 69% |
-| 2 | 36% |
-| 3 | 20% |
-| 5 | 8% |
-| 10 | 2% |
+| 1 | 80% |
+| 2 | 50% |
+| 3 | 31% |
+| 5 | 14% |
+| 10 | 4% |
 
-This is what keeps populations near 100 without a hard limit. Crowded areas stop breeding, and quieter areas
-keep going.
+This, together with how much food each area grows, is what keeps populations in range without a hard limit.
+Crowded areas stop breeding, and quieter areas keep going. Because creatures keep to their home ranges, local
+groups are denser than before, so crowding allows a little more than it used to.
 
 If the roll succeeds, the birth happens 0–3 seconds later, as long as the parent still has at least 50% energy
 then. The parent loses 45% of its capacity. The newborn appears beside it with 50% of its own capacity and
@@ -241,6 +242,16 @@ shortest-route search (Dijkstra's algorithm). The search allows for terrain spee
 allowed into.
 
 - It only plans up to **22 seconds of travel** ahead (`MAXT`). If nothing is in range, it wanders.
+- **Home range.** Every creature has a **home**: for the founders, where they were released; for everyone else,
+  a spot up to 100 px from their parent's home (`HOME.disperse`). Food more than 250 px from home (`HOME.r`)
+  counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
+  Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
+  (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
+  are outside their range.
+
+  This is why a population **spreads slowly**, over generations, instead of every creature roaming the whole
+  map: only about a quarter of the land is explored in the first 10 minutes. It also keeps groups in different
+  areas apart, which helps different species form in different regions.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
@@ -251,7 +262,7 @@ allowed into.
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply.
 - Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
-- Wanderers steer away from the outer sea margin.
+- Wanderers turn back towards the middle of the map near its oval edge.
 
 ### Reaching food
 
@@ -264,8 +275,10 @@ re-plan at once.
 
 ### Size and grid
 
-- The world is a grid of **188 × 131 cells**, each 16 px square: 3008 × 2096 px in total.
-- Every world has a **10-cell sea margin** (`EDGE`) all round, so land never touches the edge.
+- The world is a grid of **282 × 197 cells**, each 16 px square: 4512 × 3152 px in total.
+- Land is kept inside an **oval**, with a **10-cell sea margin** (`EDGE`) inside the oval's edge. The edge is
+  roughened by the same warp as the coastline, so even after several droughts the land grows into a natural,
+  rounded shape rather than filling out to a rectangle.
 
 ### Terrain types
 
@@ -273,8 +286,8 @@ re-plan at once.
 |---|---|
 | **Sea** | Everything below sea level. Shown in four depth bands. |
 | **Land** | Everything above sea level. |
-| **Thicket** | The densest 21% of a "thicket" noise pattern, on land. Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each). Denser dots on the map mean narrower gaps. |
-| **Rock** | The top 10% of a "rock" noise pattern, on land. Impassable. Drawn as contoured grey plates. |
+| **Thicket** | The densest 21% of a "thicket" noise pattern, on land, weighted by region (see below). Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each, narrower in thicket country). Denser dots on the map mean narrower gaps. |
+| **Rock** | The top 10% of a "rock" noise pattern, on land, weighted by region. Impassable. Drawn as contoured grey plates. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### How a world is generated
@@ -283,12 +296,21 @@ re-plan at once.
    the land is pushed down towards the edges.
 2. A **strait** always splits the world into **two landmasses** (70% of the time it runs roughly north–south).
    It is deep enough that droughts never close it.
-3. If the second landmass is smaller than a quarter of the first, the world is rebuilt from a variation of the
-   same seed (up to 5 tries).
-4. 36–42% of the map starts as land.
-5. Rivers: an 85% chance of one, plus a 55% chance of a second. Each runs coast to coast at a random angle and
+3. If the second landmass is smaller than a quarter of the first (or under 1100 cells), the world is rebuilt from
+   a variation of the same seed (up to 5 tries).
+4. **Regions.** Broad, slowly varying patterns give each area its own character (`REGIONS.strength` = 1.3):
+   - **thicket country**: thickets cluster here, with the narrowest gaps
+   - **rocky uplands**: rock clusters here
+   - **low wetlands**: the land is flattened to just above the starting sea level, with hollows that hold lakes.
+     Floods drown these areas first and droughts drain them first, while uplands barely change.
+
+   Everywhere else is more open. Different regions favour different bodies (small and slim in thickets,
+   swimmers in wetlands), which is meant to encourage different species in different parts of the map.
+5. 31–35% of the map starts as land (`LAND.start`).
+6. Rivers: an 85% chance of one, plus a 55% chance of a second. Each runs coast to coast at a random angle and
    meanders along its length (two overlapping waves plus a little jitter), so splits aren't straight lines.
-6. **Food sites** are placed: 300 berry sites on land and 100 algae sites in water (see [food](#7-food)).
+7. **Food sites** are placed: 375 berry sites on land and 125 algae sites in water (`SITES`, see
+   [food](#7-food)).
 
 The **main landmass** is the biggest piece of land. Any other land counts as an **island** for food and
 naming.
@@ -368,8 +390,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - **5%** of events are meteors (`EVENTS.meteor`, about 1 in 20).
 - Otherwise the event is picked by the current season's weights (see the table above). Some events are ruled
   out when they would push the world too far:
-  - no drought when more than 55% of the map is land
-  - no flood when less than 30% is land
+  - no drought when more than 42% of the map is land (`LAND.noDrought`)
+  - no flood when less than 25% is land (`LAND.noFlood`)
 
   There is no limit on rivers or sea channels: droughts dry them up again.
 - **10%** of events are **major** (`EVENTS.major`).
@@ -378,8 +400,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 | Event | Normal | Major |
 |---|---|---|
-| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 24%). Low land and its food go underwater. | Land falls by 20 points. |
-| **Drought** | Sea level falls: land rises by 12 points (never above 60%). New land appears and islands may join the mainland, but never across the main strait. One river dries up and one sea channel closes, if there are any. | Land rises by 20 points. Two rivers dry up and two sea channels close. |
+| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 20%, `LAND.min`). Low land and its food go underwater. | Land falls by 20 points. |
+| **Drought** | Sea level falls: land rises by 12 points (never above 46%, `LAND.max`). New land appears and islands may join the mainland, but never across the main strait. One river dries up and one sea channel closes, if there are any. | Land rises by 20 points. Two rivers dry up and two sea channels close. |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
 | **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
 
@@ -599,7 +621,7 @@ The look is a scientific **field notebook / survey map**.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
-  out (`TS`, `LO`). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
+  out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
   map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
   mid-zoom included.
@@ -617,8 +639,13 @@ The look is a scientific **field notebook / survey map**.
 These were deliberate choices made while building the game. They are recorded here so they don't get undone by
 accident.
 
-- **No hard population cap.** Crowding lowers breeding instead, so numbers settle naturally around 40–100 and
-  can briefly go over.
+- **No hard population cap.** Crowding and local food lower breeding instead. A run starts with a small local
+  population (about 20–50 at 10 minutes) that grows into the 40–100 range as it spreads across the map, and can
+  briefly go over.
+- **Home ranges.** Creatures keep to the area they were born in, so the world is explored gradually (about a
+  quarter of the land in the first 10 minutes) and groups in different areas stay apart.
+- **A bigger, oval, regional world.** The map is 1.5 times larger each way than it first was, land stays inside
+  an oval, and regions differ in thicket, rock and wetland.
 - **Body traits are selected; look traits drift.** Colour, roundness and taper do nothing for survival, so
   their change shows pure chance and how long groups have been apart.
 - **Legs are fixed.** They are a choice you make, not something that evolves.
@@ -651,6 +678,10 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, bigger `extra` means fewer species at once) |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
+| How far creatures stray from home, and how fast populations spread | `HOME` |
+| How much food each world grows | `SITES` |
+| How different regions are | `REGIONS` |
+| Land limits for floods and droughts | `LAND` |
 
 To see the effect of a change across many runs, use the balance test below.
 
@@ -709,10 +740,12 @@ python3 tests/scenarios.py 6 15
 
 - **`smoke.py`** clicks through every feature and prints PASS or FAIL.
 - **`scenarios.py [runs] [minutes]`** runs full simulations as fast as possible across six test designs and
-  reports population, seasonal swing, extinctions and new species.
+  reports population, seasonal swing, extinctions, new species, how much land was explored at 10 minutes, the
+  population at 10 minutes and after 20, and the time per simulation step.
 
-  The current settings aim for:
-  - populations mostly between 40 and 100
+  The current settings aim for (use `python3 tests/scenarios.py 6 30` to see the later numbers):
+  - about a quarter of the land explored at 10 minutes, with a population of roughly 20–50
+  - populations mostly between 40 and 100 after 20 minutes
   - gentle seasonal swings
   - 0 to 2 new species per 15 minutes, with at most 3 alive at once
 

@@ -294,6 +294,13 @@ function hpop2() {
     }
   }
 }
+// home range in px: wider when hungry, so a creature will roam rather than starve
+const homeRange = c => HOME.r * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
+// extra cost, in seconds of travel, of food beyond the home range
+function awayCost(c, f, range) {
+  const d = Math.hypot(f.x - c.home[0], f.y - c.home[1]);
+  return d > range ? ((d - range) / HOME.r) * HOME.pull : 0;
+}
 // Dijkstra outwards from the creature; stops as soon as nothing further away could beat the best food found
 function dijkstra(c) {
   pgen++;
@@ -308,6 +315,7 @@ function dijkstra(c) {
   let n = 0;
   c._best = null;
   let bs = Infinity;
+  const range = homeRange(c);
   while (hn) {
     hpop2();
     const i = PI,
@@ -321,7 +329,7 @@ function dijkstra(c) {
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
         if (cl >= 3) continue;
-        const sc = k + cl * 2.5 - (mine ? 1.5 : 0);
+        const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
         if (sc < bs) {
           bs = sc;
           c._best = f;
@@ -445,6 +453,14 @@ function update(c, dt) {
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
+    // wanderers drift back towards home once they are outside their range
+    const hx = c.home[0] - c.x,
+      hy = c.home[1] - c.y;
+    if (hx * hx + hy * hy > homeRange(c) ** 2) {
+      const toHome = Math.atan2(hy, hx),
+        off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
+      c.wander -= off * Math.min(1, dt * 1.5);
+    }
     desired = c.wander;
     // near the oval edge of the map, turn back towards the middle
     if (edgeDist(c.x / CS, c.y / CS) < EDGE + 2.5) {
@@ -528,6 +544,17 @@ function birth(p) {
     y = p.y;
   }
   const c = makeChild(p, x, y);
+  // the newborn's home: near its parent's home (not wherever the parent happened to be), sometimes a little further out
+  for (let k = 0; k < 6; k++) {
+    const b = rand() * TAU,
+      r = rand() * HOME.disperse,
+      hx = p.home[0] + Math.cos(b) * r,
+      hy = p.home[1] + Math.sin(b) * r;
+    if (inside(hx, hy) && allowed(c, cellI(hx, hy), cellT(hx, hy))) {
+      c.home = [hx, hy];
+      break;
+    }
+  }
   p.E -= p.cap * 0.45;
   S.newborns.push(c);
   p.births++;

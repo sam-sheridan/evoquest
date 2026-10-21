@@ -55,8 +55,11 @@ the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't ru
 
 ## Balance targets
 
-- Populations mostly 40–100. Going over 100 briefly is fine. **No hard caps.** Crowding should keep numbers in
-  range naturally.
+- About a quarter of the land explored after 10 minutes, with a population of roughly 20–50 then (creatures keep
+  to home ranges, so populations start local and spread).
+- Populations mostly 40–100 after 20 minutes. Going over 100 briefly is fine. **No hard caps.** Crowding and
+  local food should keep numbers in range naturally. Use `python3 tests/scenarios.py 6 30` to see the later
+  numbers.
 - Gentle seasonal swings.
 - 0–2 new species per 15-minute run, at most 3 alive at once. Species never merge back.
 - Ordinary designs shouldn't go extinct. Extinction is acceptable for extreme designs.

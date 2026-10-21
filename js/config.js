@@ -113,9 +113,16 @@ const SHAKE = {
 };
 
 /* ---- behaviour ---- */
+// home ranges: each creature has a home (where it was born) and prefers food within r px of it; food further out
+// counts as pull extra seconds of travel for every r px beyond; below starving (share of full energy) creatures
+// range wider, up to 1 + hunger times r when nearly empty; a newborn's home lands up to disperse px from its
+// parent's home, which is how a population slowly spreads
+const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100 };
+// food sites placed when a world is made: berries on land, algae in water
+const SITES = { land: 375, water: 125 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
-const CRW = { r: 80, half: 1.5, pow: 2 }; // tuned in scenario tests: keeps most runs at or below about 100
+const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups can be denser before breeding slows
 
 /* ---- speciation ---- */
 // geo: trait difference needed between groups on separate land; eco: between two clusters on the same land
