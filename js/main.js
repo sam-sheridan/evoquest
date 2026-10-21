@@ -86,7 +86,37 @@ function drawDetail() {
   blitVisible(d.can, ox, oy);
   return [ox, oy];
 }
+// screen shake for earthquakes and meteor strikes: a decaying wobble added to the camera while drawing
+let shake = null;
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+function startShake(kind, major) {
+  if (calm.matches) return;
+  const k = major ? 1 : 0;
+  shake = { t0: performance.now(), amp: SHAKE[kind].amp[k], dur: SHAKE[kind].dur[k] * 1000 };
+}
 function render(nowT) {
+  let sx = 0,
+    sy = 0;
+  if (shake) {
+    const k = (nowT - shake.t0) / shake.dur;
+    if (k >= 1) shake = null;
+    else {
+      const a = (shake.amp * (1 - k) ** 2) / cam.z,
+        t = nowT / 1000;
+      sx = a * Math.sin(t * 61 + 1.3) * Math.cos(t * 23);
+      sy = a * Math.sin(t * 53) * Math.cos(t * 29 + 0.7);
+    }
+  }
+  cam.x += sx;
+  cam.y += sy;
+  try {
+    renderScene(nowT);
+  } finally {
+    cam.x -= sx;
+    cam.y -= sy;
+  }
+}
+function renderScene(nowT) {
   const t = nowT / 1000;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = BAND[3];

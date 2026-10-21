@@ -691,6 +691,7 @@ function worldEvent(kind, major, forced) {
   logEv(msg);
   if (major) S.majorAt = S.t;
   SFX[k] && SFX[k](major);
+  if (k === 'quake') startShake('quake', major);
   eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
 }
 // droughts dry up rivers (or close sea channels) at random, turning them back into land; returns how many
@@ -729,6 +730,7 @@ function meteor(x, y, major) {
   logEv(m);
   if (major) S.majorAt = S.t;
   SFX.meteor(major);
+  startShake('meteor', major);
   eventAlert(major ? 'Major meteor!' : 'Meteor strike!');
   if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
 }

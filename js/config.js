@@ -98,6 +98,10 @@ const EVENTS = {
   warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 
+// screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles
+// (skipped when the device asks for reduced motion)
+const SHAKE = { quake: { amp: [9, 14], dur: [1.6, 2.2] }, meteor: { amp: [5, 8], dur: [0.5, 0.7] } };
+
 /* ---- behaviour ---- */
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
