@@ -68,14 +68,15 @@ const SEASONS = [
     msg: 'Winter. Snow on the peaks; food is slow to return on land and in the water. Storms bring floods.',
   },
 ];
-const SEASON_LEN = 90; // seconds per season
+const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
 const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in scenario tests: milder seasons
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
+// (no random extra: one event every 7 minutes, like clockwork)
 // meteor: chance an event is a meteor; major: chance an event is a major one
-const EVENTS = { first: [90, 60], gap: [100, 60], meteor: 0.05, major: 0.1 };
+const EVENTS = { first: [420, 0], gap: [420, 0], meteor: 0.05, major: 0.1 };
 
 /* ---- behaviour ---- */
 const MAXT = 22; // furthest a creature will plan, in seconds of travel

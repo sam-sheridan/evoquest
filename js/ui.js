@@ -291,7 +291,7 @@ document.addEventListener('click', e => {
 });
 const INFO = {
   season:
-    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN} seconds and changes where food regrows quickly and which world events are likely.</p>
+    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
     () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">The bar fills until the next event. Near the end a symbol warns you what is coming. In orange with a “!”, it will be a major event.</p>

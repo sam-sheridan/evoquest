@@ -947,7 +947,12 @@ function split(sp, small, rest, reason, island) {
 /* achievements (named 'badges' in the code) */
 const live = () => Object.values(S.hist.at(-1).sp);
 const BADGES = [
-  { id: 'yr1', name: 'First Year', d: 'Survive all four seasons (6 minutes)', f: () => S.t >= 360 },
+  {
+    id: 'yr1',
+    name: 'First Year',
+    d: `Survive all four seasons (${(SEASON_LEN * 4) / 60} minutes)`,
+    f: () => S.t >= SEASON_LEN * 4,
+  },
   { id: 't20', name: 'Old Lineage', d: 'Lineage lasts 20 minutes', f: () => S.t >= 1200 },
   { id: 't45', name: 'Ancient Line', d: 'Lineage lasts 45 minutes', f: () => S.t >= 2700 },
   { id: 'g30', name: 'Dynasty', d: 'Reach generation 30', f: () => S.maxGen >= 30 },

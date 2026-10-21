@@ -46,7 +46,7 @@ be changed, its name in `js/config.js` is shown like `this`.
    between 0 and 20 seconds, and traits varied 1.5 times more than normal so selection has something to work on
    straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
-   every 90 seconds. A world event happens roughly every two minutes.
+   every 2.5 minutes. A world event happens every 7 minutes.
 4. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
    creatures eat and breed in this world become more common.
 5. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
@@ -71,7 +71,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Legs** | 4, 6 or 8. Fixed: never changes through evolution. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | Random name (two made-up syllables, sometimes with an "s"), body, colour, shape and legs. |
+| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
 | **Release 20 specimens** | Starts the run. |
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
@@ -330,7 +330,7 @@ Food on land that floods, or in water that dries up, can't be eaten until the te
 
 ## 8. Seasons
 
-There are four seasons of 90 seconds each (`SEASON_LEN`), so a year lasts 6 minutes. Seasons change which
+There are four seasons of 2.5 minutes (150 seconds) each (`SEASON_LEN`), so a year lasts 10 minutes. Seasons change which
 regions regrow fast and which world events are likely. The map cross-fades to the new season's colours over
 2.5 seconds.
 
@@ -349,8 +349,10 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 ### Timing
 
-- The first event comes 90–150 seconds into a run (`EVENTS.first`).
-- After that, one comes every 100–160 seconds (`EVENTS.gap`).
+- The first event comes exactly 7 minutes into a run (`EVENTS.first`).
+- After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
+  events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
+  different season from the one before.
 - The **event bar** fills up until the next event. When it is 80% full, a **warning symbol** shows which event
   is coming. An orange symbol with "!" means a major event.
 
@@ -452,7 +454,7 @@ Achievements are earned per run and reset with each new run. They are checked ev
 
 | Achievement | How to earn it |
 |---|---|
-| First Year | Survive all four seasons (6 minutes) |
+| First Year | Survive all four seasons (10 minutes) |
 | Old Lineage | Lineage lasts 20 minutes |
 | Ancient Line | Lineage lasts 45 minutes |
 | Dynasty | Reach generation 30 |
