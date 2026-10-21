@@ -624,7 +624,9 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands. Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
-    blue-grey edge. Sea channels are drawn like the shallowest sea.
+    blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
+    so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
+    keep their stepped edges.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far

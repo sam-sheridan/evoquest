@@ -15,6 +15,9 @@ const MAXPOP = 400; // safety limit only, far above normal numbers (crowding kee
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 const START = 30; // number of creatures released at the start
+// how steeply the sides of a sea channel drop, in height per cell; steep enough that the coast is crisp, while
+// the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
+const SEA_WALL = 0.03;
 const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
 // land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
 // between min and max, and aren't picked once land is below noFlood or above noDrought

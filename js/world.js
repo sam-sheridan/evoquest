@@ -258,8 +258,24 @@ function buildTerrain() {
   const w = world,
     N = GW * GH;
   w.level = quant(w.hgt, 1 - w.landFrac);
+  // sea channels are carved into the heights as smooth troughs (like the strait), so their coasts are traced as
+  // curves; h is the height used for this build, while w.hgt (and the land colours) stay as they were
+  // seaD: how far each cell is from the nearest sea channel's edge, in cells, used to fade map details out
+  // smoothly towards it
+  const h = Float32Array.from(w.hgt);
+  w.seaD = new Float32Array(N).fill(99);
+  for (const ch of w.channels) {
+    if (!ch.sea) continue;
+    for (let y = 0; y < GH; y++)
+      for (let x = 0; x < GW; x++) {
+        const i = y * GW + x,
+          d = distPoly(x + 0.5, y + 0.5, ch.pts) - ch.w;
+        if (d < w.seaD[i]) w.seaD[i] = d;
+        if (d < 40) h[i] = Math.min(h[i], w.level + d * SEA_WALL);
+      }
+  }
   for (let i = 0; i < N; i++) {
-    let t = w.hgt[i] >= w.level ? 1 : 0;
+    let t = h[i] >= w.level ? 1 : 0;
     if (border(i)) t = 0;
     if (t) {
       if (w.thk[i] >= w.tThr) t = 2;
@@ -268,15 +284,16 @@ function buildTerrain() {
     w.type[i] = t;
     w.gap[i] = w.gapN[i] < w.gLo ? 10 : w.gapN[i] < w.gHi ? 13 : 16;
   }
-  // sea channels first (they cut through rock too), then rivers
-  const cut = [...w.channels.filter(ch => ch.sea), ...w.channels.filter(ch => !ch.sea)];
-  for (const ch of cut)
+  // rivers are cut cell by cell into land and thicket
+  for (const ch of w.channels) {
+    if (ch.sea) continue;
     for (let y = 0; y < GH; y++)
       for (let x = 0; x < GW; x++) {
         const i = y * GW + x;
-        if (ch.sea ? !isLand(w.type[i]) : w.type[i] !== 1 && w.type[i] !== 2) continue;
-        if (distPoly(x + 0.5, y + 0.5, ch.pts) < ch.w) w.type[i] = ch.sea ? 0 : 4;
+        if (w.type[i] !== 1 && w.type[i] !== 2) continue;
+        if (distPoly(x + 0.5, y + 0.5, ch.pts) < ch.w) w.type[i] = 4;
       }
+  }
   // craters keep smooth signed distances (rim and lake) so their outlines can be drawn as curves rather than grid steps
   w.cS = new Float32Array(N).fill(-99);
   w.lS = new Float32Array(N).fill(-99);
@@ -364,10 +381,10 @@ function buildTerrain() {
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
     w.fl[i] = isLand(t)
-      ? Math.max(w.hgt[i], w.level + 0.004)
+      ? Math.max(h[i], w.level + 0.004)
       : t === 4
         ? w.level - 0.03
-        : Math.min(w.hgt[i], w.level - 0.004);
+        : Math.min(h[i], w.level - 0.004);
   }
   for (let i = 0; i < N; i++) if (w.lS[i] > -1.5 && w.type[i] !== 0) w.fl[i] = w.level - w.lS[i] * 0.03;
   renderTerrain();
