@@ -92,7 +92,8 @@ const calm = matchMedia('(prefers-reduced-motion: reduce)');
 function startShake(kind, major) {
   if (calm.matches) return;
   const k = major ? 1 : 0;
-  shake = { t0: performance.now(), amp: SHAKE[kind].amp[k], dur: SHAKE[kind].dur[k] * 1000 };
+  const sh = SHAKE[kind];
+  shake = { t0: performance.now() + sh.delay * 1000, amp: sh.amp[k], dur: sh.dur[k] * 1000 };
 }
 function render(nowT) {
   let sx = 0,
@@ -100,7 +101,7 @@ function render(nowT) {
   if (shake) {
     const k = (nowT - shake.t0) / shake.dur;
     if (k >= 1) shake = null;
-    else {
+    else if (k > 0) {
       const a = (shake.amp * (1 - k) ** 2) / cam.z,
         t = nowT / 1000;
       sx = a * Math.sin(t * 61 + 1.3) * Math.cos(t * 23);

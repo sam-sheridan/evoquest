@@ -393,7 +393,8 @@ Each event:
 
 - cross-fades the map over 3 seconds
 - earthquakes shake the view for 1.6 seconds (major: 2.2, harder), and meteor strikes give it a short jolt
-  (`SHAKE`); there is no shake when the device is set to reduce motion
+  one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
+  to reduce motion
 - plays its own sound effect
 - flashes the event bar with its name for 7 seconds
 - adds a line to the event log

@@ -98,9 +98,13 @@ const EVENTS = {
   warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 
-// screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles
-// (skipped when the device asks for reduced motion)
-const SHAKE = { quake: { amp: [9, 14], dur: [1.6, 2.2] }, meteor: { amp: [5, 8], dur: [0.5, 0.7] } };
+// screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles,
+// delay = seconds before it starts (the meteor's, to land with the boom of the impact; skipped when the device
+// asks for reduced motion)
+const SHAKE = {
+  quake: { amp: [6, 10], dur: [1.6, 2.2], delay: 0 },
+  meteor: { amp: [5, 8], dur: [0.5, 0.7], delay: 1 },
+};
 
 /* ---- behaviour ---- */
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
