@@ -30,8 +30,8 @@ Sam isn't comfortable with git yet, so Claude does all of it.
 2. **Build the changes** and commit as you go, with clear messages describing what changed in the game. Push the
    branch to GitHub so the work survives the session ending.
 3. **Check.** Before every preview, run the checks below.
-4. **Preview.** Run `python3 tools/build.py` and publish `dist/evoquest.html` as a private Artifact, then give
-   Sam the link. Republish to the same Artifact after each round of feedback, so the link stays the same
+4. **Preview.** Run `python3 tools/build.py --fragment` and publish `dist/evoquest-fragment.html` as a private
+   Artifact (the fragment suits hosts that add their own page wrapper), then give Sam the link. Republish to the same Artifact after each round of feedback, so the link stays the same
    within a session.
 5. **Ship only when Sam says so** ("ship it", "merge it", "make it live"). Bring the branch up to date with
    `main`, run the checks once more, merge into `main`, push, and tell Sam it will be live in a minute or two.
@@ -43,6 +43,9 @@ If something goes wrong on the live site, revert the merge on `main` (git keeps 
 properly on a branch.
 
 ## Checks before every preview and every merge
+
+In a Claude Code cloud session, Chromium is preinstalled but Playwright isn't. Install the version that matches
+the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't run `playwright install`.
 
 1. Run `python3 tests/smoke.py`. It must print PASS with no page errors.
 2. If you changed balance (anything in `js/config.js`, or energy, breeding, food, events or speciation logic), run
