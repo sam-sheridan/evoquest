@@ -96,7 +96,7 @@ function genWorld(seed, att = 0) {
     rck = new Float32Array(N),
     fert = new Float32Array(N),
     gapN = new Float32Array(N);
-  // a strait always splits the world into two landmasses; it is deep enough that droughts never close it
+  // a strait splits the world into two landmasses at the start; it is shallow enough that droughts can close it
   const vert = rng() < 0.7,
     ang = (vert ? Math.PI / 2 : 0) + (rng() - 0.5) * 0.7,
     cx = GW * (0.4 + rng() * 0.2),
@@ -119,7 +119,7 @@ function genWorld(seed, att = 0) {
       const hard = clamp((EDGE + 12 - edgeDist(x, y) + (fo2(u, v) - 0.5) * 16) / 13, 0, 1);
       const along = (x - cx) * Math.cos(ang) + (y - cy) * Math.sin(ang),
         sd = (x - cx) * nx + (y - cy) * ny + Math.sin(along * 0.18 + wob) * 2.5;
-      hgt[i] = fh(u, v) * 1.25 - fall * 0.95 - hard * hard * 0.9 - 1.5 * Math.exp(-((sd / 3) ** 2));
+      hgt[i] = fh(u, v) * 1.25 - fall * 0.95 - hard * hard * 0.9 - LAND.strait * Math.exp(-((sd / 3) ** 2));
       const R = REGIONS.strength,
         bt = (rT(u, v) - 0.5) * R,
         br = (rR(u, v) - 0.5) * R;

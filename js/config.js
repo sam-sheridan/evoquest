@@ -18,7 +18,9 @@ const START = 30; // number of creatures released at the start
 const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
 // land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
 // between min and max, and aren't picked once land is below noFlood or above noDrought
-const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42 };
+// strait: how deep the strait between the two starting landmasses is; 1.0 keeps it open at the start but lets a
+// big drought close it in about a third of worlds
+const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42, strait: 1.0 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
 const REGIONS = { strength: 1.3 };

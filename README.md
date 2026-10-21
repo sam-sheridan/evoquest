@@ -295,8 +295,9 @@ re-plan at once.
 
 1. Smooth random height patterns are combined. The island shape is warped so coastlines are irregular, and
    the land is pushed down towards the edges.
-2. A **strait** always splits the world into **two landmasses** (70% of the time it runs roughly north–south).
-   It is deep enough that droughts never close it.
+2. A **strait** splits the world into **two landmasses** at the start (70% of the time it runs roughly
+   north–south). It is only moderately deep (`LAND.strait`), so a big drought, or several in a row, can dry it
+   up and join the two landmasses: in tests, about a third of worlds.
 3. If the second landmass is smaller than a quarter of the first (or under 1100 cells), the world is rebuilt from
    a variation of the same seed (up to 5 tries).
 4. **Regions.** Broad, slowly varying patterns give each area its own character (`REGIONS.strength` = 1.3):
@@ -394,7 +395,11 @@ All of this is in the `SEASONS` table in `js/config.js`.
   - no drought when more than 42% of the map is land (`LAND.noDrought`)
   - no flood when less than 25% is land (`LAND.noFlood`)
 
-  There is no limit on rivers or sea channels: droughts dry them up again.
+  When a drought is ruled out, its share of the odds goes to floods, and when a flood is ruled out, its share
+  goes to droughts. (Earlier, those shares went mostly to earthquakes, which grew to about half of all events.)
+
+  There is no limit on rivers or sea channels: droughts dry them up again, and the more there are, the more each
+  drought undoes, so the map doesn't keep breaking up over hours of play.
 - **10%** of events are **major** (`EVENTS.major`).
 
 ### What each event does
@@ -402,11 +407,12 @@ All of this is in the `SEASONS` table in `js/config.js`.
 | Event | Normal | Major |
 |---|---|---|
 | **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 20%, `LAND.min`). Low land and its food go underwater. | Land falls by 20 points. |
-| **Drought** | Sea level falls: land rises by 12 points (never above 46%, `LAND.max`). New land appears and islands may join the mainland, but never across the main strait. One river dries up and one sea channel closes, if there are any. | Land rises by 20 points. Two rivers dry up and two sea channels close. |
+| **Drought** | Sea level falls: land rises by 12 points (never above 46%, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each). |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
 | **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
 
-Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`).
+Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`,
+`dryShare`).
 
 A dried-up river or closed sea channel turns straight back into ordinary land, leaving no trace, so creatures can
 walk across it at once. Which river or channel dries up is picked at random, including the ones the world started
@@ -652,7 +658,8 @@ accident.
 - **Body traits are selected; look traits drift.** Colour, roundness and taper do nothing for survival, so
   their change shows pure chance and how long groups have been apart.
 - **Legs are fixed.** They are a choice you make, not something that evolves.
-- **Two landmasses, always.** The permanent strait gives geographic speciation a real chance on every world.
+- **Two landmasses to start with.** The strait gives geographic speciation a real chance on every world, but it
+  isn't permanent: droughts can close it, so the map can come together as well as break apart.
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
 - **Meteors are rare (about 1 in 20 events)** and dramatic.
