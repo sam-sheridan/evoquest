@@ -8,7 +8,7 @@ possible (no rendering), and prints one line per run plus a summary. What "healt
   - population mostly between about 40 and 100 (pctOver100 low)
   - seasons swing gently (summer/autumn a bit busier than winter/spring)
   - 0 to 2 new species per 15-minute run, never more than 3 alive at once
-  - no extinctions for ordinary designs (the big, slow design is allowed to struggle)
+  - extinction now and then, even for ordinary designs (a real risk while populations are small and local)
   - about a quarter of the land explored after 10 minutes (explored10)
 
 Needs Python 3 and Playwright:  pip install playwright && playwright install chromium

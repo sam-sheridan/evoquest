@@ -89,7 +89,8 @@ const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in sc
 // shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
 // blast: meteor kill radius in px; crater: crater radius in cells
 // splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
-// dry: rivers dried up and sea channels closed per drought (each); they turn straight back into land
+// dry: rivers dried up and sea channels closed per drought (each) at least; dryShare: or this share of them if
+// more, so the more splits there are, the more a drought undoes; they turn straight back into land
 const EVENTS = {
   first: [420, 0],
   gap: [420, 0],
@@ -101,6 +102,7 @@ const EVENTS = {
   splits: [1, 2],
   seaSplit: 0.3,
   dry: [1, 2],
+  dryShare: [0.25, 0.5],
   warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 
@@ -130,4 +132,4 @@ const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups 
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.2, eco: 0.37, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with 7-minute events: about 0-2 new species per 15-minute run
+const SPC = { geo: 0.22, eco: 0.4, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with home ranges: about 0-2 new species per 15 minutes

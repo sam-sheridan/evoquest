@@ -441,9 +441,9 @@ Two kinds of split are looked for:
 
 1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
    on. If the second-biggest group has at least 8 members and differs enough in traits from the biggest group
-   (more than `SPC.geo` = 0.2), that is a candidate split.
+   (more than `SPC.geo` = 0.22), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
-   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.37) and be clearly
+   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
    separate, with the gap between them at least 3.1 times the spread within them (`SPC.ratio`). The smaller
    cluster must have at least 8 members.
 
@@ -643,6 +643,8 @@ accident.
 - **No hard population cap.** Crowding and local food lower breeding instead. A run starts with a small local
   population (about 20–50 at 10 minutes) that grows into the 40–100 range as it spreads across the map, and can
   briefly go over.
+- **Extinction is a real risk.** Early on, a population is small and local, and a bad winter, flood or meteor
+  near home can wipe it out, even for an ordinary design. There is deliberately no safety net.
 - **Home ranges.** Creatures keep to the area they were born in, so the world is explored gradually (about a
   quarter of the land in the first 10 minutes) and groups in different areas stay apart.
 - **A bigger, oval, regional world.** The map is 1.5 times larger each way than it first was, land stays inside

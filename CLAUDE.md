@@ -62,7 +62,9 @@ the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't ru
   numbers.
 - Gentle seasonal swings.
 - 0–2 new species per 15-minute run, at most 3 alive at once. Species never merge back.
-- Ordinary designs shouldn't go extinct. Extinction is acceptable for extreme designs.
+- Extinction should happen now and then, even for ordinary designs: Sam wants it to be a real risk, especially
+  early on while a population is small and local. Don't add safety nets that rescue struggling populations.
+  Extreme designs dying out is expected.
 
 ## Code notes
 

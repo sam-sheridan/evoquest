@@ -650,9 +650,18 @@ function step(dt) {
 function pickEvent() {
   const w = world;
   if (rand() < EVENTS.meteor) return 'meteor';
-  let kinds = Object.entries(SEASONS[S.season].ev);
-  if (w.landFrac > LAND.noDrought) kinds = kinds.filter(k => k[0] !== 'drought');
-  if (w.landFrac < LAND.noFlood) kinds = kinds.filter(k => k[0] !== 'flood');
+  const ev = { ...SEASONS[S.season].ev };
+  // when land is too high for a drought (or too low for a flood), that share goes to the opposite event,
+  // not to earthquakes, so earthquakes stay as common as the season says
+  if (w.landFrac > LAND.noDrought) {
+    ev.flood += ev.drought;
+    ev.drought = 0;
+  }
+  if (w.landFrac < LAND.noFlood) {
+    ev.drought += ev.flood;
+    ev.flood = 0;
+  }
+  const kinds = Object.entries(ev).filter(k => k[1] > 0);
   let roll = rand() * kinds.reduce((s, k) => s + k[1], 0);
   for (const [n, wt] of kinds) {
     roll -= wt;
@@ -690,8 +699,8 @@ function worldEvent(kind, major, forced) {
       : 'Flood. The sea rose; low land and its food are underwater.';
   } else if (k === 'drought') {
     w.landFrac = Math.min(LAND.max, w.landFrac + amt);
-    const rivers = dryUp(false, EVENTS.dry[m]),
-      seas = dryUp(true, EVENTS.dry[m]);
+    const rivers = dryUp(false, m),
+      seas = dryUp(true, m);
     msg = major
       ? 'Major drought. The sea fell sharply, exposing new land and joining islands.'
       : 'Drought. The sea fell, joining some islands back to the mainland.';
@@ -729,9 +738,11 @@ function worldEvent(kind, major, forced) {
   if (k === 'quake') startShake('quake', major);
   eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
 }
-// droughts dry up rivers (or close sea channels) at random, turning them back into land; returns how many
-function dryUp(sea, n) {
-  const pick = world.channels.filter(ch => ch.sea === sea);
+// droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
+// are, and at least a set number (EVENTS.dry, dryShare); returns how many
+function dryUp(sea, m) {
+  const pick = world.channels.filter(ch => ch.sea === sea),
+    n = Math.max(EVENTS.dry[m], Math.round(pick.length * EVENTS.dryShare[m]));
   let k = 0;
   for (; k < n && pick.length; k++) {
     const ch = pick.splice((rand() * pick.length) | 0, 1)[0];
