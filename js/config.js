@@ -3,8 +3,9 @@
 /* ---- world size and creatures ---- */
 const MATURE = 15; // seconds old before a creature can breed
 const LIFE = 90; // maximum lifespan in seconds
-// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE
-const OLD = { from: 80, slowest: 0.5 };
+// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
+const OLD = { from: 85, slowest: 0 };
+const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
 const W = 3008; // world width in px (GW cells of CS px)
 const H = 2096; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
@@ -82,8 +83,7 @@ const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in sc
 // shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
 // blast: meteor kill radius in px; crater: crater radius in cells
 // splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
-// dry: rivers dried up and sea channels closed per drought (each)
-// dryFade: seconds a dried-up river or closed sea channel stays visible as a fading bed
+// dry: rivers dried up and sea channels closed per drought (each); they turn straight back into land
 const EVENTS = {
   first: [420, 0],
   gap: [420, 0],
@@ -95,7 +95,6 @@ const EVENTS = {
   splits: [1, 2],
   seaSplit: 0.3,
   dry: [1, 2],
-  dryFade: 300,
   warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 

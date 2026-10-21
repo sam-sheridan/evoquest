@@ -9,6 +9,11 @@ repo)
 
 **Play from a download:** open `index.html` in a browser. Nothing to install, nothing to build.
 
+**Leaving the tab:** a run keeps going while its tab is open in the background on a computer. Browsers only run a
+hidden tab's timers about once a second (less often after a few minutes), so the game catches up on the time that
+has passed each time, up to 15 seconds per catch-up (`BG_MAX`). Phones freeze a page in the background, so there
+the run pauses until you come back. Closing the tab ends the run.
+
 This README is the reference for how the game works. Every number below comes from the code. When a number can
 be changed, its name in `js/config.js` is shown like `this`.
 
@@ -205,7 +210,7 @@ runs never come near it.
 | Cause | When |
 |---|---|
 | Starvation | Energy reaches 0. |
-| Old age | 90 seconds old (`LIFE`). From 80 seconds old creatures slow down steadily, reaching half speed at 90 (`OLD`). |
+| Old age | 90 seconds old (`LIFE`). From 85 seconds old creatures slow down steadily, coming to a halt at 90 (`OLD`). |
 | Meteor strike | Within the blast radius of a meteor (see [events](#9-world-events)). |
 
 A species is marked extinct when it has no members at a stats check (every 2 seconds). The run ends when no
@@ -244,7 +249,7 @@ allowed into.
 ### Moving
 
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply.
-- Old creatures slow down: from 80 seconds old their speed falls steadily to half at 90 (`OLD`).
+- Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
 - Wanderers steer away from the outer sea margin.
 
@@ -380,10 +385,9 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`).
 
-A dried-up river or closed sea channel becomes ordinary land straight away, so creatures can walk across it at
-once. It leaves a faint sandy **bed** with a dashed edge, tracing where the water was, which fades away over 5
-minutes (`EVENTS.dryFade`). Which river or channel dries up is picked at random, including the ones the world
-started with.
+A dried-up river or closed sea channel turns straight back into ordinary land, leaving no trace, so creatures can
+walk across it at once. Which river or channel dries up is picked at random, including the ones the world started
+with.
 
 Each event:
 
@@ -531,8 +535,9 @@ Collapse or expand it with the arrow. It has three tabs.
   The **Follow** button keeps the camera on it. The selected creature has orange corner brackets and a dashed
   line to its food target.
 - **World**: world number, current season and time left, sea cover, time to the next event, number of
-  landmasses (ignoring specks under 20 cells), rivers, sea channels and craters, thicket and rock cover as a
-  share of the land, and a map key.
+  landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
+  crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
+  a map key. All of them are measured from the map as it is now, so they change after every event.
 
 ### Map
 
@@ -575,6 +580,9 @@ All sound is generated live in the browser. There are no audio files.
 | **World events** | Each has its own effect, louder and longer when major: flood (rushing water and falling notes), drought (dry hiss and rising notes), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
 | **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
 
+Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
+back into view, and on the next tap or key press if the browser insists on one.
+
 ---
 
 ## 15. How things are drawn
@@ -584,8 +592,7 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands. Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
-    blue-grey edge. Sea channels are drawn like the shallowest sea. Dried-up rivers and closed sea channels
-    leave a sandy bed with a dashed edge that fades out.
+    blue-grey edge. Sea channels are drawn like the shallowest sea.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far

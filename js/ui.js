@@ -449,9 +449,10 @@ function syncUI() {
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
     $('#p-world').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
-      <div><span>Sea cover</span><b>${Math.round((1 - world.landFrac) * 100)}%</b></div><div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>
-      <div><span>Landmasses</span><b>${world.stats.lands}</b></div><div><span>Rivers</span><b>${world.stats.rivers}</b></div>
-      <div><span>Sea channels</span><b>${world.stats.seas}</b></div><div><span>Craters</span><b>${world.craters.length}</b></div>
+      <div><span>Land cover</span><b>${world.stats.land}%</b></div><div><span>Sea cover</span><b>${world.stats.sea}%</b></div>
+      <div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>
+<div><span>Landmasses</span><b>${world.stats.lands}</b></div>
+      <div><span>Craters</span><b>${world.stats.craters}</b></div>
       <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>

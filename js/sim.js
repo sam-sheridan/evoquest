@@ -594,8 +594,6 @@ function step(dt) {
   S.sampleT += dt;
   if (S.sampleT >= 2) {
     S.sampleT = 0;
-    // beds that have fully faded are forgotten
-    world.channels = world.channels.filter(ch => ch.dry == null || S.t - ch.dry < EVENTS.dryFade);
     sample();
     checkBadges();
   }
@@ -695,22 +693,13 @@ function worldEvent(kind, major, forced) {
   SFX[k] && SFX[k](major);
   eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
 }
-// droughts dry up rivers (or close sea channels) at random; returns how many
-// each remembers the outline of the water it held, which is drawn as a fading bed
+// droughts dry up rivers (or close sea channels) at random, turning them back into land; returns how many
 function dryUp(sea, n) {
-  const w = world,
-    wet = w.channels.filter(ch => ch.sea === sea && ch.dry == null);
+  const pick = world.channels.filter(ch => ch.sea === sea);
   let k = 0;
-  for (; k < n && wet.length; k++) {
-    const ch = wet.splice((rand() * wet.length) | 0, 1)[0],
-      was = new Uint8Array(GW * GH);
-    for (let i = 0; i < GW * GH; i++) {
-      const t = w.type[i];
-      if (sea ? t === 0 && w.hgt[i] >= w.level : t === 4)
-        was[i] = distPoly((i % GW) + 0.5, ((i / GW) | 0) + 0.5, ch.pts) < ch.w ? 1 : 0;
-    }
-    ch.bed = march(i => was[i], 0.5, true, true);
-    ch.dry = S.t;
+  for (; k < n && pick.length; k++) {
+    const ch = pick.splice((rand() * pick.length) | 0, 1)[0];
+    world.channels.splice(world.channels.indexOf(ch), 1);
   }
   return k;
 }

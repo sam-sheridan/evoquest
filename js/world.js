@@ -13,7 +13,6 @@ const border = i => {
   return x < EDGE || y < EDGE || x >= GW - EDGE || y >= GH - EDGE;
 };
 // a split from coast to coast at any angle, meandering along its length: a river, or a wider sea channel
-// (dry: when a drought dried it up; it then stops being water and only its fading bed is drawn)
 function makeChannel(rng, sea = false) {
   const ang = rng() * Math.PI,
     cx = GW * (0.25 + rng() * 0.5),
@@ -39,7 +38,7 @@ function makeChannel(rng, sea = false) {
   const on = ([x, y]) => x > -4 && y > -4 && x < GW + 4 && y < GH + 4,
     a = Math.max(0, all.findIndex(on) - 1),
     b = Math.min(all.length - 1, all.findLastIndex(on) + 1);
-  return { pts: all.slice(a, b + 1), w: sea ? 2.6 + rng() * 1.2 : 1.15 + rng() * 0.45, sea, dry: null };
+  return { pts: all.slice(a, b + 1), w: sea ? 2.6 + rng() * 1.2 : 1.15 + rng() * 0.45, sea };
 }
 function genWorld(seed, att = 0) {
   const rng = mulberry32(seed + att * 7777);
@@ -231,9 +230,8 @@ function buildTerrain() {
     w.type[i] = t;
     w.gap[i] = w.gapN[i] < w.gLo ? 10 : w.gapN[i] < w.gHi ? 13 : 16;
   }
-  // sea channels first (they cut through rock too), then rivers; dried-up ones are ordinary land again
-  const wet = w.channels.filter(ch => ch.dry == null),
-    cut = [...wet.filter(ch => ch.sea), ...wet.filter(ch => !ch.sea)];
+  // sea channels first (they cut through rock too), then rivers
+  const cut = [...w.channels.filter(ch => ch.sea), ...w.channels.filter(ch => !ch.sea)];
   for (const ch of cut)
     for (let y = 0; y < GH; y++)
       for (let x = 0; x < GW; x++) {
@@ -300,20 +298,24 @@ function buildTerrain() {
     id++;
   }
   const ord = sizes.map((n, i) => [n, i]).sort((a, b) => b[0] - a[0]);
-  // figures for the inspector's World tab (landmasses ignore specks under 20 cells)
+  // figures for the inspector's World tab, measured from the map as it is now (landmasses ignore specks under
+  // 20 cells; a crater counts while its centre is above the sea)
   let nT = 0,
     nR = 0,
-    nL = 0;
+    nL = 0,
+    nS = 0;
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
     if (isLand(t)) nL++;
+    if (t === 0) nS++;
     if (t === 2) nT++;
     if (t === 3) nR++;
   }
   w.stats = {
     lands: sizes.filter(n => n >= 20).length,
-    rivers: wet.filter(ch => !ch.sea).length,
-    seas: wet.filter(ch => ch.sea).length,
+    craters: w.craters.filter(c => w.type[(c.y | 0) * GW + (c.x | 0)] !== 0).length,
+    land: Math.round((nL / N) * 100),
+    sea: Math.round((nS / N) * 100),
     thicket: Math.round((nT / Math.max(1, nL)) * 100),
     rock: Math.round((nR / Math.max(1, nL)) * 100),
   };

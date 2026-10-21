@@ -17,6 +17,15 @@ function ensureAudio() {
   }
   if (AC && AC.state === 'suspended') AC.resume();
 }
+// browsers pause a page's sound while it is hidden or the device sleeps (iOS calls this "interrupted"), so wake
+// it when the page comes back, and on the next tap or key press in case the browser wants a gesture first
+function wakeAudio() {
+  if (AC && AC.state !== 'running' && AC.state !== 'closed') AC.resume().catch(() => {});
+}
+document.addEventListener('visibilitychange', () => document.hidden || wakeAudio());
+for (const ev of ['focus', 'pageshow']) addEventListener(ev, wakeAudio);
+for (const ev of ['pointerdown', 'keydown'])
+  addEventListener(ev, wakeAudio, { capture: true, passive: true });
 function tone(f, d, type, vol, when = 0) {
   if (!AC || !sound) return;
   const t = AC.currentTime + when,

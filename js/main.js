@@ -48,27 +48,6 @@ function updScale() {
   $('#scaleL').textContent = L + ' px';
   $('#scaleI').style.width = L * cam.z + 'px';
 }
-// dried-up rivers and closed sea channels leave a faint sandy bed on the land that fades away (EVENTS.dryFade)
-function drawBeds() {
-  const beds = world.channels.filter(ch => ch.dry != null);
-  if (!beds.length) return;
-  ctx.save();
-  ctx.clip(world.vec.land);
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  for (const ch of beds) {
-    const a = 1 - (S.t - ch.dry) / EVENTS.dryFade;
-    if (a <= 0 || !ch.bed) continue;
-    ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(196,178,132,.42)';
-    ctx.fill(ch.bed.fill);
-    ctx.strokeStyle = 'rgba(120,104,72,.45)';
-    ctx.lineWidth = 0.9;
-    ctx.setLineDash([5, 5]);
-    ctx.stroke(ch.bed.line);
-  }
-  ctx.restore();
-}
 function drawDetail() {
   const z = cam.z;
   if (z * dpr <= TS * 1.05) return false;
@@ -147,7 +126,6 @@ function render(nowT) {
     ctx.globalAlpha = 1;
   }
   if (!S) return;
-  drawBeds();
   const lw = clamp(1.5 / z, 0.45, 1.3);
   if (S.replay) {
     const a = S.frames[S.replay.i].a;
@@ -200,18 +178,7 @@ function render(nowT) {
     const sc = Math.min(1, 0.4 + c.age * 2),
       hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
       tt = world.type[hi];
-    drawCreature(
-      ctx,
-      c,
-      c.x,
-      c.y,
-      sc,
-      lod,
-      spMode ? S.species[c.sp].tag : col(c),
-      t,
-      isWater(tt),
-      lw / sc
-    );
+    drawCreature(ctx, c, c.x, c.y, sc, lod, spMode ? S.species[c.sp].tag : col(c), t, isWater(tt), lw / sc);
   }
   if (det) drawStipple(det);
   else if (stale) ctx.drawImage(detail.can2, ...stale);
@@ -350,17 +317,30 @@ function tap(sx, sy) {
 /* loop */
 let last = performance.now(),
   uiAcc = 0;
+// run the simulation for dt seconds of real time at the chosen speed
+function advance(dt) {
+  if (!S || S.paused || S.over || S.replay) return;
+  let sim = dt * S.speed;
+  while (sim > 1e-6 && !S.over) {
+    const h = Math.min(sim, 0.05);
+    step(h);
+    sim -= h;
+  }
+}
+// browsers stop drawing a hidden tab, but still run a slow timer (about once a second, or less often after a
+// while): use it to keep the run going in the background, catching up on the real time that has passed
+// (at most BG_MAX seconds per tick, so a long gap doesn't freeze the page)
+let bgLast = 0;
+setInterval(() => {
+  if (!document.hidden) return void (bgLast = 0);
+  const now = performance.now();
+  if (bgLast) advance(Math.min(BG_MAX, (now - bgLast) / 1000));
+  bgLast = now;
+}, 1000);
 function frame(nowT) {
   const dt = Math.min(0.1, (nowT - last) / 1000);
   last = nowT;
-  if (S && !S.paused && !S.over && !S.replay) {
-    let sim = dt * S.speed;
-    while (sim > 1e-6 && !S.over) {
-      const h = Math.min(sim, 0.05);
-      step(h);
-      sim -= h;
-    }
-  }
+  advance(dt);
   if (S && S.replay) advanceReplay(dt);
   if (S && S.fade) {
     S.fade.t += dt;
