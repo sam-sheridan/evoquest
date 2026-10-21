@@ -269,7 +269,7 @@ re-plan at once.
 | **Land** | Everything above sea level. |
 | **Thicket** | The densest 21% of a "thicket" noise pattern, on land. Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each). Denser dots on the map mean narrower gaps. |
 | **Rock** | The top 10% of a "rock" noise pattern, on land. Impassable. Drawn as contoured grey plates. |
-| **River** | A wandering channel cut right across the map. Strong current. |
+| **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### How a world is generated
 
@@ -280,7 +280,8 @@ re-plan at once.
 3. If the second landmass is smaller than a quarter of the first, the world is rebuilt from a variation of the
    same seed (up to 5 tries).
 4. 36–42% of the map starts as land.
-5. Rivers: an 85% chance of one, plus a 55% chance of a second.
+5. Rivers: an 85% chance of one, plus a 55% chance of a second. Each runs coast to coast at a random angle and
+   meanders along its length (two overlapping waves plus a little jitter), so splits aren't straight lines.
 6. **Food sites** are placed: 300 berry sites on land and 100 algae sites in water (see [food](#7-food)).
 
 The **main landmass** is the biggest piece of land. Any other land counts as an **island** for food and
@@ -363,17 +364,25 @@ All of this is in the `SEASONS` table in `js/config.js`.
   out when they would push the world too far:
   - no drought when more than 55% of the map is land
   - no flood when less than 30% is land
-  - no earthquake once there are 4 rivers
+
+  There is no limit on rivers or sea channels: droughts dry them up again.
 - **10%** of events are **major** (`EVENTS.major`).
 
 ### What each event does
 
 | Event | Normal | Major |
 |---|---|---|
-| **Flood** | Sea level rises: land falls by 5 percentage points of the map (never below 24%). Low land and its food go underwater. | Land falls by 12 points. |
-| **Drought** | Sea level falls: land rises by 5 points (never above 60%). New land appears and islands may join the mainland, but never across the main strait. | Land rises by 12 points. |
-| **Earthquake** | A new river cuts across the map, which can split populations. | Two new rivers. |
-| **Meteor** | Hits a random land spot. Kills every creature within 110 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 190 px and makes a much bigger crater. |
+| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 24%). Low land and its food go underwater. | Land falls by 20 points. |
+| **Drought** | Sea level falls: land rises by 12 points (never above 60%). New land appears and islands may join the mainland, but never across the main strait. One river dries up and one sea channel closes, if there are any. | Land rises by 20 points. Two rivers dry up and two sea channels close. |
+| **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
+| **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
+
+Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`).
+
+A dried-up river or closed sea channel becomes ordinary land straight away, so creatures can walk across it at
+once. It leaves a faint sandy **bed** with a dashed edge, tracing where the water was, which fades away over 5
+minutes (`EVENTS.dryFade`). Which river or channel dries up is picked at random, including the ones the world
+started with.
 
 Each event:
 
@@ -382,7 +391,8 @@ Each event:
 - flashes the event bar with its name for 7 seconds
 - adds a line to the event log
 
-Land heights never change, only the sea level, so the colours of land that stays above water don't shift.
+Land heights never change, only the sea level (and rivers and sea channels cut on top), so the colours of land
+that stays above water don't shift.
 
 ---
 
@@ -571,7 +581,8 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands. Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
-    blue-grey edge.
+    blue-grey edge. Sea channels are drawn like the shallowest sea. Dried-up rivers and closed sea channels
+    leave a sandy bed with a dashed edge that fades out.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far

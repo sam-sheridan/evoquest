@@ -76,7 +76,25 @@ const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in sc
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
 // (no random extra: one event every 7 minutes, like clockwork)
 // meteor: chance an event is a meteor; major: chance an event is a major one
-const EVENTS = { first: [420, 0], gap: [420, 0], meteor: 0.05, major: 0.1 };
+// each pair below is [normal, major]
+// shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
+// blast: meteor kill radius in px; crater: crater radius in cells
+// splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
+// dry: rivers dried up and sea channels closed per drought (each)
+// dryFade: seconds a dried-up river or closed sea channel stays visible as a fading bed
+const EVENTS = {
+  first: [420, 0],
+  gap: [420, 0],
+  meteor: 0.05,
+  major: 0.1,
+  shift: [0.12, 0.2],
+  blast: [190, 280],
+  crater: [7.5, 11],
+  splits: [1, 2],
+  seaSplit: 0.3,
+  dry: [1, 2],
+  dryFade: 300,
+};
 
 /* ---- behaviour ---- */
 const MAXT = 22; // furthest a creature will plan, in seconds of travel

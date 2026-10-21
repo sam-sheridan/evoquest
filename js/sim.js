@@ -591,6 +591,8 @@ function step(dt) {
   S.sampleT += dt;
   if (S.sampleT >= 2) {
     S.sampleT = 0;
+    // beds that have fully faded are forgotten
+    world.channels = world.channels.filter(ch => ch.dry == null || S.t - ch.dry < EVENTS.dryFade);
     sample();
     checkBadges();
   }
@@ -618,7 +620,6 @@ function pickEvent() {
   let kinds = Object.entries(SEASONS[S.season].ev);
   if (w.landFrac > 0.55) kinds = kinds.filter(k => k[0] !== 'drought');
   if (w.landFrac < 0.3) kinds = kinds.filter(k => k[0] !== 'flood');
-  if (w.channels.length >= 4) kinds = kinds.filter(k => k[0] !== 'quake');
   let roll = rand() * kinds.reduce((s, k) => s + k[1], 0);
   for (const [n, wt] of kinds) {
     roll -= wt;
@@ -629,12 +630,7 @@ function pickEvent() {
 function worldEvent(kind, major) {
   const w = world;
   let k = kind || pickEvent();
-  if (
-    (k === 'drought' && w.landFrac > 0.55) ||
-    (k === 'flood' && w.landFrac < 0.3) ||
-    (k === 'quake' && w.channels.length >= 4)
-  )
-    k = pickEvent();
+  if ((k === 'drought' && w.landFrac > 0.55) || (k === 'flood' && w.landFrac < 0.3)) k = pickEvent();
   let msg;
   if (k === 'meteor') {
     for (let tries = 0; tries < 200; tries++) {
@@ -647,7 +643,8 @@ function worldEvent(kind, major) {
     }
     return;
   }
-  const amt = major ? 0.12 : 0.05;
+  const m = major ? 1 : 0,
+    amt = EVENTS.shift[m];
   if (k === 'flood') {
     w.landFrac = Math.max(0.24, w.landFrac - amt);
     msg = major
@@ -655,15 +652,32 @@ function worldEvent(kind, major) {
       : 'Flood. The sea rose; low land and its food are underwater.';
   } else if (k === 'drought') {
     w.landFrac = Math.min(0.6, w.landFrac + amt);
+    const rivers = dryUp(false, EVENTS.dry[m]),
+      seas = dryUp(true, EVENTS.dry[m]);
     msg = major
       ? 'Major drought. The sea fell sharply, exposing new land and joining islands.'
       : 'Drought. The sea fell, joining some islands back to the mainland.';
+    if (rivers) msg += rivers > 1 ? ` ${rivers} rivers have dried up.` : ' A river has dried up.';
+    if (seas) msg += seas > 1 ? ` ${seas} sea channels have closed.` : ' A sea channel has closed.';
   } else {
-    w.channels.push(makeChannel(Math.random));
-    if (major) w.channels.push(makeChannel(Math.random));
+    let seas = 0;
+    for (let n = 0; n < EVENTS.splits[m]; n++) {
+      const sea = rand() < EVENTS.seaSplit;
+      seas += sea;
+      w.channels.push(makeChannel(rand, sea));
+    }
+    const rivers = EVENTS.splits[m] - seas;
     msg = major
-      ? 'Major earthquake. Two new rivers have torn the land apart.'
-      : 'Earthquake. A new river has split the land.';
+      ? `Major earthquake. ${
+          !seas
+            ? 'Two new rivers have'
+            : !rivers
+              ? 'Two sea channels have'
+              : 'A new river and a sea channel have'
+        } torn the land apart.`
+      : seas
+        ? 'Earthquake. The land has cracked apart and the sea has flooded in.'
+        : 'Earthquake. A new river has split the land.';
   }
   w.dirty = true;
   const old = snapMap();
@@ -676,17 +690,36 @@ function worldEvent(kind, major) {
   SFX[k] && SFX[k](major);
   eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
 }
+// droughts dry up rivers (or close sea channels) at random; returns how many
+// each remembers the outline of the water it held, which is drawn as a fading bed
+function dryUp(sea, n) {
+  const w = world,
+    wet = w.channels.filter(ch => ch.sea === sea && ch.dry == null);
+  let k = 0;
+  for (; k < n && wet.length; k++) {
+    const ch = wet.splice((rand() * wet.length) | 0, 1)[0],
+      was = new Uint8Array(GW * GH);
+    for (let i = 0; i < GW * GH; i++) {
+      const t = w.type[i];
+      if (sea ? t === 0 && w.hgt[i] >= w.level : t === 4)
+        was[i] = distPoly((i % GW) + 0.5, ((i / GW) | 0) + 0.5, ch.pts) < ch.w ? 1 : 0;
+    }
+    ch.bed = march(i => was[i], 0.5, true, true);
+    ch.dry = S.t;
+  }
+  return k;
+}
 function meteor(x, y, major) {
   world.craters.push({
     x: x / CS,
     y: y / CS,
     gap: rand() * TAU,
-    r: major ? 7.5 : 4.8,
+    r: EVENTS.crater[major ? 1 : 0],
     p: [rand() * TAU, rand() * TAU, rand() * TAU],
   });
   let k = 0;
   for (const c of S.creatures) {
-    if (!c.dead && Math.hypot(c.x - x, c.y - y) < (major ? 190 : 110)) {
+    if (!c.dead && Math.hypot(c.x - x, c.y - y) < EVENTS.blast[major ? 1 : 0]) {
       kill(c, 'meteor strike');
       k++;
     }

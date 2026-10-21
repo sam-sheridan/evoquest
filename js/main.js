@@ -48,6 +48,27 @@ function updScale() {
   $('#scaleL').textContent = L + ' px';
   $('#scaleI').style.width = L * cam.z + 'px';
 }
+// dried-up rivers and closed sea channels leave a faint sandy bed on the land that fades away (EVENTS.dryFade)
+function drawBeds() {
+  const beds = world.channels.filter(ch => ch.dry != null);
+  if (!beds.length) return;
+  ctx.save();
+  ctx.clip(world.vec.land);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const ch of beds) {
+    const a = 1 - (S.t - ch.dry) / EVENTS.dryFade;
+    if (a <= 0 || !ch.bed) continue;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(196,178,132,.42)';
+    ctx.fill(ch.bed.fill);
+    ctx.strokeStyle = 'rgba(120,104,72,.45)';
+    ctx.lineWidth = 0.9;
+    ctx.setLineDash([5, 5]);
+    ctx.stroke(ch.bed.line);
+  }
+  ctx.restore();
+}
 function drawDetail() {
   const z = cam.z;
   if (z * dpr <= TS * 1.05) return false;
@@ -109,6 +130,7 @@ function render(nowT) {
     ctx.globalAlpha = 1;
   }
   if (!S) return;
+  drawBeds();
   const lw = clamp(1.5 / z, 0.45, 1.3);
   if (S.replay) {
     const a = S.frames[S.replay.i].a;
