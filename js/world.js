@@ -7,11 +7,15 @@
 let world = null;
 const isLand = t => t === 1 || t === 2 || t === 3,
   isWater = t => t === 0 || t === 4;
-const border = i => {
-  const x = i % GW,
-    y = (i / GW) | 0;
-  return x < EDGE || y < EDGE || x >= GW - EDGE || y >= GH - EDGE;
-};
+// how far a cell is inside the oval edge of the map, in cells (roughly; exact on the axes)
+function edgeDist(x, y) {
+  const dx = x + 0.5 - GW / 2,
+    dy = y + 0.5 - GH / 2,
+    e = Math.hypot(dx / (GW / 2), dy / (GH / 2)),
+    rc = Math.hypot(dx, dy);
+  return e < 1e-6 ? GH / 2 : (rc * (1 - e)) / e;
+}
+const border = i => edgeDist(i % GW, (i / GW) | 0) < EDGE;
 // a split from coast to coast at any angle, meandering along its length: a river, or a wider sea channel
 function makeChannel(rng, sea = false) {
   const ang = rng() * Math.PI,
@@ -23,8 +27,8 @@ function makeChannel(rng, sea = false) {
     // two waves of different lengths make a meander that doesn't look regular
     f1 = 1 + rng() * 1.5,
     f2 = 2.5 + rng() * 2.5,
-    a1 = 4 + rng() * 6,
-    a2 = 1.5 + rng() * 2.5,
+    a1 = (4 + rng() * 6) * (GH / 131), // bends scale with the map, so big maps don't get straighter rivers
+    a2 = (1.5 + rng() * 2.5) * (GH / 131),
     p1 = rng() * TAU,
     p2 = rng() * TAU,
     all = [];
@@ -52,23 +56,40 @@ function genWorld(seed, att = 0) {
       [7, 0.4],
     ]),
     fh = field(rng, [
-      [4, 0.5],
-      [8, 0.3],
-      [17, 0.2],
+      [6, 0.5],
+      [12, 0.3],
+      [26, 0.2],
     ]),
     ft = field(rng, [
-      [20, 0.7],
-      [38, 0.3],
+      [30, 0.7],
+      [57, 0.3],
     ]),
     fr = field(rng, [
-      [25, 0.6],
-      [45, 0.4],
+      [38, 0.6],
+      [68, 0.4],
     ]),
     ff = field(rng, [
-      [6, 0.6],
-      [14, 0.4],
+      [9, 0.6],
+      [21, 0.4],
     ]),
-    fg = field(rng, [[5, 1]]);
+    fg = field(rng, [[8, 1]]),
+    // regions: broad patterns that make some areas thicket country, some rocky, some low and wet
+    rT = field(rng, [
+      [3, 0.6],
+      [5, 0.4],
+    ]),
+    rR = field(rng, [
+      [3, 0.6],
+      [5, 0.4],
+    ]),
+    rW = field(rng, [
+      [2, 0.5],
+      [4, 0.5],
+    ]),
+    fl = field(rng, [
+      [14, 0.6],
+      [27, 0.4],
+    ]);
   const N = GW * GH,
     hgt = new Float32Array(N),
     thk = new Float32Array(N),
@@ -94,15 +115,32 @@ function genWorld(seed, att = 0) {
         dy = (wv - 0.5) * 2,
         rr = Math.hypot(dx * 0.92, dy) + (fo(u, v) - 0.5) * 1.25,
         fall = clamp((rr - 0.3) / 0.55, 0, 1);
-      const edgeCells = Math.min(x, y, GW - 1 - x, GH - 1 - y),
-        hard = clamp((EDGE + 12 - edgeCells) / 13, 0, 1);
+      // the oval edge is roughened by the same warp as the coast, so it never reads as a clean ellipse
+      const hard = clamp((EDGE + 12 - edgeDist(x, y) + (fo2(u, v) - 0.5) * 16) / 13, 0, 1);
       const along = (x - cx) * Math.cos(ang) + (y - cy) * Math.sin(ang),
         sd = (x - cx) * nx + (y - cy) * ny + Math.sin(along * 0.18 + wob) * 2.5;
       hgt[i] = fh(u, v) * 1.25 - fall * 0.95 - hard * hard * 0.9 - 1.5 * Math.exp(-((sd / 3) ** 2));
-      thk[i] = ft(u, v);
-      rck[i] = fr(u, v);
+      const R = REGIONS.strength,
+        bt = (rT(u, v) - 0.5) * R,
+        br = (rR(u, v) - 0.5) * R;
+      thk[i] = ft(u, v) + bt * 0.9;
+      rck[i] = fr(u, v) + br * 0.9;
       fert[i] = ff(u, v);
-      gapN[i] = fg(u, v);
+      gapN[i] = fg(u, v) - bt * 0.8; // thicket country also has the narrowest gaps
+    }
+  // wetlands: in wet regions the land is flattened down to just above the starting sea level, with hollows that
+  // hold lakes, so floods drown these areas first and droughts drain them first
+  const landFrac = LAND.start[0] + rng() * LAND.start[1],
+    lvl0 = quant(hgt, 1 - landFrac);
+  for (let y = 0; y < GH; y++)
+    for (let x = 0; x < GW; x++) {
+      const i = y * GW + x,
+        u = (x + 0.5) / GW,
+        v = (y + 0.5) / GH,
+        wet = clamp((rW(u, v) - 0.5) * 4.5 * REGIONS.strength, 0, 1);
+      if (!wet || hgt[i] < lvl0) continue;
+      const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9;
+      hgt[i] += (flat - hgt[i]) * wet;
     }
   world = {
     seed,
@@ -117,7 +155,7 @@ function genWorld(seed, att = 0) {
     fl: new Float32Array(N),
     dLand: null,
     dWater: null,
-    landFrac: 0.36 + rng() * 0.06,
+    landFrac,
     channels: [],
     craters: [],
     level: 0,
@@ -136,7 +174,7 @@ function genWorld(seed, att = 0) {
     const cnt = {};
     for (const c of world.comp) if (c >= 0) cnt[c] = (cnt[c] || 0) + 1;
     const sz = Object.values(cnt).sort((a, b) => b - a);
-    if (!(sz[1] >= Math.max(500, sz[0] * 0.25))) return genWorld(seed, att + 1);
+    if (!(sz[1] >= Math.max(1100, sz[0] * 0.25))) return genWorld(seed, att + 1);
   }
   world.sites = [];
   let tries = 0,

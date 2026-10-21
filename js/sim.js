@@ -619,8 +619,8 @@ function pickEvent() {
   const w = world;
   if (rand() < EVENTS.meteor) return 'meteor';
   let kinds = Object.entries(SEASONS[S.season].ev);
-  if (w.landFrac > 0.55) kinds = kinds.filter(k => k[0] !== 'drought');
-  if (w.landFrac < 0.3) kinds = kinds.filter(k => k[0] !== 'flood');
+  if (w.landFrac > LAND.noDrought) kinds = kinds.filter(k => k[0] !== 'drought');
+  if (w.landFrac < LAND.noFlood) kinds = kinds.filter(k => k[0] !== 'flood');
   let roll = rand() * kinds.reduce((s, k) => s + k[1], 0);
   for (const [n, wt] of kinds) {
     roll -= wt;
@@ -632,7 +632,10 @@ function pickEvent() {
 function worldEvent(kind, major, forced) {
   const w = world;
   let k = kind || pickEvent();
-  if (!forced && ((k === 'drought' && w.landFrac > 0.55) || (k === 'flood' && w.landFrac < 0.3)))
+  if (
+    !forced &&
+    ((k === 'drought' && w.landFrac > LAND.noDrought) || (k === 'flood' && w.landFrac < LAND.noFlood))
+  )
     k = pickEvent();
   let msg;
   if (k === 'meteor') {
@@ -649,12 +652,12 @@ function worldEvent(kind, major, forced) {
   const m = major ? 1 : 0,
     amt = EVENTS.shift[m];
   if (k === 'flood') {
-    w.landFrac = Math.max(0.24, w.landFrac - amt);
+    w.landFrac = Math.max(LAND.min, w.landFrac - amt);
     msg = major
       ? 'Major flood. The sea surged far inland, drowning low land and its food.'
       : 'Flood. The sea rose; low land and its food are underwater.';
   } else if (k === 'drought') {
-    w.landFrac = Math.min(0.6, w.landFrac + amt);
+    w.landFrac = Math.min(LAND.max, w.landFrac + amt);
     const rivers = dryUp(false, EVENTS.dry[m]),
       seas = dryUp(true, EVENTS.dry[m]);
     msg = major

@@ -6,21 +6,27 @@ const LIFE = 90; // maximum lifespan in seconds
 // ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
 const OLD = { from: 85, slowest: 0 };
 const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
-const W = 3008; // world width in px (GW cells of CS px)
-const H = 2096; // world height in px (GH cells of CS px)
+const W = 4512; // world width in px (GW cells of CS px)
+const H = 3152; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
-const GW = 188; // terrain grid width in cells
-const GH = 131; // terrain grid height in cells
+const GW = 282; // terrain grid width in cells
+const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 const START = 20; // number of creatures released at the start
-const EDGE = 10; // width in cells of the guaranteed sea margin around the map
+const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
+// land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
+// between min and max, and aren't picked once land is below noFlood or above noDrought
+const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42 };
+// regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
+// strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
+const REGIONS = { strength: 1 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
-const TS = 1.2; // resolution of the pre-drawn map image (pixels per world px)
-const LO = 0.55; // resolution of the low-detail copy used when zoomed far out
+const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
+const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
 
 /* ---- colours ---- */
