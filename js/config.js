@@ -14,7 +14,7 @@ const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
-const START = 30; // number of creatures released at the start
+const START = 25; // number of creatures released at the start
 // how steeply the sides of a sea channel drop, in height per cell; steep enough that the coast is crisp, while
 // the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
 const SEA_WALL = 0.03;
