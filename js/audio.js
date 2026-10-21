@@ -17,15 +17,19 @@ function ensureAudio() {
   }
   if (AC && AC.state === 'suspended') AC.resume();
 }
-// browsers pause a page's sound while it is hidden or the device sleeps (iOS calls this "interrupted"), so wake
-// it when the page comes back, and on the next tap or key press in case the browser wants a gesture first
+// browsers pause a page's sound while it is hidden or the device sleeps (Safari calls this "interrupted"), so wake
+// it when the page comes back into view, or on the next click or key press if the browser wants a gesture first;
+// only a paused context is touched
 function wakeAudio() {
-  if (AC && AC.state !== 'running' && AC.state !== 'closed') AC.resume().catch(() => {});
+  if (!AC || (AC.state !== 'suspended' && AC.state !== 'interrupted')) return;
+  const p = AC.resume();
+  if (p && p.catch) p.catch(() => {});
 }
-document.addEventListener('visibilitychange', () => document.hidden || wakeAudio());
-for (const ev of ['focus', 'pageshow']) addEventListener(ev, wakeAudio);
-for (const ev of ['pointerdown', 'keydown'])
-  addEventListener(ev, wakeAudio, { capture: true, passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) wakeAudio();
+});
+addEventListener('click', wakeAudio, true);
+addEventListener('keydown', wakeAudio, true);
 function tone(f, d, type, vol, when = 0) {
   if (!AC || !sound) return;
   const t = AC.currentTime + when,
