@@ -300,6 +300,23 @@ function buildTerrain() {
     id++;
   }
   const ord = sizes.map((n, i) => [n, i]).sort((a, b) => b[0] - a[0]);
+  // figures for the inspector's World tab (landmasses ignore specks under 20 cells)
+  let nT = 0,
+    nR = 0,
+    nL = 0;
+  for (let i = 0; i < N; i++) {
+    const t = w.type[i];
+    if (isLand(t)) nL++;
+    if (t === 2) nT++;
+    if (t === 3) nR++;
+  }
+  w.stats = {
+    lands: sizes.filter(n => n >= 20).length,
+    rivers: wet.filter(ch => !ch.sea).length,
+    seas: wet.filter(ch => ch.sea).length,
+    thicket: Math.round((nT / Math.max(1, nL)) * 100),
+    rock: Math.round((nR / Math.max(1, nL)) * 100),
+  };
   w.main = ord.length ? ord[0][1] : 0;
   w.second = ord.length > 1 ? ord[1][1] : w.main;
   w.dLand = distField(i => isLand(w.type[i]));

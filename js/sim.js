@@ -171,9 +171,12 @@ function allowed(c, i, t) {
   if (t === 2 && c.thick > world.gap[i]) return false;
   return world.dWater[i] <= c.dL;
 }
+// old creatures slow down over their last few seconds (OLD)
+const ageing = c =>
+  c.age <= OLD.from ? 1 : 1 - ((1 - OLD.slowest) * (c.age - OLD.from)) / (LIFE - OLD.from);
 function speedIn(c, t, i, ok) {
   if (!ok) return 7;
-  return isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * 0.85 : c.vL;
+  return (isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * 0.85 : c.vL) * ageing(c);
 }
 function canEnter(c, hereOk, x, y) {
   if (!inside(x, y)) return false;
@@ -627,10 +630,12 @@ function pickEvent() {
   }
   return kinds.length ? kinds[0][0] : 'meteor';
 }
-function worldEvent(kind, major) {
+// forced: triggered from the testing buttons, so it always happens as asked
+function worldEvent(kind, major, forced) {
   const w = world;
   let k = kind || pickEvent();
-  if ((k === 'drought' && w.landFrac > 0.55) || (k === 'flood' && w.landFrac < 0.3)) k = pickEvent();
+  if (!forced && ((k === 'drought' && w.landFrac > 0.55) || (k === 'flood' && w.landFrac < 0.3)))
+    k = pickEvent();
   let msg;
   if (k === 'meteor') {
     for (let tries = 0; tries < 200; tries++) {

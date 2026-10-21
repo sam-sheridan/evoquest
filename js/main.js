@@ -121,12 +121,29 @@ function render(nowT) {
   ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cw / 2 - cam.x * z), dpr * (ch / 2 - cam.y * z));
   ctx.imageSmoothingEnabled = true;
   const loMode = z * dpr <= LO * 1.08,
-    det = loMode ? null : drawDetail();
+    det = loMode ? null : drawDetail(),
+    zoomedIn = z * dpr > TS * 1.05,
+    // while zooming or panning, stretch the last sharp detail image instead of showing only the softer base map
+    stale = zoomedIn && !det && detail.ok ? detailRect(detail) : null;
   if (loMode) ctx.drawImage(tlo, 0, 0, W, H);
-  else if (!det) ctx.drawImage(tcan, 0, 0, W, H);
+  else if (!det) {
+    ctx.drawImage(tcan, 0, 0, W, H);
+    if (stale) ctx.drawImage(detail.can, ...stale);
+  }
   if (S && S.fade) {
-    ctx.globalAlpha = Math.max(0, 1 - S.fade.t / S.fade.dur);
-    ctx.drawImage(S.fade.a, 0, 0, W, H);
+    const f = S.fade,
+      r = zoomedIn && f.d ? detailRect(f.d) : null,
+      hw = cw / 2 / z,
+      hh = ch / 2 / z,
+      covers =
+        r &&
+        r[0] <= cam.x - hw &&
+        r[1] <= cam.y - hh &&
+        r[0] + r[2] >= cam.x + hw &&
+        r[1] + r[3] >= cam.y + hh;
+    ctx.globalAlpha = Math.max(0, 1 - f.t / f.dur);
+    if (covers) ctx.drawImage(f.d.can, ...r);
+    else ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
   if (!S) return;
@@ -176,7 +193,7 @@ function render(nowT) {
     ctx.fillStyle = '#D9C21E';
     ctx.fill(bY);
   }
-  const detail = z * 17 > 12 ? z : 0,
+  const lod = z * 17 > 12 ? z : 0, // creature detail level
     spMode = S.colorMode === 'species';
   const vis = S.creatures.filter(c => onScreen(c.x, c.y)).sort((a, b) => a.y - b.y);
   for (const c of vis) {
@@ -189,7 +206,7 @@ function render(nowT) {
       c.x,
       c.y,
       sc,
-      detail,
+      lod,
       spMode ? S.species[c.sp].tag : col(c),
       t,
       isWater(tt),
@@ -197,6 +214,7 @@ function render(nowT) {
     );
   }
   if (det) drawStipple(det);
+  else if (stale) ctx.drawImage(detail.can2, ...stale);
   if (z > 2.2)
     for (const c of vis) {
       const bw = Math.max(c.bw, c.bh),

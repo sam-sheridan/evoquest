@@ -155,9 +155,9 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     g.lineCap = 'round';
     for (let k = 0; k < 3; k++) {
       const kk = k + ph,
-        r = (11 + kk * 3) * s,
+        r = (11 + kk * 3.5) * s,
         apex = -L - 1.5 * s - kk * 2.4 * s,
-        span = 0.42 - kk * 0.04,
+        span = 0.38 + kk * 0.11, // each arc spans wider the further it is behind, so the wake spreads out
         a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
       g.strokeStyle = `rgba(77,115,133,${a.toFixed(3)})`;
       g.beginPath();

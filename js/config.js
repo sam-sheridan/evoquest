@@ -3,6 +3,8 @@
 /* ---- world size and creatures ---- */
 const MATURE = 15; // seconds old before a creature can breed
 const LIFE = 90; // maximum lifespan in seconds
+// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE
+const OLD = { from: 80, slowest: 0.5 };
 const W = 3008; // world width in px (GW cells of CS px)
 const H = 2096; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
@@ -94,6 +96,7 @@ const EVENTS = {
   seaSplit: 0.3,
   dry: [1, 2],
   dryFade: 300,
+  warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 
 /* ---- behaviour ---- */

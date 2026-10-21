@@ -205,7 +205,7 @@ runs never come near it.
 | Cause | When |
 |---|---|
 | Starvation | Energy reaches 0. |
-| Old age | 90 seconds old (`LIFE`). |
+| Old age | 90 seconds old (`LIFE`). From 80 seconds old creatures slow down steadily, reaching half speed at 90 (`OLD`). |
 | Meteor strike | Within the blast radius of a meteor (see [events](#9-world-events)). |
 
 A species is marked extinct when it has no members at a stats check (every 2 seconds). The run ends when no
@@ -244,6 +244,7 @@ allowed into.
 ### Moving
 
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply.
+- Old creatures slow down: from 80 seconds old their speed falls steadily to half at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
 - Wanderers steer away from the outer sea margin.
 
@@ -354,8 +355,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
   events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
   different season from the one before.
-- The **event bar** fills up until the next event. When it is 80% full, a **warning symbol** shows which event
-  is coming. An orange symbol with "!" means a major event.
+- The **event bar** fills up until the next event. In the last 10 seconds (`EVENTS.warn`), a flashing **warning
+  symbol** shows which event is coming. An orange symbol with "!" means a major event.
 
 ### Which event
 
@@ -498,12 +499,12 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing** buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
 
 ### Top right: season and event bars
 
 - The **season bar** fills over the season and is tinted the season's colour.
-- The **event bar** fills until the next world event. The warning symbol appears near the end.
+- The **event bar** fills until the next world event. The warning symbol flashes for the last 10 seconds.
 - The **i** buttons open quick reference tables for seasons and events.
 
 ### Notifications
@@ -529,7 +530,9 @@ Collapse or expand it with the arrow. It has three tabs.
 
   The **Follow** button keeps the camera on it. The selected creature has orange corner brackets and a dashed
   line to its food target.
-- **World**: world number, current season and time left, sea cover, time to the next event, and a map key.
+- **World**: world number, current season and time left, sea cover, time to the next event, number of
+  landmasses (ignoring specks under 20 cells), rivers, sea channels and craters, thicket and rock cover as a
+  share of the land, and a map key.
 
 ### Map
 
@@ -586,11 +589,15 @@ The look is a scientific **field notebook / survey map**.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
-  out (`TS`, `LO`). When zoomed in, the visible part is redrawn sharply.
+  out (`TS`, `LO`). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
+  sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
+  map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
+  mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
   - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
-  - In water, the back half is drawn as submerged and a small wake trails behind.
+  - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
+    further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
 
 ---

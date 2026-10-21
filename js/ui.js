@@ -31,7 +31,7 @@ function syncMeters() {
   $('#mEvent span').textContent = he ? S.hl.event.text : 'World event';
   $('#mEvent').classList.toggle('hot', !!he);
   const om = $('#omen'),
-    show = ep > 0.8 && S.nextKind && !S.over;
+    show = S.nextEvent - S.t <= EVENTS.warn && S.nextKind && !S.over;
   om.hidden = !show;
   const key = S.nextKind + (S.nextMajor ? '!' : '');
   if (show && om.dataset.k !== key) {
@@ -152,8 +152,20 @@ $('#bSet').onclick = e => {
     $(y).classList.remove('on');
   }
   syncSettings();
+  for (const b of document.querySelectorAll('.testev button')) b.disabled = !S || S.over || !!S.replay;
   $('#bSet').classList.toggle('on', !p.hidden);
 };
+// testing: fire a world event straight away (it replaces nothing: the scheduled event still comes on time)
+$('#sMajor').onclick = e => {
+  const b = e.currentTarget;
+  b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+};
+for (const b of document.querySelectorAll('.testev button'))
+  b.onclick = () => {
+    if (!S || S.over || S.replay) return;
+    worldEvent(b.dataset.ev, $('#sMajor').getAttribute('aria-pressed') === 'true', true);
+    syncUI(true);
+  };
 document.addEventListener('click', e => {
   const p = $('#setPop');
   if (!p.hidden && !p.contains(e.target) && !$('#bSet').contains(e.target)) {
@@ -437,7 +449,10 @@ function syncUI() {
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
     $('#p-world').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
-      <div><span>Sea cover</span><b>${Math.round((1 - world.landFrac) * 100)}%</b></div><div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div></div>
+      <div><span>Sea cover</span><b>${Math.round((1 - world.landFrac) * 100)}%</b></div><div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>
+      <div><span>Landmasses</span><b>${world.stats.lands}</b></div><div><span>Rivers</span><b>${world.stats.rivers}</b></div>
+      <div><span>Sea channels</span><b>${world.stats.seas}</b></div><div><span>Craters</span><b>${world.craters.length}</b></div>
+      <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean a narrower gap: 10, 13 or 16 px.</span>
