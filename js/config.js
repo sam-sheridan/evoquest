@@ -106,4 +106,4 @@ const CRW = { r: 80, half: 1.5, pow: 2 }; // tuned in scenario tests: keeps most
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.18, eco: 0.34, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned: about one new species per 18-minute run
+const SPC = { geo: 0.2, eco: 0.37, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with 7-minute events: about 0-2 new species per 15-minute run

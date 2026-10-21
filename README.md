@@ -410,9 +410,9 @@ Two kinds of split are looked for:
 
 1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
    on. If the second-biggest group has at least 8 members and differs enough in traits from the biggest group
-   (more than `SPC.geo` = 0.18), that is a candidate split.
+   (more than `SPC.geo` = 0.2), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
-   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.34) and be clearly
+   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.37) and be clearly
    separate, with the gap between them at least 3.1 times the spread within them (`SPC.ratio`). The smaller
    cluster must have at least 8 members.
 
