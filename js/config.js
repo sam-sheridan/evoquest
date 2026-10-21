@@ -21,7 +21,7 @@ const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval 
 const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
-const REGIONS = { strength: 1 };
+const REGIONS = { strength: 1.3 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

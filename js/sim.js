@@ -446,15 +446,9 @@ function update(c, dt) {
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
     desired = c.wander;
-    const m = EDGE * CS + 40;
-    let ex = 0,
-      ey = 0;
-    if (c.x < m) ex = 1;
-    else if (c.x > W - m) ex = -1;
-    if (c.y < m) ey = 1;
-    else if (c.y > GH * CS - m) ey = -1;
-    if (ex || ey) {
-      desired = Math.atan2(ey, ex);
+    // near the oval edge of the map, turn back towards the middle
+    if (edgeDist(c.x / CS, c.y / CS) < EDGE + 2.5) {
+      desired = Math.atan2(H / 2 - c.y, W / 2 - c.x);
       c.wander = desired;
     }
   }
