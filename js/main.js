@@ -86,7 +86,38 @@ function drawDetail() {
   blitVisible(d.can, ox, oy);
   return [ox, oy];
 }
+// screen shake for earthquakes and meteor strikes: a decaying wobble added to the camera while drawing
+let shake = null;
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+function startShake(kind, major) {
+  if (calm.matches) return;
+  const k = major ? 1 : 0;
+  const sh = SHAKE[kind];
+  shake = { t0: performance.now() + sh.delay * 1000, amp: sh.amp[k], dur: sh.dur[k] * 1000 };
+}
 function render(nowT) {
+  let sx = 0,
+    sy = 0;
+  if (shake) {
+    const k = (nowT - shake.t0) / shake.dur;
+    if (k >= 1) shake = null;
+    else if (k > 0) {
+      const a = (shake.amp * (1 - k) ** 2) / cam.z,
+        t = nowT / 1000;
+      sx = a * Math.sin(t * 61 + 1.3) * Math.cos(t * 23);
+      sy = a * Math.sin(t * 53) * Math.cos(t * 29 + 0.7);
+    }
+  }
+  cam.x += sx;
+  cam.y += sy;
+  try {
+    renderScene(nowT);
+  } finally {
+    cam.x -= sx;
+    cam.y -= sy;
+  }
+}
+function renderScene(nowT) {
   const t = nowT / 1000;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = BAND[3];
@@ -100,12 +131,29 @@ function render(nowT) {
   ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cw / 2 - cam.x * z), dpr * (ch / 2 - cam.y * z));
   ctx.imageSmoothingEnabled = true;
   const loMode = z * dpr <= LO * 1.08,
-    det = loMode ? null : drawDetail();
+    det = loMode ? null : drawDetail(),
+    zoomedIn = z * dpr > TS * 1.05,
+    // while zooming or panning, stretch the last sharp detail image instead of showing only the softer base map
+    stale = zoomedIn && !det && detail.ok ? detailRect(detail) : null;
   if (loMode) ctx.drawImage(tlo, 0, 0, W, H);
-  else if (!det) ctx.drawImage(tcan, 0, 0, W, H);
+  else if (!det) {
+    ctx.drawImage(tcan, 0, 0, W, H);
+    if (stale) ctx.drawImage(detail.can, ...stale);
+  }
   if (S && S.fade) {
-    ctx.globalAlpha = Math.max(0, 1 - S.fade.t / S.fade.dur);
-    ctx.drawImage(S.fade.a, 0, 0, W, H);
+    const f = S.fade,
+      r = zoomedIn && f.d ? detailRect(f.d) : null,
+      hw = cw / 2 / z,
+      hh = ch / 2 / z,
+      covers =
+        r &&
+        r[0] <= cam.x - hw &&
+        r[1] <= cam.y - hh &&
+        r[0] + r[2] >= cam.x + hw &&
+        r[1] + r[3] >= cam.y + hh;
+    ctx.globalAlpha = Math.max(0, 1 - f.t / f.dur);
+    if (covers) ctx.drawImage(f.d.can, ...r);
+    else ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
   if (!S) return;
@@ -154,27 +202,17 @@ function render(nowT) {
     ctx.fillStyle = '#D9C21E';
     ctx.fill(bY);
   }
-  const detail = z * 17 > 12 ? z : 0,
+  const lod = z * 17 > 12 ? z : 0, // creature detail level
     spMode = S.colorMode === 'species';
   const vis = S.creatures.filter(c => onScreen(c.x, c.y)).sort((a, b) => a.y - b.y);
   for (const c of vis) {
     const sc = Math.min(1, 0.4 + c.age * 2),
       hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
       tt = world.type[hi];
-    drawCreature(
-      ctx,
-      c,
-      c.x,
-      c.y,
-      sc,
-      detail,
-      spMode ? S.species[c.sp].tag : col(c),
-      t,
-      isWater(tt),
-      lw / sc
-    );
+    drawCreature(ctx, c, c.x, c.y, sc, lod, spMode ? S.species[c.sp].tag : col(c), t, isWater(tt), lw / sc);
   }
   if (det) drawStipple(det);
+  else if (stale) ctx.drawImage(detail.can2, ...stale);
   if (z > 2.2)
     for (const c of vis) {
       const bw = Math.max(c.bw, c.bh),
@@ -310,17 +348,30 @@ function tap(sx, sy) {
 /* loop */
 let last = performance.now(),
   uiAcc = 0;
+// run the simulation for dt seconds of real time at the chosen speed
+function advance(dt) {
+  if (!S || S.paused || S.over || S.replay) return;
+  let sim = dt * S.speed;
+  while (sim > 1e-6 && !S.over) {
+    const h = Math.min(sim, 0.05);
+    step(h);
+    sim -= h;
+  }
+}
+// browsers stop drawing a hidden tab, but still run a slow timer (about once a second, or less often after a
+// while): use it to keep the run going in the background, catching up on the real time that has passed
+// (at most BG_MAX seconds per tick, so a long gap doesn't freeze the page)
+let bgLast = 0;
+setInterval(() => {
+  if (!document.hidden) return void (bgLast = 0);
+  const now = performance.now();
+  if (bgLast) advance(Math.min(BG_MAX, (now - bgLast) / 1000));
+  bgLast = now;
+}, 1000);
 function frame(nowT) {
   const dt = Math.min(0.1, (nowT - last) / 1000);
   last = nowT;
-  if (S && !S.paused && !S.over && !S.replay) {
-    let sim = dt * S.speed;
-    while (sim > 1e-6 && !S.over) {
-      const h = Math.min(sim, 0.05);
-      step(h);
-      sim -= h;
-    }
-  }
+  advance(dt);
   if (S && S.replay) advanceReplay(dt);
   if (S && S.fade) {
     S.fade.t += dt;

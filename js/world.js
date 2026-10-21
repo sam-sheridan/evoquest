@@ -12,17 +12,33 @@ const border = i => {
     y = (i / GW) | 0;
   return x < EDGE || y < EDGE || x >= GW - EDGE || y >= GH - EDGE;
 };
-function makeChannel(rng) {
-  const horiz = rng() < 0.5,
-    pts = [];
-  let p = (horiz ? GH : GW) * (0.25 + rng() * 0.5);
-  const len = horiz ? GW : GH;
-  for (let k = 0; k <= 16; k++) {
-    const a = -3 + (k * (len + 6)) / 16;
-    p += (rng() - 0.5) * 6;
-    pts.push(horiz ? [a, p] : [p, a]);
+// a split from coast to coast at any angle, meandering along its length: a river, or a wider sea channel
+function makeChannel(rng, sea = false) {
+  const ang = rng() * Math.PI,
+    cx = GW * (0.25 + rng() * 0.5),
+    cy = GH * (0.25 + rng() * 0.5),
+    dx = Math.cos(ang),
+    dy = Math.sin(ang),
+    half = Math.hypot(GW, GH) / 2 + 4,
+    // two waves of different lengths make a meander that doesn't look regular
+    f1 = 1 + rng() * 1.5,
+    f2 = 2.5 + rng() * 2.5,
+    a1 = 4 + rng() * 6,
+    a2 = 1.5 + rng() * 2.5,
+    p1 = rng() * TAU,
+    p2 = rng() * TAU,
+    all = [];
+  for (let k = 0; k <= 40; k++) {
+    const s = -half + (2 * half * k) / 40,
+      u = s / half,
+      off = a1 * Math.sin(f1 * Math.PI * u + p1) + a2 * Math.sin(f2 * Math.PI * u + p2) + (rng() - 0.5) * 1.5;
+    all.push([cx + dx * s - dy * off, cy + dy * s + dx * off]);
   }
-  return { pts, w: 1.15 + rng() * 0.45 };
+  // keep only the stretch over the map (plus one point either side), so terrain building stays quick
+  const on = ([x, y]) => x > -4 && y > -4 && x < GW + 4 && y < GH + 4,
+    a = Math.max(0, all.findIndex(on) - 1),
+    b = Math.min(all.length - 1, all.findLastIndex(on) + 1);
+  return { pts: all.slice(a, b + 1), w: sea ? 2.6 + rng() * 1.2 : 1.15 + rng() * 0.45, sea };
 }
 function genWorld(seed, att = 0) {
   const rng = mulberry32(seed + att * 7777);
@@ -214,12 +230,14 @@ function buildTerrain() {
     w.type[i] = t;
     w.gap[i] = w.gapN[i] < w.gLo ? 10 : w.gapN[i] < w.gHi ? 13 : 16;
   }
-  for (const ch of w.channels)
+  // sea channels first (they cut through rock too), then rivers
+  const cut = [...w.channels.filter(ch => ch.sea), ...w.channels.filter(ch => !ch.sea)];
+  for (const ch of cut)
     for (let y = 0; y < GH; y++)
       for (let x = 0; x < GW; x++) {
         const i = y * GW + x;
-        if (w.type[i] !== 1 && w.type[i] !== 2) continue;
-        if (distPoly(x + 0.5, y + 0.5, ch.pts) < ch.w) w.type[i] = 4;
+        if (ch.sea ? !isLand(w.type[i]) : w.type[i] !== 1 && w.type[i] !== 2) continue;
+        if (distPoly(x + 0.5, y + 0.5, ch.pts) < ch.w) w.type[i] = ch.sea ? 0 : 4;
       }
   // craters keep smooth signed distances (rim and lake) so their outlines can be drawn as curves rather than grid steps
   w.cS = new Float32Array(N).fill(-99);
@@ -280,6 +298,27 @@ function buildTerrain() {
     id++;
   }
   const ord = sizes.map((n, i) => [n, i]).sort((a, b) => b[0] - a[0]);
+  // figures for the inspector's World tab, measured from the map as it is now (landmasses ignore specks under
+  // 20 cells; a crater counts while its centre is above the sea)
+  let nT = 0,
+    nR = 0,
+    nL = 0,
+    nS = 0;
+  for (let i = 0; i < N; i++) {
+    const t = w.type[i];
+    if (isLand(t)) nL++;
+    if (t === 0) nS++;
+    if (t === 2) nT++;
+    if (t === 3) nR++;
+  }
+  w.stats = {
+    lands: sizes.filter(n => n >= 20).length,
+    craters: w.craters.filter(c => w.type[(c.y | 0) * GW + (c.x | 0)] !== 0).length,
+    land: Math.round((nL / N) * 100),
+    sea: Math.round((nS / N) * 100),
+    thicket: Math.round((nT / Math.max(1, nL)) * 100),
+    rock: Math.round((nR / Math.max(1, nL)) * 100),
+  };
   w.main = ord.length ? ord[0][1] : 0;
   w.second = ord.length > 1 ? ord[1][1] : w.main;
   w.dLand = distField(i => isLand(w.type[i]));

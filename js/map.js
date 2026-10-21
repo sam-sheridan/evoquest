@@ -370,15 +370,24 @@ function drawAlgae(g, x, y, p) {
   g.fill();
   g.restore();
 }
+// the map as it was, kept sharp for the cross-fade: a full-resolution copy of the base map, plus the zoomed-in
+// detail image if there is one (handed over to the fade; the detail layer gets a fresh canvas to redraw into)
 function snapMap() {
-  const mk = src => {
-    const c = document.createElement('canvas');
-    c.width = (W * LO) | 0;
-    c.height = (H * LO) | 0;
-    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
-    return c;
-  };
-  return mk(tcan);
+  const a = document.createElement('canvas');
+  a.width = tcan.width;
+  a.height = tcan.height;
+  a.getContext('2d').drawImage(tcan, 0, 0);
+  let d = null;
+  if (detail.ok) {
+    d = { can: detail.can, x: detail.x, y: detail.y, z: detail.z };
+    detail.can = document.createElement('canvas');
+    detail.ok = false;
+  }
+  return { a, d };
+}
+// where a detail image (drawn for camera d) sits in world coordinates: [x, y, width, height]
+function detailRect(d) {
+  return [d.x - cw / d.z, d.y - ch / d.z, d.can.width / (dpr * d.z), d.can.height / (dpr * d.z)];
 }
 function seasonFade() {
   const old = snapMap();
@@ -388,8 +397,8 @@ function seasonFade() {
   paintStipple(g);
   bakeLo();
   detail.ok = false;
-  S.fade = { t: 0, a: old, dur: 2.5 };
+  S.fade = { t: 0, ...old, dur: 2.5 };
 }
 function startFade(old) {
-  if (S) S.fade = { t: 0, a: old, dur: 3 };
+  if (S) S.fade = { t: 0, ...old, dur: 3 };
 }

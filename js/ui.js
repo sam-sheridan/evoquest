@@ -31,7 +31,7 @@ function syncMeters() {
   $('#mEvent span').textContent = he ? S.hl.event.text : 'World event';
   $('#mEvent').classList.toggle('hot', !!he);
   const om = $('#omen'),
-    show = ep > 0.8 && S.nextKind && !S.over;
+    show = S.nextEvent - S.t <= EVENTS.warn && S.nextKind && !S.over;
   om.hidden = !show;
   const key = S.nextKind + (S.nextMajor ? '!' : '');
   if (show && om.dataset.k !== key) {
@@ -152,8 +152,20 @@ $('#bSet').onclick = e => {
     $(y).classList.remove('on');
   }
   syncSettings();
+  for (const b of document.querySelectorAll('.testev button')) b.disabled = !S || S.over || !!S.replay;
   $('#bSet').classList.toggle('on', !p.hidden);
 };
+// testing: fire a world event straight away (it replaces nothing: the scheduled event still comes on time)
+$('#sMajor').onclick = e => {
+  const b = e.currentTarget;
+  b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+};
+for (const b of document.querySelectorAll('.testev button'))
+  b.onclick = () => {
+    if (!S || S.over || S.replay) return;
+    worldEvent(b.dataset.ev, $('#sMajor').getAttribute('aria-pressed') === 'true', true);
+    syncUI(true);
+  };
 document.addEventListener('click', e => {
   const p = $('#setPop');
   if (!p.hidden && !p.contains(e.target) && !$('#bSet').contains(e.target)) {
@@ -291,11 +303,11 @@ document.addEventListener('click', e => {
 });
 const INFO = {
   season:
-    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN} seconds and changes where food regrows quickly and which world events are likely.</p>
+    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
     () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">The bar fills until the next event. Near the end a symbol warns you what is coming. In orange with a “!”, it will be a major event.</p>
-  <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears and islands may join.', quake: 'A new river splits the land.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
+  <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears, islands may join, and rivers and sea channels can dry up.', quake: 'The land splits, usually with a new river, sometimes with a channel of sea.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
   <p class="hint" style="margin:6px 0 0">About 1 in 10 events is major: floods and droughts move the sea further, earthquakes open two rivers, and meteors hit a wider area.</p>`,
 };
 function openInfo(which, btn) {
@@ -437,7 +449,11 @@ function syncUI() {
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
     $('#p-world').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
-      <div><span>Sea cover</span><b>${Math.round((1 - world.landFrac) * 100)}%</b></div><div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div></div>
+      <div><span>Land cover</span><b>${world.stats.land}%</b></div><div><span>Sea cover</span><b>${world.stats.sea}%</b></div>
+      <div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>
+<div><span>Landmasses</span><b>${world.stats.lands}</b></div>
+      <div><span>Craters</span><b>${world.stats.craters}</b></div>
+      <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean a narrower gap: 10, 13 or 16 px.</span>

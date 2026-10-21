@@ -9,6 +9,11 @@ repo)
 
 **Play from a download:** open `index.html` in a browser. Nothing to install, nothing to build.
 
+**Leaving the tab:** a run keeps going while its tab is open in the background on a computer. Browsers only run a
+hidden tab's timers about once a second (less often after a few minutes), so the game catches up on the time that
+has passed each time, up to 15 seconds per catch-up (`BG_MAX`). Phones freeze a page in the background, so there
+the run pauses until you come back. Closing the tab ends the run.
+
 This README is the reference for how the game works. Every number below comes from the code. When a number can
 be changed, its name in `js/config.js` is shown like `this`.
 
@@ -46,7 +51,7 @@ be changed, its name in `js/config.js` is shown like `this`.
    between 0 and 20 seconds, and traits varied 1.5 times more than normal so selection has something to work on
    straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
-   every 90 seconds. A world event happens roughly every two minutes.
+   every 2.5 minutes. A world event happens every 7 minutes.
 4. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
    creatures eat and breed in this world become more common.
 5. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
@@ -71,7 +76,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Legs** | 4, 6 or 8. Fixed: never changes through evolution. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | Random name (two made-up syllables, sometimes with an "s"), body, colour, shape and legs. |
+| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
 | **Release 20 specimens** | Starts the run. |
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
@@ -205,7 +210,7 @@ runs never come near it.
 | Cause | When |
 |---|---|
 | Starvation | Energy reaches 0. |
-| Old age | 90 seconds old (`LIFE`). |
+| Old age | 90 seconds old (`LIFE`). From 85 seconds old creatures slow down steadily, coming to a halt at 90 (`OLD`). |
 | Meteor strike | Within the blast radius of a meteor (see [events](#9-world-events)). |
 
 A species is marked extinct when it has no members at a stats check (every 2 seconds). The run ends when no
@@ -244,6 +249,7 @@ allowed into.
 ### Moving
 
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply.
+- Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
 - Wanderers steer away from the outer sea margin.
 
@@ -269,7 +275,7 @@ re-plan at once.
 | **Land** | Everything above sea level. |
 | **Thicket** | The densest 21% of a "thicket" noise pattern, on land. Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each). Denser dots on the map mean narrower gaps. |
 | **Rock** | The top 10% of a "rock" noise pattern, on land. Impassable. Drawn as contoured grey plates. |
-| **River** | A wandering channel cut right across the map. Strong current. |
+| **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### How a world is generated
 
@@ -280,7 +286,8 @@ re-plan at once.
 3. If the second landmass is smaller than a quarter of the first, the world is rebuilt from a variation of the
    same seed (up to 5 tries).
 4. 36–42% of the map starts as land.
-5. Rivers: an 85% chance of one, plus a 55% chance of a second.
+5. Rivers: an 85% chance of one, plus a 55% chance of a second. Each runs coast to coast at a random angle and
+   meanders along its length (two overlapping waves plus a little jitter), so splits aren't straight lines.
 6. **Food sites** are placed: 300 berry sites on land and 100 algae sites in water (see [food](#7-food)).
 
 The **main landmass** is the biggest piece of land. Any other land counts as an **island** for food and
@@ -330,7 +337,7 @@ Food on land that floods, or in water that dries up, can't be eaten until the te
 
 ## 8. Seasons
 
-There are four seasons of 90 seconds each (`SEASON_LEN`), so a year lasts 6 minutes. Seasons change which
+There are four seasons of 2.5 minutes (150 seconds) each (`SEASON_LEN`), so a year lasts 10 minutes. Seasons change which
 regions regrow fast and which world events are likely. The map cross-fades to the new season's colours over
 2.5 seconds.
 
@@ -349,10 +356,12 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 ### Timing
 
-- The first event comes 90–150 seconds into a run (`EVENTS.first`).
-- After that, one comes every 100–160 seconds (`EVENTS.gap`).
-- The **event bar** fills up until the next event. When it is 80% full, a **warning symbol** shows which event
-  is coming. An orange symbol with "!" means a major event.
+- The first event comes exactly 7 minutes into a run (`EVENTS.first`).
+- After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
+  events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
+  different season from the one before.
+- The **event bar** fills up until the next event. In the last 10 seconds (`EVENTS.warn`), a flashing **warning
+  symbol** shows which event is coming. An orange symbol with "!" means a major event.
 
 ### Which event
 
@@ -361,26 +370,37 @@ All of this is in the `SEASONS` table in `js/config.js`.
   out when they would push the world too far:
   - no drought when more than 55% of the map is land
   - no flood when less than 30% is land
-  - no earthquake once there are 4 rivers
+
+  There is no limit on rivers or sea channels: droughts dry them up again.
 - **10%** of events are **major** (`EVENTS.major`).
 
 ### What each event does
 
 | Event | Normal | Major |
 |---|---|---|
-| **Flood** | Sea level rises: land falls by 5 percentage points of the map (never below 24%). Low land and its food go underwater. | Land falls by 12 points. |
-| **Drought** | Sea level falls: land rises by 5 points (never above 60%). New land appears and islands may join the mainland, but never across the main strait. | Land rises by 12 points. |
-| **Earthquake** | A new river cuts across the map, which can split populations. | Two new rivers. |
-| **Meteor** | Hits a random land spot. Kills every creature within 110 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 190 px and makes a much bigger crater. |
+| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 24%). Low land and its food go underwater. | Land falls by 20 points. |
+| **Drought** | Sea level falls: land rises by 12 points (never above 60%). New land appears and islands may join the mainland, but never across the main strait. One river dries up and one sea channel closes, if there are any. | Land rises by 20 points. Two rivers dry up and two sea channels close. |
+| **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
+| **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
+
+Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`).
+
+A dried-up river or closed sea channel turns straight back into ordinary land, leaving no trace, so creatures can
+walk across it at once. Which river or channel dries up is picked at random, including the ones the world started
+with.
 
 Each event:
 
 - cross-fades the map over 3 seconds
+- earthquakes shake the view for 1.6 seconds (major: 2.2, harder), and meteor strikes give it a short jolt
+  one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
+  to reduce motion
 - plays its own sound effect
 - flashes the event bar with its name for 7 seconds
 - adds a line to the event log
 
-Land heights never change, only the sea level, so the colours of land that stays above water don't shift.
+Land heights never change, only the sea level (and rivers and sea channels cut on top), so the colours of land
+that stays above water don't shift.
 
 ---
 
@@ -398,9 +418,9 @@ Two kinds of split are looked for:
 
 1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
    on. If the second-biggest group has at least 8 members and differs enough in traits from the biggest group
-   (more than `SPC.geo` = 0.18), that is a candidate split.
+   (more than `SPC.geo` = 0.2), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
-   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.34) and be clearly
+   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.37) and be clearly
    separate, with the gap between them at least 3.1 times the spread within them (`SPC.ratio`). The smaller
    cluster must have at least 8 members.
 
@@ -452,7 +472,7 @@ Achievements are earned per run and reset with each new run. They are checked ev
 
 | Achievement | How to earn it |
 |---|---|
-| First Year | Survive all four seasons (6 minutes) |
+| First Year | Survive all four seasons (10 minutes) |
 | Old Lineage | Lineage lasts 20 minutes |
 | Ancient Line | Lineage lasts 45 minutes |
 | Dynasty | Reach generation 30 |
@@ -486,12 +506,12 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing** buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
 
 ### Top right: season and event bars
 
 - The **season bar** fills over the season and is tinted the season's colour.
-- The **event bar** fills until the next world event. The warning symbol appears near the end.
+- The **event bar** fills until the next world event. The warning symbol flashes for the last 10 seconds.
 - The **i** buttons open quick reference tables for seasons and events.
 
 ### Notifications
@@ -517,7 +537,10 @@ Collapse or expand it with the arrow. It has three tabs.
 
   The **Follow** button keeps the camera on it. The selected creature has orange corner brackets and a dashed
   line to its food target.
-- **World**: world number, current season and time left, sea cover, time to the next event, and a map key.
+- **World**: world number, current season and time left, sea cover, time to the next event, number of
+  landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
+  crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
+  a map key. All of them are measured from the map as it is now, so they change after every event.
 
 ### Map
 
@@ -560,6 +583,9 @@ All sound is generated live in the browser. There are no audio files.
 | **World events** | Each has its own effect, louder and longer when major: flood (rushing water and falling notes), drought (dry hiss and rising notes), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
 | **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
 
+Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
+back into view, and on the next tap or key press if the browser insists on one.
+
 ---
 
 ## 15. How things are drawn
@@ -569,15 +595,19 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands. Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
-    blue-grey edge.
+    blue-grey edge. Sea channels are drawn like the shallowest sea.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
-  out (`TS`, `LO`). When zoomed in, the visible part is redrawn sharply.
+  out (`TS`, `LO`). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
+  sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
+  map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
+  mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
   - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
-  - In water, the back half is drawn as submerged and a small wake trails behind.
+  - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
+    further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
 
 ---

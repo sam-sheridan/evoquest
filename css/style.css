@@ -561,6 +561,28 @@ h3.sec {
 .setrow .seg2 button[aria-pressed='false']::after {
   content: 'Off';
 }
+/* the Major toggle keeps its label when off */
+.setrow .seg2 #sMajor[aria-pressed='false'] {
+  font-size: 12px;
+}
+.setrow .seg2 #sMajor[aria-pressed='false']::after {
+  content: none;
+}
+.testev {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding-top: 2px;
+}
+.testev .btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.testev .btn:disabled {
+  color: var(--muted);
+  border-color: var(--line);
+  background: var(--panel);
+}
 .setrow .seg2 button[aria-pressed='false'] {
   font-size: 0;
 }

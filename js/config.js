@@ -3,6 +3,9 @@
 /* ---- world size and creatures ---- */
 const MATURE = 15; // seconds old before a creature can breed
 const LIFE = 90; // maximum lifespan in seconds
+// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
+const OLD = { from: 85, slowest: 0 };
+const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
 const W = 3008; // world width in px (GW cells of CS px)
 const H = 2096; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
@@ -68,14 +71,40 @@ const SEASONS = [
     msg: 'Winter. Snow on the peaks; food is slow to return on land and in the water. Storms bring floods.',
   },
 ];
-const SEASON_LEN = 90; // seconds per season
+const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
 const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in scenario tests: milder seasons
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
+// (no random extra: one event every 7 minutes, like clockwork)
 // meteor: chance an event is a meteor; major: chance an event is a major one
-const EVENTS = { first: [90, 60], gap: [100, 60], meteor: 0.05, major: 0.1 };
+// each pair below is [normal, major]
+// shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
+// blast: meteor kill radius in px; crater: crater radius in cells
+// splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
+// dry: rivers dried up and sea channels closed per drought (each); they turn straight back into land
+const EVENTS = {
+  first: [420, 0],
+  gap: [420, 0],
+  meteor: 0.05,
+  major: 0.1,
+  shift: [0.12, 0.2],
+  blast: [190, 280],
+  crater: [7.5, 11],
+  splits: [1, 2],
+  seaSplit: 0.3,
+  dry: [1, 2],
+  warn: 10, // seconds before an event that its warning symbol appears in the event bar
+};
+
+// screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles,
+// delay = seconds before it starts (the meteor's, to land with the boom of the impact; skipped when the device
+// asks for reduced motion)
+const SHAKE = {
+  quake: { amp: [6, 10], dur: [1.6, 2.2], delay: 0 },
+  meteor: { amp: [5, 8], dur: [0.5, 0.7], delay: 1 },
+};
 
 /* ---- behaviour ---- */
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
@@ -87,4 +116,4 @@ const CRW = { r: 80, half: 1.5, pow: 2 }; // tuned in scenario tests: keeps most
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.18, eco: 0.34, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned: about one new species per 18-minute run
+const SPC = { geo: 0.2, eco: 0.37, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with 7-minute events: about 0-2 new species per 15-minute run
