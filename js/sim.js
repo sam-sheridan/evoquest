@@ -121,6 +121,17 @@ function newGame(design, seed) {
       y = home[1];
     }
     const c = makeChild(base, x, y, 1.5);
+    // founders settle homes spread around the release spot, so they don't all share one patch of food
+    for (let t = 0; t < 12; t++) {
+      const b = rand() * TAU,
+        r = Math.sqrt(rand()) * HOME.founders,
+        hx = x + Math.cos(b) * r,
+        hy = y + Math.sin(b) * r;
+      if (inside(hx, hy) && allowed(c, cellI(hx, hy), cellT(hx, hy))) {
+        c.home = [hx, hy];
+        break;
+      }
+    }
     c.E = c.cap * 0.8;
     c.age = rand() * 20;
     S.creatures.push(c);
@@ -294,6 +305,13 @@ function hpop2() {
     }
   }
 }
+// home range in px: wider when hungry, so a creature will roam rather than starve
+const homeRange = c => HOME.r * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
+// extra cost, in seconds of travel, of food beyond the home range
+function awayCost(c, f, range) {
+  const d = Math.hypot(f.x - c.home[0], f.y - c.home[1]);
+  return d > range ? ((d - range) / HOME.r) * HOME.pull : 0;
+}
 // Dijkstra outwards from the creature; stops as soon as nothing further away could beat the best food found
 function dijkstra(c) {
   pgen++;
@@ -308,6 +326,7 @@ function dijkstra(c) {
   let n = 0;
   c._best = null;
   let bs = Infinity;
+  const range = homeRange(c);
   while (hn) {
     hpop2();
     const i = PI,
@@ -321,7 +340,7 @@ function dijkstra(c) {
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
         if (cl >= 3) continue;
-        const sc = k + cl * 2.5 - (mine ? 1.5 : 0);
+        const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
         if (sc < bs) {
           bs = sc;
           c._best = f;
@@ -445,16 +464,18 @@ function update(c, dt) {
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
+    // wanderers drift back towards home once they are outside their range
+    const hx = c.home[0] - c.x,
+      hy = c.home[1] - c.y;
+    if (hx * hx + hy * hy > homeRange(c) ** 2) {
+      const toHome = Math.atan2(hy, hx),
+        off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
+      c.wander -= off * Math.min(1, dt * 1.5);
+    }
     desired = c.wander;
-    const m = EDGE * CS + 40;
-    let ex = 0,
-      ey = 0;
-    if (c.x < m) ex = 1;
-    else if (c.x > W - m) ex = -1;
-    if (c.y < m) ey = 1;
-    else if (c.y > GH * CS - m) ey = -1;
-    if (ex || ey) {
-      desired = Math.atan2(ey, ex);
+    // near the oval edge of the map, turn back towards the middle
+    if (edgeDist(c.x / CS, c.y / CS) < EDGE + 2.5) {
+      desired = Math.atan2(H / 2 - c.y, W / 2 - c.x);
       c.wander = desired;
     }
   }
@@ -534,6 +555,17 @@ function birth(p) {
     y = p.y;
   }
   const c = makeChild(p, x, y);
+  // the newborn's home: near its parent's home (not wherever the parent happened to be), sometimes a little further out
+  for (let k = 0; k < 6; k++) {
+    const b = rand() * TAU,
+      r = rand() * HOME.disperse,
+      hx = p.home[0] + Math.cos(b) * r,
+      hy = p.home[1] + Math.sin(b) * r;
+    if (inside(hx, hy) && allowed(c, cellI(hx, hy), cellT(hx, hy))) {
+      c.home = [hx, hy];
+      break;
+    }
+  }
   p.E -= p.cap * 0.45;
   S.newborns.push(c);
   p.births++;
@@ -618,9 +650,18 @@ function step(dt) {
 function pickEvent() {
   const w = world;
   if (rand() < EVENTS.meteor) return 'meteor';
-  let kinds = Object.entries(SEASONS[S.season].ev);
-  if (w.landFrac > 0.55) kinds = kinds.filter(k => k[0] !== 'drought');
-  if (w.landFrac < 0.3) kinds = kinds.filter(k => k[0] !== 'flood');
+  const ev = { ...SEASONS[S.season].ev };
+  // when land is too high for a drought (or too low for a flood), that share goes to the opposite event,
+  // not to earthquakes, so earthquakes stay as common as the season says
+  if (w.landFrac > LAND.noDrought) {
+    ev.flood += ev.drought;
+    ev.drought = 0;
+  }
+  if (w.landFrac < LAND.noFlood) {
+    ev.drought += ev.flood;
+    ev.flood = 0;
+  }
+  const kinds = Object.entries(ev).filter(k => k[1] > 0);
   let roll = rand() * kinds.reduce((s, k) => s + k[1], 0);
   for (const [n, wt] of kinds) {
     roll -= wt;
@@ -632,7 +673,10 @@ function pickEvent() {
 function worldEvent(kind, major, forced) {
   const w = world;
   let k = kind || pickEvent();
-  if (!forced && ((k === 'drought' && w.landFrac > 0.55) || (k === 'flood' && w.landFrac < 0.3)))
+  if (
+    !forced &&
+    ((k === 'drought' && w.landFrac > LAND.noDrought) || (k === 'flood' && w.landFrac < LAND.noFlood))
+  )
     k = pickEvent();
   let msg;
   if (k === 'meteor') {
@@ -649,14 +693,14 @@ function worldEvent(kind, major, forced) {
   const m = major ? 1 : 0,
     amt = EVENTS.shift[m];
   if (k === 'flood') {
-    w.landFrac = Math.max(0.24, w.landFrac - amt);
+    w.landFrac = Math.max(LAND.min, w.landFrac - amt);
     msg = major
       ? 'Major flood. The sea surged far inland, drowning low land and its food.'
       : 'Flood. The sea rose; low land and its food are underwater.';
   } else if (k === 'drought') {
-    w.landFrac = Math.min(0.6, w.landFrac + amt);
-    const rivers = dryUp(false, EVENTS.dry[m]),
-      seas = dryUp(true, EVENTS.dry[m]);
+    w.landFrac = Math.min(LAND.max, w.landFrac + amt);
+    const rivers = dryUp(false, m),
+      seas = dryUp(true, m);
     msg = major
       ? 'Major drought. The sea fell sharply, exposing new land and joining islands.'
       : 'Drought. The sea fell, joining some islands back to the mainland.';
@@ -694,9 +738,11 @@ function worldEvent(kind, major, forced) {
   if (k === 'quake') startShake('quake', major);
   eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
 }
-// droughts dry up rivers (or close sea channels) at random, turning them back into land; returns how many
-function dryUp(sea, n) {
-  const pick = world.channels.filter(ch => ch.sea === sea);
+// droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
+// are, and at least a set number (EVENTS.dry, dryShare); returns how many
+function dryUp(sea, m) {
+  const pick = world.channels.filter(ch => ch.sea === sea),
+    n = Math.max(EVENTS.dry[m], Math.round(pick.length * EVENTS.dryShare[m]));
   let k = 0;
   for (; k < n && pick.length; k++) {
     const ch = pick.splice((rand() * pick.length) | 0, 1)[0];

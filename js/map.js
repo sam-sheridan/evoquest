@@ -88,6 +88,10 @@ function renderTerrain() {
     N = GW * GH,
     T = w.type,
     V = {};
+  // near a sea channel, details fade out over its last few cells, so they follow its smooth coast instead of
+  // stopping at the grid cells it cut
+  const fade = i => clamp(w.seaD[i] / 3, 0, 1),
+    sm = f => i => f(i) * fade(i);
   const sea = i => (T[i] === 0 ? 200 - w.dLand[i] : 200);
   V.bands = [110, 64, 30].map(d => march(sea, 200 - d, true, false).fill);
   V.river = march(
@@ -100,18 +104,19 @@ function renderTerrain() {
   V.land = land.fill;
   V.coast = land.line;
   V.mead = march(
-    i => (T[i] === 1 && w.comp[i] >= 0 ? (w.fert[i] - w.fLo) / (w.fHi - w.fLo) : 0),
+    sm(i => (T[i] === 1 && w.comp[i] >= 0 ? (w.fert[i] - w.fLo) / (w.fHi - w.fLo) : 0)),
     0.62,
     true,
     false
   ).fill;
   const thick = march(
-    i =>
+    sm(i =>
       T[i] === 2
         ? Math.max(w.thk[i], w.tThr + 0.002)
         : T[i] === 1 || T[i] === 3
           ? Math.min(w.thk[i], w.tThr - 0.002)
-          : 0,
+          : 0
+    ),
     w.tThr,
     true,
     true
@@ -171,12 +176,25 @@ function renderTerrain() {
         clamp((w.thk[i] - t0) / (tMax - t0), 0, 1) ** 1.2 * 0.22;
   } // thickets sit in hollows
   const fn = i => (w.fert[i] - w.fLo) / (w.fHi - w.fLo);
-  V.dry = march(i => (T[i] === 1 ? 1 - fn(i) : 0), 0.62, true, false).fill;
+  V.dry = march(
+    sm(i => (T[i] === 1 ? 1 - fn(i) : 0)),
+    0.62,
+    true,
+    false
+  ).fill;
   V.tint = [
     [0.35, '#e5e7d4'],
     [0.6, '#e1dfca'],
     [0.82, '#dbd5bd'],
-  ].map(([d, c]) => [march(i => (isLand(T[i]) ? cdf[i] : 0), d, true, false).fill, c]);
+  ].map(([d, c]) => [
+    march(
+      sm(i => (isLand(T[i]) ? cdf[i] : 0)),
+      d,
+      true,
+      false
+    ).fill,
+    c,
+  ]);
   const rf0 = i =>
     T[i] === 3
       ? Math.max(w.rck[i], w.rThr + 0.002)
@@ -190,10 +208,17 @@ function renderTerrain() {
     }
     return rf0(i);
   };
-  V.rings = [0, 1, 2, 3].map(k => march(rf, w.rThr + k * rs, true, true));
+  V.rings = [0, 1, 2, 3].map(k => march(sm(rf), w.rThr + k * rs, true, true));
   V.cont = new Path2D();
   for (let k = 1; k <= 24; k++)
-    V.cont.addPath(march(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i]), k / 9, false, true).line);
+    V.cont.addPath(
+      march(
+        sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
+        k / 9,
+        false,
+        true
+      ).line
+    );
   V.chev = new Path2D();
   for (const ch of w.channels) {
     for (let k = 0; k < ch.pts.length - 1; k++) {

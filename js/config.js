@@ -6,21 +6,32 @@ const LIFE = 90; // maximum lifespan in seconds
 // ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
 const OLD = { from: 85, slowest: 0 };
 const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
-const W = 3008; // world width in px (GW cells of CS px)
-const H = 2096; // world height in px (GH cells of CS px)
+const W = 4512; // world width in px (GW cells of CS px)
+const H = 3152; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
-const GW = 188; // terrain grid width in cells
-const GH = 131; // terrain grid height in cells
+const GW = 282; // terrain grid width in cells
+const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
-const START = 20; // number of creatures released at the start
-const EDGE = 10; // width in cells of the guaranteed sea margin around the map
+const START = 25; // number of creatures released at the start
+// how steeply the sides of a sea channel drop, in height per cell; steep enough that the coast is crisp, while
+// the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
+const SEA_WALL = 0.03;
+const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
+// land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
+// between min and max, and aren't picked once land is below noFlood or above noDrought
+// strait: how deep the strait between the two starting landmasses is; 1.0 keeps it open at the start but lets a
+// big drought close it in about a third of worlds
+const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42, strait: 1.0 };
+// regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
+// strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
+const REGIONS = { strength: 1.3 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
-const TS = 1.2; // resolution of the pre-drawn map image (pixels per world px)
-const LO = 0.55; // resolution of the low-detail copy used when zoomed far out
+const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
+const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
 
 /* ---- colours ---- */
@@ -83,7 +94,8 @@ const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in sc
 // shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
 // blast: meteor kill radius in px; crater: crater radius in cells
 // splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
-// dry: rivers dried up and sea channels closed per drought (each); they turn straight back into land
+// dry: rivers dried up and sea channels closed per drought (each) at least; dryShare: or this share of them if
+// more, so the more splits there are, the more a drought undoes; they turn straight back into land
 const EVENTS = {
   first: [420, 0],
   gap: [420, 0],
@@ -95,6 +107,7 @@ const EVENTS = {
   splits: [1, 2],
   seaSplit: 0.3,
   dry: [1, 2],
+  dryShare: [0.25, 0.5],
   warn: 10, // seconds before an event that its warning symbol appears in the event bar
 };
 
@@ -107,13 +120,21 @@ const SHAKE = {
 };
 
 /* ---- behaviour ---- */
+// home ranges: each creature has a home (where it was born) and prefers food within r px of it; food further out
+// counts as pull extra seconds of travel for every r px beyond; below starving (share of full energy) creatures
+// range wider, up to 1 + hunger times r when nearly empty; a newborn's home lands up to disperse px from its
+// parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
+// around the release spot
+const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
+// food sites placed when a world is made: berries on land, algae in water
+const SITES = { land: 375, water: 125 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
-const CRW = { r: 80, half: 1.5, pow: 2 }; // tuned in scenario tests: keeps most runs at or below about 100
+const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups can be denser before breeding slows
 
 /* ---- speciation ---- */
 // geo: trait difference needed between groups on separate land; eco: between two clusters on the same land
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.2, eco: 0.37, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with 7-minute events: about 0-2 new species per 15-minute run
+const SPC = { geo: 0.22, eco: 0.4, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with home ranges: about 0-2 new species per 15 minutes
