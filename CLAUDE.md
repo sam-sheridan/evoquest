@@ -35,7 +35,9 @@ Sam isn't comfortable with git yet, so Claude does all of it.
    within a session.
 5. **Ship only when Sam says so** ("ship it", "merge it", "make it live"). Bring the branch up to date with
    `main`, run the checks once more, merge into `main`, push, and tell Sam it will be live in a minute or two.
-   Then delete the branch.
+   Then delete the branch locally. In a Claude Code cloud session, deleting a branch on GitHub is blocked by the
+   session's proxy, so tell Sam he can delete merged branches from the repo's Branches page if he wants a
+   tidy list (leaving them is harmless).
 
 Changes that only touch `CLAUDE.md` or `README.md`, and don't affect the game, can go straight to `main`.
 
