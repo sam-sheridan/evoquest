@@ -189,6 +189,38 @@ h3 {
   background: var(--ink);
   color: var(--panel);
 }
+/* season clock and world temperature, bottom left (under the inspector on narrow screens) */
+#clock {
+  position: fixed;
+  z-index: 3;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 7px;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+#clock span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#clkSeason {
+  font-weight: 600;
+}
+#clock .info {
+  position: static;
+  transform: none;
+  flex: none;
+}
+.clkDiv {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+}
 #scale {
   position: fixed;
   z-index: 3;
@@ -689,7 +721,7 @@ h3.sec {
   display: flex;
   gap: 6px;
   padding: 5px;
-  width: min(380px, calc(100vw - 16px));
+  width: min(200px, calc(100vw - 16px));
   box-sizing: border-box;
 }
 .mbar {
@@ -723,10 +755,6 @@ h3.sec {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
-}
-#mSeason i {
-  background: var(--season, #009e73);
-  opacity: 0.42;
 }
 #mEvent i {
   background: #d55e00;

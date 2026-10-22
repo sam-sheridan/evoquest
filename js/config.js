@@ -186,7 +186,7 @@ const SEASONS = [
   },
 ];
 // fast forward: how much faster, for how many real seconds, then how many real seconds before it can be used again
-const FAST = { speed: 3, dur: 20, cool: 180 };
+const FAST = { speed: 4, dur: 20, cool: 120 };
 const CHART_SPAN = 1200; // most seconds of history an inspector chart shows at once (20 minutes); a slider moves back
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth

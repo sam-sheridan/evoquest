@@ -17,16 +17,65 @@ const ICON_PLAY =
     '<svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
   ICON_PAUSE =
     '<svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor"/></svg>';
+// season symbols for the clock: flower, sun, leaf, snowflake (drawn in a 16-unit box centred on 0)
+const SEASON_ICON = [
+  '<g fill="none" stroke="currentColor" stroke-width="1.3"><circle r="1.6"/>' +
+    [0, 72, 144, 216, 288]
+      .map(a => `<ellipse cx="0" cy="-3.6" rx="1.7" ry="2.3" transform="rotate(${a})"/>`)
+      .join('') +
+    '</g>',
+  '<g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle r="2.6"/>' +
+    [0, 45, 90, 135, 180, 225, 270, 315]
+      .map(a => `<line x1="0" y1="-4.3" x2="0" y2="-6" transform="rotate(${a})"/>`)
+      .join('') +
+    '</g>',
+  '<g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M-4 4 C-4 -2 0 -5 5 -5 C5 0 2 4 -4 4 Z"/><path d="M-4 4 L2 -2"/></g>',
+  '<g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">' +
+    [0, 60, 120]
+      .map(
+        a =>
+          `<g transform="rotate(${a})"><line x1="0" y1="-5.5" x2="0" y2="5.5"/><path d="M-1.6 -4.3 L0 -2.9 L1.6 -4.3 M-1.6 4.3 L0 2.9 L1.6 4.3"/></g>`
+      )
+      .join('') +
+    '</g>',
+];
+// the whole world's temperature this season (0 cold to 1 warm): the season's shift and the world type's offset
+// around a mild middle; high ground is always colder than this and lowland warmer
+const worldTemp = () => 0.5 + world.tOff + TEMP.season[S.season],
+  tempWord = v => (v < 0.3 ? 'cold' : v < 0.45 ? 'cool' : v < 0.58 ? 'mild' : v < 0.72 ? 'warm' : 'hot');
+// the clock: a pie in four quarters (the current one stronger) with a hand that goes round once a year
+function syncClock(sp) {
+  const el = $('#clock'),
+    k = S.season,
+    a = ((k + sp) / 4) * TAU,
+    R = 15;
+  el.hidden = false;
+  let pie = '';
+  for (let q = 0; q < 4; q++) {
+    const a0 = (q / 4) * TAU - Math.PI / 2,
+      a1 = ((q + 1) / 4) * TAU - Math.PI / 2;
+    pie += `<path d="M0 0L${R * Math.cos(a0)} ${R * Math.sin(a0)}A${R} ${R} 0 0 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)}Z" fill="${SEASONS[q].col}" fill-opacity="${q === k ? 0.7 : 0.15}" stroke="${INK}" stroke-width=".8"/>`;
+  }
+  pie += `<line x1="0" y1="0" x2="${(R + 1) * Math.sin(a)}" y2="${-(R + 1) * Math.cos(a)}" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>`;
+  $('#clkPie').innerHTML = pie;
+  const v = worldTemp(),
+    f = clamp((v - 0.2) / 0.6, 0, 1),
+    c = v < 0.45 ? '#56B4E9' : v < 0.58 ? '#c9c27a' : '#E69F00',
+    key = k + '|' + v;
+  if (el.dataset.k === key) return;
+  el.dataset.k = key;
+  $('#clkSeason').innerHTML =
+    `<svg width="16" height="16" viewBox="-8 -8 16 16">${SEASON_ICON[k]}</svg>${SEASONS[k].name}`;
+  $('#clkTemp').innerHTML =
+    `<svg width="14" height="26" viewBox="0 0 14 26"><rect x="4" y="2" width="6" height="16" rx="3" fill="var(--panel)" stroke="${INK}"/><rect x="6" y="${4 + 12 * (1 - f)}" width="2" height="${12 * f + 4}" fill="${c}"/><circle cx="7" cy="20.5" r="4.5" fill="${c}" stroke="${INK}"/></svg><span style="font-weight:400">${tempWord(v)}</span>`;
+}
 function syncMeters() {
   if (!S) return;
   const sp = clamp((S.t - S.seasonStart) / (S.nextSeason - S.seasonStart), 0, 1),
     ep = clamp((S.t - S.evStart) / (S.nextEvent - S.evStart), 0, 1);
-  const se = SEASONS[S.season];
-  document.documentElement.style.setProperty('--season', se.col);
   const now = performance.now(),
     he = S.hl && S.hl.event && S.hl.event.until > now;
-  $('#mSeason i').style.width = sp * 100 + '%';
-  $('#mSeason span').textContent = se.name;
+  syncClock(sp);
   $('#mEvent i').style.width = ep * 100 + '%';
   $('#mEvent span').textContent = he ? S.hl.event.text : 'World event';
   $('#mEvent').classList.toggle('hot', !!he);
@@ -127,12 +176,17 @@ $('#bPause').onclick = () => {
   S.paused = !S.paused;
   syncUI(true);
 };
-// fast forward: FAST.speed for FAST.dur real seconds, then FAST.cool real seconds before it can be used again; it
-// is off while a testing speed above 1× is set
+// fast forward: FAST.speed for FAST.dur real seconds (pressing again stops it early), then FAST.cool real seconds
+// before it can be used again; it is off while a testing speed above 1× is set
 const fast = { until: 0, ready: 0 },
   fastOn = () => performance.now() < fast.until;
 $('#bFast').onclick = () => {
   const now = performance.now();
+  if (now < fast.until) {
+    fast.until = now;
+    fast.ready = now + FAST.cool * 1000;
+    return syncUI(true);
+  }
   if (!S || S.over || S.speed > 1 || now < fast.ready) return;
   fast.until = now + FAST.dur * 1000;
   fast.ready = fast.until + FAST.cool * 1000;
@@ -342,7 +396,7 @@ document.addEventListener('click', e => {
 });
 const INFO = {
   season:
-    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely.</p>
+    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely. The clock's hand goes round once a year. The thermometer shows how cold or warm the whole world is this season; high ground is always colder than that, and lowland warmer.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
     () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">The bar fills until the next event. Near the end a symbol warns you what is coming. In orange with a “!”, it will be a major event.</p>
@@ -358,9 +412,14 @@ function openInfo(which, btn) {
   p.dataset.w = which;
   p.innerHTML = INFO[which]();
   p.hidden = false;
-  const r = $('#meters').getBoundingClientRect();
-  p.style.top = r.bottom + 6 + 'px';
-  p.style.right = innerWidth - r.right + 'px';
+  // seasons open above the clock (bottom left), events below the event bar (top right)
+  const r = (which === 'season' ? $('#clock') : $('#meters')).getBoundingClientRect();
+  Object.assign(
+    p.style,
+    which === 'season'
+      ? { top: 'auto', right: 'auto', bottom: innerHeight - r.top + 6 + 'px', left: r.left + 'px' }
+      : { bottom: 'auto', left: 'auto', top: r.bottom + 6 + 'px', right: innerWidth - r.right + 'px' }
+  );
 }
 document.querySelectorAll('.info').forEach(
   b =>
@@ -429,7 +488,7 @@ function syncUI() {
     b.title = off
       ? 'Fast forward is off while a testing speed is set'
       : on
-        ? `Fast forward: ${Math.ceil((fast.until - now) / 1000)} s left`
+        ? `Fast forward: ${Math.ceil((fast.until - now) / 1000)} s left (press to stop)`
         : wait
           ? `Fast forward ready in ${fmtT((fast.ready - now) / 1000)}`
           : `Fast forward: ${FAST.speed}× for ${FAST.dur} s`;

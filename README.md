@@ -621,17 +621,28 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Button | What it does |
 |---|---|
 | Play / pause | Pauses the simulation. |
-| Fast forward (⏩) | Runs the game at 3× for 20 real seconds, then needs 3 minutes (real time) to recharge (`FAST`). A ring round the icon drains while it runs and fills as it recharges; hover to see the time left. It is greyed out while a testing speed above 1× is set. |
+| Fast forward (⏩) | Runs the game at 4× for 20 real seconds; press it again to stop early. Then it needs 2 minutes (real time) to recharge (`FAST`). A ring round the icon drains while it runs and fills as it recharges; hover to see the time left. It is greyed out while a testing speed above 1× is set. |
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
 | Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
 
-### Top right: season and event bars
+### Top right: event bar
 
-- The **season bar** fills over the season and is tinted the season's colour.
 - The **event bar** fills until the next world event. The warning symbol flashes for the last 10 seconds.
-- The **i** buttons open quick reference tables for seasons and events.
+- Its **i** button opens a quick reference for events.
+
+### Bottom left: season clock and temperature
+
+- A small **clock** split into four quarters, one per season in its colour (the current one stronger), with a
+  hand that goes round once a year.
+- The current season's **symbol and name**: a flower for spring, sun for summer, leaf for autumn, snowflake for
+  winter.
+- A **thermometer and a word** (cold, cool, mild, warm or hot) for the whole world's temperature this season: the
+  season's shift plus the world type's offset, around a mild middle. High ground is always colder than this, and
+  lowland warmer (see [temperature](#temperature)).
+- Its **i** button opens a quick reference for seasons.
+- On narrow screens, an expanded inspector covers it.
 
 ### Notifications
 
