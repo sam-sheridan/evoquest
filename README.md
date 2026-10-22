@@ -625,11 +625,6 @@ silent, even though the tab shows the speaker, while sound from an audio element
 uses) is heard. So all the game's sound feeds a hidden audio element, started by the click that releases a
 species. Browsers that can't do this send sound straight to the speakers instead.
 
-**Temporary sound check** (Settings, under the test events), while the Safari silence bug is being tracked down:
-**Test 1** plays a clear three-note chime straight to the speakers (the old way); **Test 2** plays the same
-chime the way the game now does, through the audio element. Each starts a fresh sound engine. The line underneath shows what the engine reports: its state,
-sample rate, whether its clock is moving, its output delay, and whether sound is on.
-
 ---
 
 ## 15. How things are drawn
