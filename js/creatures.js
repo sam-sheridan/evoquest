@@ -155,8 +155,32 @@ function makeChild(p, x, y, spread = 1) {
   return c;
 }
 
-// Survey-glyph style: pale body, ink outline, legs as short ink bars all round like map ticks.
-// Longer bars mean more speed on land; wider, shorter bars mean a creature that leans towards water.
+// Survey-glyph style: pale body, ink outline, and hair-like legs: tapering ink strokes from the body's edge, longer
+// for faster creatures. Their outer half swings back and forth while the base stays still: land creatures flip the
+// tip like a hinge, water creatures ripple a wave out along the leg, and creatures in between do a bit of both.
+// A leg starts a little inside the body, so the body always covers its base however far it bends.
+function drawLeg(g, ex, ey, dir, len, w0, bend) {
+  const N = 12,
+    P = [],
+    Q = [];
+  let x = ex - Math.cos(dir) * (w0 * 0.6 + 0.8),
+    y = ey - Math.sin(dir) * (w0 * 0.6 + 0.8);
+  for (let i = 0; i <= N; i++) {
+    const s = i / N,
+      d = dir + bend(s),
+      w = (w0 * Math.pow(1 - s, 0.85) + 0.3) / 2;
+    if (i) {
+      x += (Math.cos(d) * len) / N;
+      y += (Math.sin(d) * len) / N;
+    }
+    P.push(x - Math.sin(d) * w, y + Math.cos(d) * w);
+    Q.push(x + Math.sin(d) * w, y - Math.cos(d) * w);
+  }
+  g.moveTo(P[0], P[1]);
+  for (let i = 2; i < P.length; i += 2) g.lineTo(P[i], P[i + 1]);
+  for (let i = Q.length - 2; i >= 0; i -= 2) g.lineTo(Q[i], Q[i + 1]);
+  g.closePath();
+}
 function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   const L = c.bh / 2,
     Wd = c.bw / 2;
@@ -185,19 +209,25 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   }
   g.strokeStyle = INK;
   if (detail) {
-    const Lg = (2.2 + c.spd * 0.25) * (1 - c.hab * 0.4) * (swim ? 0.7 : 1),
-      wd = 2 + c.hab * 1.6;
-    g.lineCap = 'butt';
-    g.lineWidth = wd;
+    const h = c.hab,
+      len = (6.5 + c.spd * 0.3) * (1 - 0.15 * h) * (swim ? 0.85 : 1),
+      w0 = 2.1 + 0.9 * h;
+    g.fillStyle = INK;
     g.beginPath();
     c.anch.forEach(([ex, ey, a], k) => {
       if (swim && Math.cos(a) < 0) return;
-      const sw = (swim ? Math.sin(t * 4 + k * Math.PI) : Math.sin(c.walk * 2.2 + k * Math.PI)) * 0.22,
-        aa = a + sw;
-      g.moveTo(ex + Math.cos(aa) * 0.8, ey + Math.sin(aa) * 0.8);
-      g.lineTo(ex + Math.cos(aa) * (0.8 + Lg), ey + Math.sin(aa) * (0.8 + Lg));
+      const a0 = ((a % TAU) + TAU) % TAU,
+        side = a0 < Math.PI ? 1 : -1, // bending towards the tail is +side
+        dir = a0 + (Math.PI - a0) * (0.1 + 0.55 * h), // splayed on land, swept back in water
+        ph = (swim ? t * 5 : c.walk * 2.2) + k * Math.PI; // neighbouring legs swing in opposite phase
+      // flip (land): the outer half bends like a hinge; whip (water): the bend travels out to the tip
+      drawLeg(g, ex, ey, dir, len, w0, s => {
+        const flip = 1.25 * Math.sin(ph) * s * s + 0.25 * s,
+          whip = 1.3 * Math.sin(ph - s * 4.2) * s * s + 0.2 * s;
+        return side * ((1 - h) * flip + h * whip);
+      });
     });
-    g.stroke();
+    g.fill();
   }
   g.fillStyle = fill;
   g.fill(c.p2);

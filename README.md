@@ -768,8 +768,15 @@ The look is a scientific **field notebook / survey map**.
   map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
   mid-zoom included.
 - **Creatures** are seen from above.
-  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
-  - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
+  - Body: a pale body with an ink outline, an eye pair at the front, and hair-like legs round its sides.
+  - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
+    legs. Land creatures' legs splay out to the sides; water creatures' legs are a little shorter and broader at
+    the base, and swept back towards the tail. Each leg starts just inside the body, so its base always stays
+    attached however far it bends.
+  - Leg movement: the base stays still while the outer half swings, the tip flipping from pointing towards the
+    head to pointing towards the tail and back, with neighbouring legs in opposite phase. On land the leg bends
+    like a hinge; in water a wave ripples out along it to the tip; creatures in between do a mix of both. Legs
+    move as the creature walks (and all the time while swimming), and are only drawn when zoomed in a little.
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
     further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
