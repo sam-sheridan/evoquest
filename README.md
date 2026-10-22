@@ -793,6 +793,13 @@ accident.
   slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
   now.
 
+**Map redesign**
+
+- A more natural look, less like a survey map.
+- More interesting water.
+- Lake options.
+- Thickets that change over time.
+
 **Speciation**
 
 - Better features and world variation, so that traits don't all converge on the same ideal. (World types,
