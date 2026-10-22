@@ -225,8 +225,12 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
       if (swim && Math.cos(a) < 0) return;
       const a0 = ((a % TAU) + TAU) % TAU,
         side = a0 < Math.PI ? 1 : -1, // bending towards the tail is +side
+        // front legs point forwards on land; the more aquatic, the more they start out sideways instead, so a water
+        // creature's front legs don't head towards the head before curving back
+        fwd = side > 0 ? Math.max(0, Math.PI / 2 - a0) : Math.max(0, a0 - 1.5 * Math.PI),
+        base = a0 + side * fwd * h,
         // how far the leg turns back towards the tail: a little on land, a lot in water
-        sweep = Math.abs(Math.PI - a0) * (0.1 + 0.55 * h),
+        sweep = Math.abs(Math.PI - base) * (0.1 + 0.55 * h),
         ph = (swim ? t * 5 : c.walk * 2.2) + k * Math.PI; // neighbouring legs swing in opposite phase
       // one swing whose wave spreads further along the leg the more aquatic it is: a hinge flip on land, a ripple
       // travelling out to the tip in water, and every creature keeps the full swing
@@ -234,16 +238,18 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
         g,
         ex,
         ey,
-        a0,
+        base,
         len,
         w0,
         // the leg leaves the body straight out (its thick base square to the edge), turns back over its first
         // half, and its outer part swings
         s => {
-          const u = clamp((s - 0.08) / 0.45, 0, 1);
+          const u = clamp((s - 0.08) / 0.45, 0, 1),
+            // in water the inner third of the leg stays out of the swing, so it never arches towards the head
+            o = clamp((s - 0.3 * h) / (1 - 0.3 * h), 0, 1);
           return (
             side *
-            (sweep * u * u * (3 - 2 * u) + (1.25 + 0.05 * h) * Math.sin(ph - s * 4.2 * h) * s * s + 0.22 * s)
+            (sweep * u * u * (3 - 2 * u) + (1.25 + 0.05 * h) * Math.sin(ph - s * 4.2 * h) * o * o + 0.22 * s)
           );
         }
       );
