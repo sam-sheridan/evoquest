@@ -9,27 +9,87 @@ const SPK_ON =
     '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5q2 2.5 0 5M13 2.5q4 4.5 0 9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
   SPK_OFF =
     '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5l5 5M16 4.5l-5 5" stroke="currentColor" stroke-width="1.4"/></svg>';
+// Safari can keep sound sent straight to the speakers silent even though the tab shows it playing, while sound
+// played through an <audio> element (as YouTube does) is heard, so all the game's sound goes to OUT, which feeds
+// a hidden <audio> element; browsers without that route send OUT straight to the speakers
+let OUT = null,
+  outEl = null;
 function ensureAudio() {
   if (!AC) {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {}
+    if (AC) {
+      OUT = AC.createGain();
+      try {
+        const dest = AC.createMediaStreamDestination();
+        OUT.connect(dest);
+        outEl = new Audio();
+        outEl.srcObject = dest.stream;
+      } catch (e) {
+        OUT.connect(AC.destination);
+        outEl = null;
+      }
+    }
+    clockT = AC ? AC.currentTime : 0;
+    clockWall = performance.now();
+    stale = false;
   }
   if (AC && AC.state === 'suspended') AC.resume();
+  playOut();
+}
+// the <audio> element may only start during a click or key press, and the browser may pause it while hidden
+function playOut() {
+  if (!outEl || !outEl.paused) return;
+  const p = outEl.play();
+  if (p && p.catch) p.catch(() => {});
+}
+// throw the sound engine away and start a fresh one; Safari can leave an engine "playing" (the tab shows the
+// speaker) while nothing reaches the speakers, often after the Mac sleeps or the audio device changes
+function resetAudio() {
+  if (outEl) outEl.pause();
+  if (AC && AC.close) AC.close().catch(() => {});
+  AC = OUT = outEl = beatBus = noiseBuf = null;
+  ensureAudio();
 }
 // browsers pause a page's sound while it is hidden or the device sleeps (Safari calls this "interrupted"), so wake
 // it when the page comes back into view, or on the next click or key press if the browser wants a gesture first;
-// only a paused context is touched
+// an engine found stuck is replaced on that click or key press, since browsers only start sound from one
 function wakeAudio() {
-  if (!AC || (AC.state !== 'suspended' && AC.state !== 'interrupted')) return;
+  if (!AC) return;
+  if (stale) return resetAudio();
+  playOut();
+  if (AC.state !== 'suspended' && AC.state !== 'interrupted') return;
   const p = AC.resume();
-  if (p && p.catch) p.catch(() => {});
+  if (p && p.catch) p.catch(() => (stale = true));
 }
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) wakeAudio();
+  clockWall = performance.now();
+  if (AC) clockT = AC.currentTime;
+  if (!document.hidden) playOut();
+  if (!document.hidden && AC && AC.state !== 'running') {
+    const p = AC.resume();
+    if (p && p.catch) p.catch(() => (stale = true));
+  }
 });
 addEventListener('click', wakeAudio, true);
 addEventListener('keydown', wakeAudio, true);
+// watchdog: while the page is visible, an engine that says it is running must have its clock moving; one that
+// is frozen, or still paused after a resume, is marked stuck and replaced on the next click or key press
+let clockT = 0,
+  clockWall = 0,
+  stale = false;
+setInterval(() => {
+  if (!AC || !sound || document.hidden) return;
+  const now = performance.now(),
+    wall = (now - clockWall) / 1000,
+    moved = AC.currentTime - clockT;
+  if (wall >= AUDIO_CHECK) {
+    if (AC.state === 'running' ? moved < wall * 0.5 : AC.state !== 'closed') stale = true;
+    clockT = AC.currentTime;
+    clockWall = now;
+  }
+}, 500);
 function tone(f, d, type, vol, when = 0) {
   if (!AC || !sound) return;
   const t = AC.currentTime + when,
@@ -40,7 +100,7 @@ function tone(f, d, type, vol, when = 0) {
   g.gain.setValueAtTime(0, t);
   g.gain.linearRampToValueAtTime(vol, t + 0.006);
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  o.connect(g).connect(AC.destination);
+  o.connect(g).connect(OUT);
   o.start(t);
   o.stop(t + d + 0.05);
 }
@@ -66,13 +126,14 @@ const NOTES = [220, 247, 294, 330, 392, 440, 494];
 setInterval(() => {
   if (sound && ambient && S && !S.paused && !S.over && rand() < 0.6) {
     const f = NOTES[(rand() * NOTES.length) | 0];
-    tone(f, 1.4, 'sine', 0.016);
-    if (rand() < 0.35) tone(f * 2, 0.9, 'sine', 0.006, 0.2);
+    tone(f, 1.4, 'sine', AMB_VOL);
+    if (rand() < 0.35) tone(f * 2, 0.9, 'sine', AMB_ECHO, 0.2);
   }
 }, 1200);
+// turning sound back on always starts a fresh engine, so the speaker button is a sure cure for silence
 $('#bSound').onclick = () => {
-  ensureAudio();
   sound = !sound;
+  if (sound) resetAudio();
   syncUI(true);
   if (sound) SND.birth();
 };
@@ -86,7 +147,7 @@ function beatInit() {
   if (beatBus || !AC) return;
   beatBus = AC.createGain();
   beatBus.gain.value = 0;
-  beatBus.connect(AC.destination);
+  beatBus.connect(OUT);
   noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -138,7 +199,7 @@ setInterval(() => {
   if (!AC || !sound) return;
   beatInit();
   const on = beatOn && S && !S.paused && !S.over && !S.replay,
-    lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * 0.16 : 0;
+    lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * BEAT_VOL : 0;
   beatBus.gain.setTargetAtTime(lvl, AC.currentTime, 0.4);
   if (lvl <= 0.001 && beatBus.gain.value < 0.002) {
     beatNext = 0;
@@ -168,7 +229,7 @@ function sfxNoise(t, dur, type, f0, f1, q, vol) {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(vol, t + Math.min(0.4, dur * 0.3));
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  s.connect(f).connect(g).connect(AC.destination);
+  s.connect(f).connect(g).connect(OUT);
   s.start(t);
   s.stop(t + dur + 0.05);
   return g;
@@ -182,7 +243,7 @@ function sweep(t, dur, type, f0, f1, vol) {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(vol, t + 0.05);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(AC.destination);
+  o.connect(g).connect(OUT);
   o.start(t);
   o.stop(t + dur + 0.05);
 }

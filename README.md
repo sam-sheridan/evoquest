@@ -606,7 +606,7 @@ All sound is generated live in the browser. There are no audio files.
 
 | Sound | Details |
 |---|---|
-| **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quiet octave echo. Plays while a run is going. |
+| **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going, at about the loudness of the zoomed-in beat's snare. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
 | **World events** | Each has its own effect, louder and longer when major: flood (rushing water and falling notes), drought (dry hiss and rising notes), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
@@ -614,6 +614,16 @@ All sound is generated live in the browser. There are no audio files.
 
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
 back into view, and on the next tap or key press if the browser insists on one.
+
+Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
+after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
+moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
+Turning sound off and on with the speaker button always starts a fresh engine, as a sure cure for silence.
+
+**Sound goes out through an audio element.** On some Macs Safari keeps sound sent straight to the speakers
+silent, even though the tab shows the speaker, while sound from an audio element (the kind of player YouTube
+uses) is heard. So all the game's sound feeds a hidden audio element, started by the click that releases a
+species. Browsers that can't do this send sound straight to the speakers instead.
 
 ---
 

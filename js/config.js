@@ -6,6 +6,10 @@ const LIFE = 90; // maximum lifespan in seconds
 // ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
 const OLD = { from: 85, slowest: 0 };
 const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
+const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
+const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
+const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
+const AUDIO_CHECK = 2; // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
