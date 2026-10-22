@@ -58,6 +58,7 @@ function newGame(design, seed) {
   S.sites = world.sites;
   world.sites.forEach(f => {
     f.active = true;
+    f.gone = false;
     f.t = 0;
     f.cl = 0;
   });
@@ -154,10 +155,13 @@ function newGame(design, seed) {
   selectTab('pop');
   syncUI(true);
 }
-function edible(f) {
-  if (!f.active) return false;
+// does the ground suit this food? berries need land or thicket, algae shallow water (rivers or the sea's shelf)
+function suits(f) {
   const t = world.type[f.i];
-  return f.kind === 'w' ? isWater(t) : t === 1 || t === 2;
+  return f.kind === 'w' ? isWater(t) && !world.deep[f.i] : t === 1 || t === 2;
+}
+function edible(f) {
+  return f.active && !f.gone;
 }
 function region(f) {
   if (f.kind === 'w') return 'water';
@@ -589,6 +593,16 @@ function step(dt) {
   S.t += dt;
   for (const f of S.sites) {
     if (f.vis > 0) f.vis -= dt;
+    // food on the wrong ground after a flood or drought is wiped out, and regrows from scratch once the ground
+    // suits it again
+    if (!suits(f)) {
+      if (!f.gone) [f.gone, f.active, f.vis] = [true, false, 0];
+      continue;
+    }
+    if (f.gone) {
+      f.gone = false;
+      f.t = f.t0 = regrow(f);
+    }
     if (!f.active) {
       f.t -= dt;
       if (f.t <= 0) f.active = true;

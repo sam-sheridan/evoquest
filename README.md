@@ -442,7 +442,9 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 - A regrowing algae site shows as small yellow fronds and turns green when ready.
 - When zoomed out, food is drawn as simple dots.
 
-Food on land that floods, or in water that dries up, can't be eaten until the terrain changes back.
+**Floods and droughts wipe food out.** Berries on land that floods, algae on water that dries up, and algae left
+in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
+(say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown.
 
 ---
 
@@ -471,8 +473,9 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
   events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
   different season from the one before.
-- There is **no timer or advance warning** on screen: events simply arrive. While one is happening, the
-  **world event sign** (bottom left) flashes orange with its symbol. Major events look the same there.
+- There is **no timer** on screen. For the last 7 seconds before an event (`EVENTS.warn`), the **world event
+  sign** (bottom left) flashes orange with the coming event's symbol, then stays bright orange for 2 seconds once
+  it happens (`EVENTS.show`). Major events look the same there.
 
 ### Which event
 
@@ -515,7 +518,8 @@ Each event:
   one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
   to reduce motion
 - plays its own sound effect
-- makes the world event sign flash orange with the event's symbol for 7 seconds
+- turns the world event sign bright orange with the event's symbol for 2 seconds (after 7 seconds of flashing
+  beforehand)
 - adds a line to the event log
 
 Land heights never change, only the sea level (and rivers and sea channels cut on top), so the colours of land
@@ -625,7 +629,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -636,10 +640,11 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 - A **thermometer and a word** (cold, cool, mild, warm or hot) for the whole world's temperature this season: the
   season's shift plus the world type's offset, around a mild middle. High ground is always colder than this, and
   lowland warmer (see [temperature](#temperature)).
-- Its **i** button opens a quick reference for seasons.
-- Beside it, in its own square, the **world event sign**: a warning triangle with "!". While an event is happening
-  (for 7 seconds), the "!" changes to that event's symbol (waves, sun, jagged line or falling rock) and the
-  triangle flashes orange. Major events look the same. Click it for a quick reference to events.
+- **Click it** for a quick reference to seasons.
+- Beside it, in its own square, the **world event sign**: a warning triangle with rounded corners and "!". For the
+  last 7 seconds before an event, the "!" changes to the coming event's symbol (waves, sun, jagged line or falling
+  rock) and the triangle flashes orange; once the event happens it stays bright orange for 2 seconds, then goes back
+  to "!". Major events look the same. Click it for a quick reference to events.
 - On narrow screens, an expanded inspector covers them.
 
 ### Notifications

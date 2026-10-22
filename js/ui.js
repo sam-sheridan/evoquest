@@ -2,26 +2,30 @@
    popovers, event log and achievements menu. */
 
 /* ---------- UI ---------- */
-// while an event is happening, the world event sign shows its symbol and flashes; details go to the event log
+// the world event sign flashes with the coming event's symbol for its last EVENTS.warn seconds, then stays bright
+// orange for EVENTS.show seconds once it happens; details go to the event log
 function eventAlert(kind) {
   if (!S) return;
   S.hl = S.hl || {};
-  S.hl.event = { until: performance.now() + 7000, kind };
+  S.hl.event = { until: performance.now() + EVENTS.show * 1000, kind };
   syncEvent();
   if (!$('#logPop').hidden) renderLog();
 }
-// the sign: a warning triangle with "!", or with the event's symbol while one is happening
+// the sign: a rounded warning triangle with "!", or with the event's symbol around the time of an event
 function syncEvent() {
   const el = $('#evSq'),
-    he = S.hl && S.hl.event && S.hl.event.until > performance.now(),
-    key = he ? S.hl.event.kind : '!';
-  el.classList.toggle('hot', !!he);
+    hit = S.hl && S.hl.event && S.hl.event.until > performance.now(),
+    warn = !hit && !S.over && S.nextKind && S.nextEvent - S.t <= EVENTS.warn,
+    key = hit ? S.hl.event.kind : warn ? S.nextKind : '!';
+  el.classList.toggle('hot', !!hit);
+  el.classList.toggle('warn', !!warn);
   if (el.dataset.k === key) return;
   el.dataset.k = key;
-  const sym = he
-    ? `<g class="sym" transform="translate(9.2 14.6) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`
-    : '<g class="sym" fill="currentColor"><rect x="14.8" y="11.5" width="1.4" height="8" rx=".7"/><circle cx="15.5" cy="22.6" r="1.1"/></g>';
-  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M15.5 3 L28.5 26 H2.5 Z" stroke-width="1.3" stroke-linejoin="round"/>${sym}</svg>`;
+  const sym =
+    key === '!'
+      ? '<g class="sym" fill="currentColor"><rect x="14.8" y="11.5" width="1.4" height="8" rx=".7"/><circle cx="15.5" cy="22.6" r="1.1"/></g>'
+      : `<g class="sym" transform="translate(9.2 14.6) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`;
+  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M14.22 5.26Q15.5 3 16.78 5.26L27.22 23.74Q28.5 26 25.90 26.00L5.10 26.00Q2.5 26 3.78 23.74Z" stroke-width="1.3" stroke-linejoin="round"/>${sym}</svg>`;
 }
 const ICON_PLAY =
     '<svg viewBox="0 0 12 12" width="14" height="14" style="transform:translateX(1px)"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
@@ -223,6 +227,8 @@ for (const b of document.querySelectorAll('.testev button'))
   b.onclick = () => {
     if (!S || S.over || S.replay) return;
     worldEvent(b.dataset.ev, $('#sMajor').getAttribute('aria-pressed') === 'true', true);
+    // the land may have changed, so the coming event is chosen again (its timing stays the same)
+    S.nextKind = null;
     syncUI(true);
   };
 document.addEventListener('click', e => {
@@ -390,7 +396,7 @@ const INFO = {
     () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely. The clock's hand goes round once a year. The thermometer shows how cold or warm the whole world is this season; high ground is always colder than that, and lowland warmer.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
-    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">One comes every ${EVENTS.gap[0] / 60} minutes, without warning. While it happens, the warning sign flashes orange with its symbol.</p>
+    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">One comes every ${EVENTS.gap[0] / 60} minutes. For its last ${EVENTS.warn} seconds the warning sign flashes orange with the coming event's symbol, and it stays bright orange for a moment once the event happens.</p>
   <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears, islands may join, and rivers and sea channels can dry up.', quake: 'The land splits, usually with a new river, sometimes with a channel of sea.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
   <p class="hint" style="margin:6px 0 0">About 1 in 10 events is major: floods and droughts move the sea further, earthquakes open two rivers, and meteors hit a wider area.</p>`,
 };
@@ -412,7 +418,7 @@ function openInfo(which, btn) {
     left: r.left + 'px',
   });
 }
-document.querySelectorAll('.info, #evSq').forEach(
+document.querySelectorAll('.info, #evSq, #clock').forEach(
   b =>
     (b.onclick = e => {
       e.stopPropagation();

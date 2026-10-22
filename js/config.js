@@ -215,7 +215,8 @@ const EVENTS = {
   seaSplit: 0.3,
   dry: [1, 2],
   dryShare: [0.25, 0.5],
-  warn: 10, // seconds before an event that it is decided (there is no warning on screen)
+  warn: 7, // seconds before an event that the world event sign starts flashing with its symbol
+  show: 2, // real seconds the sign stays bright orange once the event happens
 };
 
 // screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles,

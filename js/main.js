@@ -181,8 +181,7 @@ function renderScene(nowT) {
     bY = new Path2D();
   for (const f of S.sites) {
     if (!onScreen(f.x, f.y)) continue;
-    const tt = world.type[f.i];
-    if (f.kind === 'w' ? !isWater(tt) : !(tt === 1 || tt === 2)) continue;
+    if (f.gone) continue;
     const p = f.active || f.vis > 0 ? 1 : 1 - clamp(f.t / (f.t0 || 20), 0, 1) < 0.5 ? 0 : 0.5;
     if (fine) (f.kind === 'w' ? drawAlgae : drawBerry)(ctx, f.x, f.y, p);
     else if (p >= 1) {

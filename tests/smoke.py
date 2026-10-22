@@ -49,7 +49,7 @@ with sync_playwright() as p:
         pg.click(button)
         time.sleep(0.2)
         pg.mouse.click(500, 500)
-    for info in ['.info[data-info=season]', '#evSq']:
+    for info in ['#clock', '#evSq']:
         pg.click(info)
         pg.mouse.click(500, 500)
 

@@ -219,6 +219,8 @@ h3 {
   display: none;
 }
 #clock {
+  color: var(--ink);
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -234,11 +236,6 @@ h3 {
 }
 #clkSeason {
   font-weight: 600;
-}
-#clock .info {
-  position: static;
-  transform: none;
-  flex: none;
 }
 /* world event sign: a warning triangle that, during an event, shows its symbol and flashes orange */
 #evSq {
@@ -259,12 +256,22 @@ h3 {
 #evSq .sym {
   color: var(--ink);
 }
+/* warning: flashes for the last seconds before an event; hit: stays bright for a moment once it happens */
+#evSq.warn .tri,
 #evSq.hot .tri {
   stroke: var(--signal);
+}
+#evSq.warn .tri {
   animation: evflash 0.5s steps(1) infinite;
 }
-#evSq.hot .sym {
+#evSq.warn .sym {
   animation: evsym 0.5s steps(1) infinite;
+}
+#evSq.hot .tri {
+  fill: var(--signal);
+}
+#evSq.hot .sym {
+  color: #fff;
 }
 @keyframes evflash {
   0% {
@@ -283,13 +290,12 @@ h3 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  #evSq.hot .tri {
+  #evSq.warn .tri {
     animation: none;
-    fill: var(--signal);
+    fill: #ffd9cc;
   }
-  #evSq.hot .sym {
+  #evSq.warn .sym {
     animation: none;
-    color: #fff;
   }
 }
 .clkDiv {
