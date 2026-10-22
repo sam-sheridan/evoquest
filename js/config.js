@@ -114,9 +114,10 @@ const REGIONS = { strength: 1.3 };
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
 // sea depth: shelf is the share of the sea that is shallow shelf (by distance from shore and the sea floor);
-// algae grows only there. In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones)
-const SEA = { shelf: 0.3, deepCost: 0.8 };
-const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.35, heatCost: 0.3 };
+// algae grows only there, thinning out with distance from shore (algaeFade px). In deep water, creatures burn up
+// to deepCost more energy (none for fully aquatic ones)
+const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8 };
+const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.18, heatCost: 0.15 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
 // habitat: range = how far (px) a 50% creature goes from shore into water, and from water onto land; the limit
 // grows quickly towards either end. food = how much habitat changes the energy from food: berries give FOOD x

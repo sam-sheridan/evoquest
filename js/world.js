@@ -264,7 +264,8 @@ function genWorld(seed, att = 0) {
       i = cellI(x, y),
       t = world.type[i];
     if (!isWater(t) || border(i)) continue;
-    if (t === 0 && world.deep[i]) continue;
+    // algae grows only on the shelf, and most thickly close to shore
+    if (t === 0 && (world.deep[i] || rng() > Math.exp(-world.dLand[i] / SEA.algaeFade))) continue;
     world.sites.push({ x, y, i, kind: 'w', active: true, t: 0 });
     nw++;
   }
