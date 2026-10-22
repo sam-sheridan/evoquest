@@ -2,3 +2,6 @@ dist/
 __pycache__/
 node_modules/
 .DS_Store
+
+# screenshots from test scripts belong in a scratch folder, never the top of the repo
+/*.png
