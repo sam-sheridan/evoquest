@@ -126,8 +126,8 @@ const NOTES = [220, 247, 294, 330, 392, 440, 494];
 setInterval(() => {
   if (sound && ambient && S && !S.paused && !S.over && rand() < 0.6) {
     const f = NOTES[(rand() * NOTES.length) | 0];
-    tone(f, 1.4, 'sine', 0.016);
-    if (rand() < 0.35) tone(f * 2, 0.9, 'sine', 0.006, 0.2);
+    tone(f, 1.4, 'sine', AMB_VOL);
+    if (rand() < 0.35) tone(f * 2, 0.9, 'sine', AMB_ECHO, 0.2);
   }
 }, 1200);
 // turning sound back on always starts a fresh engine, so the speaker button is a sure cure for silence
