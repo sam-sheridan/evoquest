@@ -19,6 +19,9 @@ Read the relevant section before changing a mechanic.
 - When Sam floats an idea or asks "what do you think", give an honest opinion and any trade-offs before building.
   When he says "go ahead" or lists changes, build them all.
 - Batched feedback is common: one message with many small fixes. Use a task list and work through every item.
+- Whenever you start a test or anything else that takes more than a minute or so, tell Sam roughly how long it
+  will take (for example "about 4–6 minutes"). Rough guide: smoke test under a minute, `scenarios.py 6 15` about
+  3–5 minutes, `scenarios.py 6 30` about 6–10 minutes; running batches side by side speeds things up.
 
 ## How a batch of changes works
 
