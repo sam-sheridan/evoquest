@@ -429,10 +429,13 @@ function drawAlgae(g, x, y, p) {
 // the map as it was, kept sharp for the cross-fade: a full-resolution copy of the base map, plus the zoomed-in
 // detail image if there is one (handed over to the fade; the detail layer gets a fresh canvas to redraw into)
 function snapMap() {
-  const a = document.createElement('canvas');
+  let a = document.createElement('canvas');
   a.width = tcan.width;
   a.height = tcan.height;
-  a.getContext('2d').drawImage(tcan, 0, 0);
+  // if the browser refuses another big canvas, skip the fade rather than stop the map repainting
+  const ga = a.getContext('2d');
+  if (ga) ga.drawImage(tcan, 0, 0);
+  else a = null;
   let d = null;
   if (detail.ok) {
     d = { can: detail.can, x: detail.x, y: detail.y, z: detail.z };
@@ -445,7 +448,15 @@ function snapMap() {
 function detailRect(d) {
   return [d.x - cw / d.z, d.y - ch / d.z, d.can.width / (dpr * d.z), d.can.height / (dpr * d.z)];
 }
+// Safari frees a canvas's memory only when it is garbage collected, and caps the total, so the fade's copies are
+// emptied as soon as the fade is over or replaced
+function endFade() {
+  if (!S || !S.fade) return;
+  for (const c of [S.fade.a, S.fade.d && S.fade.d.can]) if (c) c.width = c.height = 0;
+  S.fade = null;
+}
 function seasonFade() {
+  endFade();
   const old = snapMap();
   const g = tcan.getContext('2d');
   g.setTransform(TS, 0, 0, TS, 0, 0);
@@ -456,5 +467,6 @@ function seasonFade() {
   S.fade = { t: 0, ...old, dur: 2.5 };
 }
 function startFade(old) {
+  endFade();
   if (S) S.fade = { t: 0, ...old, dur: 3 };
 }
