@@ -118,13 +118,34 @@ From these, the game works out:
 - **Land speed** = base × (1 − 0.85 × habitat).
 - **Water speed** = base × (0.15 + 0.85 × habitat).
   A fully land creature still swims at 15% of its base speed. A fully water creature walks at 15%.
-- **Range from home ground.**
-  - Habitat below 50%: it swims at most 300 × (habitat ÷ 0.5)³ px from shore. At 20% that is about 19 px, at
-    40% about 154 px, and at 0% it never enters water.
-  - Habitat above 50%: the same rule applies to how far it walks from water.
-  - Habitat of exactly 50%: equally at home in both, with no limit.
+- **Range.** Only a fully land creature (0%) goes anywhere on land, and only a fully water creature (100%)
+  anywhere in water. Everything in between has two limits (`HAB.range` = 200):
+  - it swims at most 200 × (habitat ÷ (1 − habitat))² px from shore
+  - it walks at most 200 × ((1 − habitat) ÷ habitat)² px from water
+
+  | Habitat | Swims from shore | Walks from water |
+  |---|---|---|
+  | 0% | never enters water | anywhere |
+  | 20% | 13 px | 3200 px (anywhere, in practice) |
+  | 30% | 37 px | 1089 px |
+  | 40% | 89 px | 450 px |
+  | 50% | 200 px | 200 px |
+  | 60% | 450 px | 89 px |
+  | 80% | 3200 px | 13 px |
+  | 100% | anywhere | never leaves water |
+
+  So a 50% creature lives along coasts and lakesides, and being in between is no longer a free pass.
+- **Food energy.** Land creatures get more from berries and water creatures more from algae (`HAB.food`):
+
+  | Habitat | Berry | Algae |
+  |---|---|---|
+  | 0% | 10 | 6 |
+  | 20% | 9.2 | 6.8 |
+  | 50% | 8 | 8 |
+  | 80% | 6.8 | 9.2 |
+  | 100% | 6 | 10 |
 - **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to be willing to swim at least 16 px from shore.
+  the creature to be willing to swim at least 16 px from shore (habitat of about 22% or more).
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size.
 
@@ -166,10 +187,19 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = 0.4 × size + 0.9 × size × (current speed ÷ 30)².
+- **Burn per second** = 0.4 × size + 0.9 × size × (current speed ÷ 30)², plus temperature, and more in deep
+  water.
   - Standing still costs a little; moving fast costs a lot, because of the squared term.
   - Big creatures pay more for both.
-- **Food** gives 8 energy (`FOOD`), up to the creature's capacity.
+  - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
+    for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
+    and big ones least (about 0.65 times).
+  - **Heat**: cooling down costs up to 0.3 × size² per second (`TEMP.heatCost`), so big creatures pay most.
+  - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − habitat) (`SEA.deepCost`). A 20% creature
+    burns 64% more there; a fully aquatic one burns nothing extra.
+  - The creator shows the burn when walking, without temperature or deep water.
+- **Food** gives 8 energy (`FOOD`), changed by habitat (see [traits](#3-traits-body-and-look)): a berry gives a
+  0% creature 10 and a 100% creature 6, and algae the opposite. Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
   meal.
 
@@ -285,22 +315,50 @@ re-plan at once.
 
 | Type | How it is made |
 |---|---|
-| **Sea** | Everything below sea level. Shown in four depth bands. |
+| **Sea** | Everything below sea level: a shallow shelf near coasts and over banks, and deep water beyond (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
-| **Thicket** | The densest 21% of a "thicket" noise pattern, on land, weighted by region (see below). Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each, narrower in thicket country). Denser dots on the map mean narrower gaps. |
-| **Rock** | The top 10% of a "rock" noise pattern, on land, weighted by region. Impassable. Drawn as contoured grey plates. |
+| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Each thicket cell has a gap width of 10, 13 or 16 px (roughly a third each, narrower in thicket country). Denser dots on the map mean narrower gaps. |
+| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
+
+### World types and shapes
+
+Each world secretly rolls a **type** from its world number. The player never sees it: the point is that you have
+no say in the world, and different worlds favour different designs. All the numbers are in `WORLD_TYPES`.
+
+| Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
+|---|---|---|---|---|---|---|---|
+| **Classic** | 3 in 10 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
+| **Archipelago** | 2 in 10 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
+| **Supercontinent** | 2 in 10 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
+| **Highlands** | 1.5 in 10 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
+| **Forest** | 1.5 in 10 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
+
+Rivers: an 85% chance of one and a 55% chance of a second, except archipelagos (30%, never two), supercontinents
+(always one, 70% a second) and highlands (85%, 30%). Supercontinents have slightly fewer wetlands, highlands
+noticeably fewer.
+
+Each world also rolls a **shape** (`SHAPES`), separately from its type:
+
+| Shape | How often | What it looks like |
+|---|---|---|
+| **Oval** | 4 in 7 | Land in the middle of the oval, as before. |
+| **Lagoon** | 1.5 in 7 | A broad hollow in the middle leaves the land as a ring around a central sea. |
+| **Crescent** | 1.5 in 7 | A bigger hollow pushed off to one side, so the land curves round a bay. |
 
 ### How a world is generated
 
 1. Smooth random height patterns are combined. The island shape is warped so coastlines are irregular, and
-   the land is pushed down towards the edges.
-2. A **strait** splits the world into **two landmasses** at the start (70% of the time it runs roughly
-   north–south). It is only moderately deep (`LAND.strait`), so a big drought, or several in a row, can dry it
-   up and join the two landmasses: in tests, about a third of worlds.
-3. If the second landmass is smaller than a quarter of the first (or under 1100 cells), the world is rebuilt from
-   a variation of the same seed (up to 5 tries).
-4. **Regions.** Broad, slowly varying patterns give each area its own character (`REGIONS.strength` = 1.3):
+   the land is pushed down towards the edges. Archipelagos blend in a finer pattern and a weaker fall-off, which
+   breaks the land into islands. Lagoons and crescents add their hollow.
+2. In types with a strait, a **strait** splits the world into **two landmasses** at the start (70% of the time it
+   runs roughly north–south). It is only moderately deep (`LAND.strait`), so a big drought, or several in a row,
+   can dry it up and join the two landmasses.
+3. If a world with a strait has a second landmass smaller than a quarter of the first (or under 1100 cells), the
+   world is rebuilt from a variation of the same seed (up to 5 tries).
+4. **Relief.** Ridged hills and valleys are added to the land (`RELIEF`). They grow with height above the starting
+   sea level, so coasts stay where they are. High ground is cold (see [temperature](#temperature)).
+5. **Regions.** Broad, slowly varying patterns give each area its own character (`REGIONS.strength` = 1.3):
    - **thicket country**: thickets cluster here, with the narrowest gaps
    - **rocky uplands**: rock clusters here
    - **low wetlands**: the land is flattened to just above the starting sea level, with hollows that hold lakes.
@@ -308,11 +366,36 @@ re-plan at once.
 
    Everywhere else is more open. Different regions favour different bodies (small and slim in thickets,
    swimmers in wetlands), which is meant to encourage different species in different parts of the map.
-5. 31–35% of the map starts as land (`LAND.start`).
-6. Rivers: an 85% chance of one, plus a 55% chance of a second. Each runs coast to coast at a random angle and
-   meanders along its length (two overlapping waves plus a little jitter), so splits aren't straight lines.
-7. **Food sites** are placed: 375 berry sites on land and 125 algae sites in water (`SITES`, see
-   [food](#7-food)).
+6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for.
+7. Rivers (chances above). Each runs coast to coast at a random angle and meanders along its length (two
+   overlapping waves plus a little jitter), so splits aren't straight lines.
+8. **Food sites** are placed, in the numbers the world type sets (see [food](#7-food)).
+
+### Sea depth
+
+The sea has a **shallow shelf** and **deep water** beyond it. Depth blends distance from shore (two thirds) with
+the sea floor's depth (one third), each measured as a rank among sea cells, so shelves follow the coasts and reach
+out over offshore banks. The shallowest 30% of the sea is shelf (`SEA.shelf`). It is worked out again after
+every flood, drought or earthquake.
+
+- **Algae** grows only on the shelf.
+- **Deep water** costs extra energy for anything that isn't fully aquatic (see [energy](#energy)), so it is a real
+  barrier for land creatures and amphibians.
+
+### Temperature
+
+Temperature comes from **height**: the highest land is coldest and the lowest warmest. Each piece of land is
+ranked against the world's original land, so every world has the full range, whatever its relief. Water is mild.
+
+- **Seasons shift it** (`TEMP.season`): no change in spring and autumn, warmer in summer (+0.12), colder in winter
+  (−0.15). The cold creeps down the hills in winter and pulls back up in summer.
+- **World types shift it too**: highlands are colder overall and archipelagos a little warmer.
+- **Cold** is below 0.3 (`TEMP.cold`) and **hot** above 0.8 (`TEMP.hot`), on a scale where the highest land is 0
+  and the lowest 1. Cold and heat cost energy (see [energy](#energy)): small bodies suffer in the cold and big
+  bodies in the heat, so the hills and the lowlands of one world pull a species in different directions. That
+  is how geographical speciation happens in nature too.
+- **On the map**, cold land gets a frosty blue wash and hot land a faint warm one, and the season decides how
+  far each reaches.
 
 The **main landmass** is the biggest piece of land. Any other land counts as an **island** for food and
 naming.
@@ -327,8 +410,8 @@ There are two kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 300 sites. More likely on fertile ground, in thickets (most in the narrowest-gap thickets) and on islands. |
-| **Algae** (green) | Shallows and rivers | 100 sites, in rivers or sea within 56 px of land. Not in the outer margin. |
+| **Berries** (orange) | Land and thicket | 250–440 sites, depending on the world type. More likely on fertile ground, in thickets (most in the narrowest-gap thickets) and on islands. |
+| **Algae** (green) | Shallow shelf and rivers | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf. Not in the outer margin. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -362,7 +445,7 @@ Food on land that floods, or in water that dries up, can't be eaten until the te
 ## 8. Seasons
 
 There are four seasons of 2.5 minutes (150 seconds) each (`SEASON_LEN`), so a year lasts 10 minutes. Seasons change which
-regions regrow fast and which world events are likely. The map cross-fades to the new season's colours over
+regions regrow fast, which world events are likely, and the [temperature](#temperature). The map cross-fades to the new season's colours over
 2.5 seconds.
 
 | Season | Plain | Meadow | Thicket | Island | Water | Event weights (flood / drought / quake) | Look |
@@ -392,8 +475,11 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - **5%** of events are meteors (`EVENTS.meteor`, about 1 in 20).
 - Otherwise the event is picked by the current season's weights (see the table above). Some events are ruled
   out when they would push the world too far:
-  - no drought when more than 42% of the map is land (`LAND.noDrought`)
-  - no flood when less than 25% is land (`LAND.noFlood`)
+  - no drought when land is more than 12 points above where the world started (`LAND.noDrought`)
+  - no flood when land is more than 12 points below where it started (`LAND.noFlood`)
+
+  So an archipelago starting at 20% land can grow to about 32% (a classic world's amount) and a supercontinent
+  can shrink to about 32% too: world types can turn into one another.
 
   When a drought is ruled out, its share of the odds goes to floods, and when a flood is ruled out, its share
   goes to droughts. (Earlier, those shares went mostly to earthquakes, which grew to about half of all events.)
@@ -406,8 +492,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 | Event | Normal | Major |
 |---|---|---|
-| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never below 20%, `LAND.min`). Low land and its food go underwater. | Land falls by 20 points. |
-| **Drought** | Sea level falls: land rises by 12 points (never above 46%, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each). |
+| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never more than 18 below where the world started, `LAND.min`). Low land and its food go underwater. | Land falls by 20 points. |
+| **Drought** | Sea level falls: land rises by 12 points (never more than 18 above where it started, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each). |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
 | **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
 
@@ -632,13 +718,18 @@ species. Browsers that can't do this send sound straight to the speakers instead
 The look is a scientific **field notebook / survey map**.
 
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
-  - The sea is shown in four depth bands. Land is pale with darker fertile meadows. Thickets are green with
+  - The sea is a pale **shallow shelf** with a dashed **drop-off line**, and darker **deep water** beyond
+    (`SEA_COL`). Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
     keep their stepped edges.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
+  - **Contours** are drawn every ninth of the land's height range, and every third one is an **index contour**,
+    drawn bold, as on an Ordnance Survey map.
+  - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, in five
+    layers each, so it shades gradually. The season decides how many layers show.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
   out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
@@ -670,8 +761,16 @@ accident.
 - **Body traits are selected; look traits drift.** Colour, roundness and taper do nothing for survival, so
   their change shows pure chance and how long groups have been apart.
 - **Legs are fixed.** They are a choice you make, not something that evolves.
-- **Two landmasses to start with.** The strait gives geographic speciation a real chance on every world, but it
-  isn't permanent: droughts can close it, so the map can come together as well as break apart.
+- **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
+  forest) and a shape. They are never shown, so the player has no say in the world, and no single design is
+  best everywhere.
+- **Two landmasses on most worlds.** The strait gives geographic speciation a real chance, but it isn't
+  permanent: droughts can close it, so the map can come together as well as break apart. Archipelagos and
+  supercontinents have no strait: their islands, rivers and hills do that job.
+- **Temperature comes from height, not from one side of the map.** Every hill is its own cold island, so
+  cold-adapted groups end up stranded apart ("sky islands"), which encourages new species.
+- **Being in between costs something.** Only 0% and 100% habitat go anywhere in their element, and each food
+  favours one end of the habitat scale, so a 50% creature is a jack of all trades, master of none.
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
 - **Meteors are rare (about 1 in 20 events)** and dramatic.
@@ -707,7 +806,12 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |
-| How much food each world grows | `SITES` |
+| World types: how often, land, thicket, rock, rivers, food, temperature | `WORLD_TYPES` |
+| World shapes | `SHAPES` |
+| How hilly the land is | `RELIEF` |
+| Temperature: cold and hot levels, season shifts, energy costs | `TEMP` |
+| Shallow shelf size and deep-water cost | `SEA` |
+| Habitat ranges and food energy by habitat | `HAB` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 
