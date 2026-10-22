@@ -89,6 +89,9 @@ and which thicket gaps it fits through. The **chips** under it show:
 - energy capacity and how fast it burns energy while walking
 - reach (how close it must get to food to eat it)
 
+The creator **starts randomised**: every time it opens, it is as if *Randomise* had been pressed, including a new
+name. The only exception is **Revisit world** on a past lineage, which brings back that run's design.
+
 **Past lineages** appear under the creator once you have finished a run, with a "Revisit world" button for
 each.
 
@@ -272,14 +275,16 @@ plans again. It searches outwards across the terrain grid for the food it can re
 shortest-route search (Dijkstra's algorithm). The search allows for terrain speed and avoids anything it isn't
 allowed into.
 
-- It only plans up to **22 seconds of travel** ahead (`MAXT`). If nothing is in range, it wanders.
+- It only plans up to **22 seconds of travel** ahead (`MAXT`). If no food is free in range (say every nearby
+  piece is regrowing or already has three creatures heading for it), it heads for the nearest such food and waits
+  there, looking again every second or two. Only if there is no food at all in range does it wander.
 - **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
   a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
   around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
   counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
   Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
   (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
-  are outside their range.
+  are outside their range, or once they stray into deep water (unless fully aquatic).
 
   This is why a population **spreads slowly**, over generations, instead of every creature roaming the whole
   map: only about a quarter of the land is explored in the first 10 minutes. It also keeps groups in different
@@ -439,7 +444,9 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 - A regrowing algae site shows as small yellow fronds and turns green when ready.
 - When zoomed out, food is drawn as simple dots.
 
-Food on land that floods, or in water that dries up, can't be eaten until the terrain changes back.
+**Floods and droughts wipe food out.** Berries on land that floods, algae on water that dries up, and algae left
+in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
+(say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown.
 
 ---
 
@@ -468,8 +475,9 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
   events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
   different season from the one before.
-- The **event bar** fills up until the next event. In the last 10 seconds (`EVENTS.warn`), a flashing **warning
-  symbol** shows which event is coming. An orange symbol with "!" means a major event.
+- There is **no timer** on screen. For the last 7 seconds before an event (`EVENTS.warn`), the **world event
+  sign** (bottom left) flashes orange with the coming event's symbol, then stays bright orange for 2 seconds once
+  it happens (`EVENTS.show`). Major events look the same there.
 
 ### Which event
 
@@ -493,8 +501,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 | Event | Normal | Major |
 |---|---|---|
-| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never more than 18 below where the world started, `LAND.min`). Low land and its food go underwater. | Land falls by 20 points. |
-| **Drought** | Sea level falls: land rises by 12 points (never more than 18 above where it started, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each). |
+| **Flood** | Sea level rises: land falls by 12 percentage points of the map (never more than 18 below where the world started, `LAND.min`). Low land and its food go underwater. Every river and sea channel widens by 35%, and a river that reaches 2.6 cells wide becomes a **sea channel** (`EVENTS.widen`, `toSea`). | Land falls by 20 points, and rivers and sea channels widen by 60%. |
+| **Drought** | Sea level falls: land rises by 12 points (never more than 18 above where it started, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). The rest narrow by the same share a flood widens them, but never below the width they started at; a sea channel that began as a river turns back into one when it narrows below 2.6 cells. | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each), and the rest narrow by the share a major flood widens them. |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
 | **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
 
@@ -512,7 +520,8 @@ Each event:
   one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
   to reduce motion
 - plays its own sound effect
-- flashes the event bar with its name for 7 seconds
+- turns the world event sign bright orange with the event's symbol for 2 seconds (after 7 seconds of flashing
+  beforehand)
 - adds a line to the event log
 
 Land heights never change, only the sea level (and rivers and sea channels cut on top), so the colours of land
@@ -618,17 +627,27 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Button | What it does |
 |---|---|
 | Play / pause | Pauses the simulation. |
-| 1× / 2× / 4× | Simulation speed. |
+| Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing** buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
-### Top right: season and event bars
+### Bottom left: season clock, temperature and world event sign
 
-- The **season bar** fills over the season and is tinted the season's colour.
-- The **event bar** fills until the next world event. The warning symbol flashes for the last 10 seconds.
-- The **i** buttons open quick reference tables for seasons and events.
+- A small **clock** split into four quarters, one per season in its colour (the current one stronger), with a
+  hand that goes round once a year.
+- The current season's **symbol and name**: a flower for spring, sun for summer, leaf for autumn, snowflake for
+  winter.
+- A **thermometer** for the whole world's temperature this season: the season's shift plus the world type's
+  offset, around a mild middle. Hover over it to see it in words (cold, cool, mild, warm or hot). High ground is always colder than this, and
+  lowland warmer (see [temperature](#temperature)).
+- **Click it** for a quick reference to seasons.
+- Beside it, in its own square, the **world event sign**: a warning triangle with rounded corners and "!". For the
+  last 7 seconds before an event, the "!" changes to the coming event's symbol (waves, sun, jagged line or falling
+  rock) and the triangle flashes orange; once the event happens it stays bright orange for 2 seconds, then goes back
+  to "!". Major events look the same. Click it for a quick reference to events.
+- On narrow screens, an expanded inspector covers them.
 
 ### Notifications
 
@@ -641,7 +660,9 @@ Collapse or expand it with the arrow. It has three tabs.
 - **Traits**
   - **Map colours**: colour creatures by their own body colour, or by species tag.
   - **Chart**: pick Population, Speed, Habitat, Narrowest, Roundness or Taper. One line per species. For
-    population, a thin black line shows the total. The dashed line is the starting value.
+    population, a thin black line shows the total. The dashed line is the starting value. A chart shows at most
+    the last 20 minutes (`CHART_SPAN`). After that a **slider** appears under it: drag it left to look back
+    through earlier time, and right to the end to follow the present again.
   - **Table**: compares the released design with the three biggest living species. Values noticeably up or
     down from the release are highlighted. Body traits and look traits are grouped separately.
 - **Specimen**: tap any creature on the map to see its:
@@ -832,7 +853,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
 | `js/audio.js` | All sound, generated live: ambient notes, creature sounds, event effects, zoomed-in beat |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
-| `js/ui.js` | Status bar, season and event bars, inspector, notifications, menus |
+| `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |
 | `js/main.js` | Camera, input, rendering each frame, the main loop |
 | `tools/build.py` | Bundles everything into one HTML file in `dist/` |
@@ -894,10 +915,6 @@ anywhere. `dist/` isn't stored in the repo, so run the build again whenever you 
 
 Things Sam wants to try one day, grouped by area. Nothing here is built yet.
 
-**World events**
-
-- Floods widen rivers and straits.
-
 **Water**
 
 - **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
@@ -918,21 +935,11 @@ Things Sam wants to try one day, grouped by area. Nothing here is built yet.
 - Mouth shape or type as a big feature for evolution.
 - Fur or warmth as a feature.
 
-**Small UI changes**
-
-- Speed up the cooldown.
-- A season clock with symbols, bottom left.
-- A temperature symbol.
-
 **Creature redesign**
 
 - Squiggly legs that change between water and land.
 - An outline pattern.
 - A mouth.
-
-**Creator improvements**
-
-- The creator starts with a randomised design.
 
 **Redo the inspector**
 

@@ -97,7 +97,8 @@ const SYL = [
   'zun',
   'mip',
 ];
-$('#rnd').onclick = () => {
+// a random name, body, colour and look; the creator starts like this whenever it opens without a past design
+function randomDesign() {
   const r = (a, b) => a + rand() * (b - a),
     pick = a => a[(rand() * a.length) | 0],
     o = pick(OKABE),
@@ -123,6 +124,9 @@ $('#rnd').onclick = () => {
     D.taper = +r(0, 1).toFixed(2);
     D.preset = null;
   }
+}
+$('#rnd').onclick = () => {
+  randomDesign();
   $('#fName').value = D.name;
   syncCreator();
 };
@@ -224,6 +228,7 @@ function drawPreview(t) {
 function openCreator(seed, design, canCancel) {
   if (design && design.spd !== undefined && design.sat !== undefined)
     D = { ...D, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+  else randomDesign();
   const opts = [`<option value="">New random world</option>`];
   const seen = new Set();
   if (S && S.seed != null) {

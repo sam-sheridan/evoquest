@@ -23,7 +23,7 @@ function newGame(design, seed) {
     creatures: [], // living creatures
     newborns: [], // born this step, added at the end of the step
     sites: world.sites, // food sites (berries on land, algae in water)
-    speed: 1, // 1×, 2× or 4×
+    speed: 1, // testing speed from Settings: 1×, 2×, 4× or 10× (fast forward multiplies on top)
     paused: false,
     over: false, // lineage extinct
     hist: [], // trait averages sampled every 2 s, for the charts
@@ -39,7 +39,7 @@ function newGame(design, seed) {
     events: 0, // world events so far
     lastEvent: -1,
     nextEvent: EVENTS.first[0] + rand() * EVENTS.first[1], // when the next world event happens
-    nextKind: null, // which event it will be (decided early so the warning symbol can show)
+    nextKind: null, // which event it will be (decided a little early; changing season must not re-roll it)
     evStart: 0,
     season: 0, // 0 spring, 1 summer, 2 autumn, 3 winter
     nextSeason: SEASON_LEN,
@@ -58,6 +58,7 @@ function newGame(design, seed) {
   S.sites = world.sites;
   world.sites.forEach(f => {
     f.active = true;
+    f.gone = false;
     f.t = 0;
     f.cl = 0;
   });
@@ -154,10 +155,13 @@ function newGame(design, seed) {
   selectTab('pop');
   syncUI(true);
 }
-function edible(f) {
-  if (!f.active) return false;
+// does the ground suit this food? berries need land or thicket, algae shallow water (rivers or the sea's shelf)
+function suits(f) {
   const t = world.type[f.i];
-  return f.kind === 'w' ? isWater(t) : t === 1 || t === 2;
+  return f.kind === 'w' ? isWater(t) && !world.deep[f.i] : t === 1 || t === 2;
+}
+function edible(f) {
+  return f.active && !f.gone;
 }
 function region(f) {
   if (f.kind === 'w') return 'water';
@@ -325,7 +329,9 @@ function dijkstra(c) {
   hpush(s, 0);
   let n = 0;
   c._best = null;
-  let bs = Infinity;
+  c._wait = null;
+  let bs = Infinity,
+    ws = Infinity;
   const range = homeRange(c);
   while (hn) {
     hpop2();
@@ -336,10 +342,15 @@ function dijkstra(c) {
     const L = idx.get(i);
     if (L)
       for (const f of L) {
-        if (!edible(f) || !allowed(c, f.i, world.type[f.i])) continue;
+        if (f.gone || !allowed(c, f.i, world.type[f.i])) continue;
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
-        if (cl >= 3) continue;
+        // food that is regrowing or already has three heading for it is somewhere to wait if nothing else is free
+        if (!f.active || cl >= 3) {
+          const w = k + awayCost(c, f, range);
+          if (w < ws) [ws, c._wait] = [w, f];
+          continue;
+        }
         const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
         if (sc < bs) {
           bs = sc;
@@ -388,23 +399,25 @@ function setTarget(c, f) {
 function plan(c) {
   c.rt = 3.5 + rand() * 1.5;
   const strand = dijkstra(c);
-  const best = c._best;
+  const best = c._best,
+    // with no food free, head for the nearest regrowing or busy food and wait there (looking again soon)
+    goal = best || c._wait;
   setTarget(c, best);
   c.blk = 0;
-  if (!best) {
+  if (!best) c.rt = 1.2 + rand();
+  if (!goal) {
     c.path = null;
-    c.rt = 1.2 + rand();
     return;
   }
   const raw = [];
-  let j = best.i;
+  let j = goal.i;
   while (j !== -1 && raw.length < 400) {
     raw.push([((j % GW) + 0.5) * CS, (((j / GW) | 0) + 0.5) * CS]);
     j = pv[j];
   }
   raw.reverse();
   raw.shift();
-  raw.push([best.x, best.y]);
+  raw.push([goal.x, goal.y]);
   const path = [];
   let cx = c.x,
     cy = c.y,
@@ -464,10 +477,11 @@ function update(c, dt) {
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
-    // wanderers drift back towards home once they are outside their range
+    // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
+    // aquatic)
     const hx = c.home[0] - c.x,
       hy = c.home[1] - c.y;
-    if (hx * hx + hy * hy > homeRange(c) ** 2) {
+    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.hab < 1)) {
       const toHome = Math.atan2(hy, hx),
         off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
       c.wander -= off * Math.min(1, dt * 1.5);
@@ -589,6 +603,16 @@ function step(dt) {
   S.t += dt;
   for (const f of S.sites) {
     if (f.vis > 0) f.vis -= dt;
+    // food on the wrong ground after a flood or drought is wiped out, and regrows from scratch once the ground
+    // suits it again
+    if (!suits(f)) {
+      if (!f.gone) [f.gone, f.active, f.vis] = [true, false, 0];
+      continue;
+    }
+    if (f.gone) {
+      f.gone = false;
+      f.t = f.t0 = regrow(f);
+    }
     if (!f.active) {
       f.t -= dt;
       if (f.t <= 0) f.active = true;
@@ -697,18 +721,34 @@ function worldEvent(kind, major, forced) {
     amt = EVENTS.shift[m];
   if (k === 'flood') {
     w.landFrac = Math.max(w.land0 + LAND.min, w.landFrac - amt);
+    const [opened] = widen(EVENTS.widen[m]);
     msg = major
       ? 'Major flood. The sea surged far inland, drowning low land and its food.'
       : 'Flood. The sea rose; low land and its food are underwater.';
+    const nr = w.channels.filter(ch => !ch.sea).length + opened,
+      ns = w.channels.length - nr;
+    if (nr || ns)
+      msg += ` ${nr && ns ? 'Rivers and sea channels have' : nr ? (nr > 1 ? 'Rivers have' : 'A river has') : ns > 1 ? 'Sea channels have' : 'A sea channel has'} widened.`;
+    if (opened)
+      msg +=
+        opened > 1
+          ? ` ${opened} rivers have become channels of sea.`
+          : ' A river has become a channel of sea.';
   } else if (k === 'drought') {
     w.landFrac = Math.min(w.land0 + LAND.max, w.landFrac + amt);
     const rivers = dryUp(false, m),
-      seas = dryUp(true, m);
+      seas = dryUp(true, m),
+      [, closed] = widen(1 / EVENTS.widen[m]);
     msg = major
       ? 'Major drought. The sea fell sharply, exposing new land and joining islands.'
       : 'Drought. The sea fell, joining some islands back to the mainland.';
     if (rivers) msg += rivers > 1 ? ` ${rivers} rivers have dried up.` : ' A river has dried up.';
     if (seas) msg += seas > 1 ? ` ${seas} sea channels have closed.` : ' A sea channel has closed.';
+    if (closed)
+      msg +=
+        closed > 1
+          ? ` ${closed} channels of sea have shrunk back to rivers.`
+          : ' A channel of sea has shrunk back to a river.';
   } else {
     let seas = 0;
     for (let n = 0; n < EVENTS.splits[m]; n++) {
@@ -739,10 +779,23 @@ function worldEvent(kind, major, forced) {
   if (major) S.majorAt = S.t;
   SFX[k] && SFX[k](major);
   if (k === 'quake') startShake('quake', major);
-  eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
+  eventAlert(k);
 }
 // droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
 // are, and at least a set number (EVENTS.dry, dryShare); returns how many
+// floods widen rivers and sea channels (f above 1) and droughts narrow them (f below 1); returns how many rivers
+// became sea channels and how many sea channels that began as rivers became rivers again
+function widen(f) {
+  let opened = 0,
+    closed = 0;
+  for (const ch of world.channels) {
+    if (ch.w0 === undefined) [ch.w0, ch.wasRiver] = [ch.w, !ch.sea];
+    ch.w = clamp(ch.w * f, ch.w0, EVENTS.seaMax);
+    if (!ch.sea && ch.w >= EVENTS.toSea) [ch.sea, opened] = [true, opened + 1];
+    else if (ch.sea && ch.wasRiver && ch.w < EVENTS.toSea) [ch.sea, closed] = [false, closed + 1];
+  }
+  return [opened, closed];
+}
 function dryUp(sea, m) {
   const pick = world.channels.filter(ch => ch.sea === sea),
     n = Math.max(EVENTS.dry[m], Math.round(pick.length * EVENTS.dryShare[m]));
@@ -780,7 +833,7 @@ function meteor(x, y, major) {
   if (major) S.majorAt = S.t;
   SFX.meteor(major);
   startShake('meteor', major);
-  eventAlert(major ? 'Major meteor!' : 'Meteor strike!');
+  eventAlert('meteor');
   if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
 }
 function logEv(m) {

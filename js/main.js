@@ -181,8 +181,7 @@ function renderScene(nowT) {
     bY = new Path2D();
   for (const f of S.sites) {
     if (!onScreen(f.x, f.y)) continue;
-    const tt = world.type[f.i];
-    if (f.kind === 'w' ? !isWater(tt) : !(tt === 1 || tt === 2)) continue;
+    if (f.gone) continue;
     const p = f.active || f.vis > 0 ? 1 : 1 - clamp(f.t / (f.t0 || 20), 0, 1) < 0.5 ? 0 : 0.5;
     if (fine) (f.kind === 'w' ? drawAlgae : drawBerry)(ctx, f.x, f.y, p);
     else if (p >= 1) {
@@ -351,7 +350,7 @@ let last = performance.now(),
 // run the simulation for dt seconds of real time at the chosen speed
 function advance(dt) {
   if (!S || S.paused || S.over || S.replay) return;
-  let sim = dt * S.speed;
+  let sim = dt * S.speed * (fastOn() ? FAST.speed : 1);
   while (sim > 1e-6 && !S.over) {
     const h = Math.min(sim, 0.05);
     step(h);

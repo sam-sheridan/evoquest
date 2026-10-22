@@ -21,7 +21,11 @@
         </div>
       </div>
       <div class="strip panelx" role="toolbar" aria-label="Controls">
-        <button id="bPause" aria-label="Pause"></button><button id="bSpeed">1×</button
+        <button id="bPause" aria-label="Pause"></button
+        ><button id="bFast" aria-label="Fast forward">
+          <svg viewBox="0 0 16 12" width="16" height="12">
+            <path d="M1 1l6.5 5L1 11zM8.5 1L15 6l-6.5 5z" fill="currentColor" />
+          </svg></button
         ><button id="bSound" aria-label="Turn sound off"></button
         ><button id="bLog" aria-label="Event log" title="Event log">
           <svg viewBox="0 0 512 512" width="15" height="15" style="vertical-align: -3px">
@@ -77,6 +81,11 @@
           <span>Beat when zoomed in</span>
           <div class="seg2"><button id="sBeat">On</button></div>
         </div>
+        <div class="setrow"><span>Testing: speed</span></div>
+        <div class="spdset" id="sSpeed">
+          <button class="btn" data-spd="1">1×</button><button class="btn" data-spd="2">2×</button
+          ><button class="btn" data-spd="4">4×</button><button class="btn" data-spd="10">10×</button>
+        </div>
         <div class="setrow">
           <span>Testing: trigger an event now</span>
           <div class="seg2"><button id="sMajor" aria-pressed="false">Major</button></div>
@@ -88,20 +97,20 @@
           ><button class="btn" data-ev="meteor">Meteor</button>
         </div>
       </div>
-      <div class="meters panelx" id="meters">
-        <div class="mbar">
-          <div class="m2" id="mSeason" role="status">
-            <i></i><button class="info" data-info="season" aria-label="About seasons">i</button><span></span>
-          </div>
-        </div>
-        <div class="mbar">
-          <div class="m2" id="mEvent" role="status">
-            <i></i><button class="info" data-info="event" aria-label="About world events">i</button
-            ><span>World event</span><em id="omen" hidden></em>
-          </div>
-        </div>
-      </div>
     </header>
+    <div id="hud" hidden>
+      <button id="clock" class="panelx" data-info="season" aria-label="Season and temperature: about seasons">
+        <svg id="clkPie" width="34" height="34" viewBox="-17 -17 34 34"></svg>
+        <span id="clkSeason"></span><i class="clkDiv"></i><span id="clkTemp"></span>
+      </button>
+      <button
+        id="evSq"
+        class="panelx"
+        data-info="event"
+        aria-label="World events"
+        title="World events"
+      ></button>
+    </div>
     <div id="scale"><span id="scaleL">100 px</span><i id="scaleI"></i></div>
     <div id="toast" role="status"></div>
 
@@ -122,6 +131,15 @@
           </div>
           <div class="metrics" id="metrics"></div>
           <canvas class="chart" id="chart"></canvas>
+          <input
+            type="range"
+            id="chartPos"
+            min="0"
+            max="1000"
+            value="1000"
+            aria-label="Move back through the chart"
+            hidden
+          />
           <div class="tw">
             <table>
               <thead id="thead"></thead>

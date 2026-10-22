@@ -157,6 +157,152 @@ h3 {
   cursor: default;
   background: transparent;
 }
+/* fast forward: a ring round the icon drains while it runs and fills as it recharges */
+#bFast {
+  position: relative;
+}
+/* play/pause and fast forward icons sit centred in their buttons */
+#bPause,
+#bFast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#bPause svg {
+  display: block;
+}
+/* arrows look left-heavy, so they sit a pixel right of true centre to look centred in the ring */
+#bFast svg {
+  display: block;
+  transform: translateX(1px);
+}
+#bFast.on::before,
+#bFast.charging::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 27px;
+  height: 27px;
+  margin: -13.5px 0 0 -13.5px;
+  border-radius: 50%;
+  /* the charged part in the icon's colour, the empty part as a faint track */
+  background: conic-gradient(currentColor calc(var(--p, 1) * 1turn), rgba(128, 128, 128, 0.22) 0);
+  -webkit-mask: radial-gradient(circle, transparent 10px, #000 10.5px);
+  mask: radial-gradient(circle, transparent 10px, #000 10.5px);
+}
+.spdset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding-bottom: 4px;
+}
+.spdset .btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.spdset .btn[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--panel);
+}
+/* season clock, world temperature and the world event sign, bottom left (under the inspector on narrow screens) */
+#hud {
+  position: fixed;
+  z-index: 3;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+#hud[hidden] {
+  display: none;
+}
+#clock {
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 7px;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+#clock span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#clkSeason {
+  font-weight: 600;
+}
+/* world event sign: a warning triangle that, during an event, shows its symbol and flashes orange */
+#evSq {
+  width: 48px; /* the clock panel's height, so the sign is square */
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#evSq svg {
+  display: block;
+}
+#evSq .tri {
+  fill: var(--panel);
+  stroke: var(--ink);
+}
+#evSq .sym {
+  color: var(--ink);
+}
+/* warning: flashes for the last seconds before an event; hit: stays bright for a moment once it happens */
+#evSq.warn .tri,
+#evSq.hot .tri {
+  stroke: var(--signal);
+}
+#evSq.warn .tri {
+  animation: evflash 0.5s steps(1) infinite;
+}
+#evSq.warn .sym {
+  animation: evsym 0.5s steps(1) infinite;
+}
+#evSq.hot .tri {
+  fill: var(--signal);
+}
+#evSq.hot .sym {
+  color: #fff;
+}
+@keyframes evflash {
+  0% {
+    fill: var(--signal);
+  }
+  50% {
+    fill: #ffd9cc;
+  }
+}
+@keyframes evsym {
+  0% {
+    color: #fff;
+  }
+  50% {
+    color: var(--ink);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #evSq.warn .tri {
+    animation: none;
+    fill: #ffd9cc;
+  }
+  #evSq.warn .sym {
+    animation: none;
+  }
+}
+.clkDiv {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+}
 #scale {
   position: fixed;
   z-index: 3;
@@ -294,6 +440,10 @@ h3 {
 .metrics button.on {
   background: var(--ink);
   color: var(--panel);
+}
+/* the chart's history slider has no tick marks */
+#chartPos {
+  background: none;
 }
 canvas.chart {
   width: 100%;
@@ -612,31 +762,6 @@ h3.sec {
   background: var(--ink);
   color: var(--panel);
 }
-.m2.hot {
-  box-shadow: 0 0 0 2px var(--signal);
-}
-.m2.hot span {
-  font-weight: 700;
-}
-.m2.flash {
-  animation: barflash 0.5s ease-in-out 6;
-}
-@keyframes barflash {
-  0%,
-  100% {
-    box-shadow: 0 0 0 2px var(--signal);
-  }
-  50% {
-    box-shadow:
-      0 0 0 2px var(--signal),
-      0 0 0 7px rgba(255, 79, 26, 0.25);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .m2.flash {
-    animation: none;
-  }
-}
 #badgePop {
   position: fixed;
   z-index: 9;
@@ -647,75 +772,6 @@ h3.sec {
   overflow: auto;
   padding: 12px;
   box-sizing: border-box;
-}
-.meters {
-  margin-left: auto;
-  display: flex;
-  gap: 6px;
-  padding: 5px;
-  width: min(380px, calc(100vw - 16px));
-  box-sizing: border-box;
-}
-.mbar {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-}
-.m2 {
-  position: relative;
-  height: 28px;
-  border: 1px solid var(--ink);
-  background: var(--chip);
-  overflow: hidden;
-}
-.m2 i {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 0;
-  transition: width 0.3s linear;
-}
-.m2 span {
-  position: relative;
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-#mSeason i {
-  background: var(--season, #009e73);
-  opacity: 0.42;
-}
-#mEvent i {
-  background: #d55e00;
-  opacity: 0.32;
-}
-#omen {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  animation: omen 1s ease-in-out infinite alternate;
-}
-@keyframes omen {
-  from {
-    opacity: 0.35;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.mbar:last-child @media (prefers-reduced-motion:reduce) {
-  .m2 i {
-    transition: none;
-  }
 }
 
 .overlay {

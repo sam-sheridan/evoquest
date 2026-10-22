@@ -49,13 +49,18 @@ with sync_playwright() as p:
         pg.click(button)
         time.sleep(0.2)
         pg.mouse.click(500, 500)
-    for info in ['season', 'event']:
-        pg.click(f'.info[data-info={info}]')
+    for info in ['#clock', '#evSq']:
+        pg.click(info)
         pg.mouse.click(500, 500)
 
     # controls
-    for button in ['#bSpeed', '#bSpeed', '#bSound', '#bSound', '#bPause', '#bPause']:
+    for button in ['#bFast', '#bSound', '#bSound', '#bPause', '#bPause']:
         pg.click(button)
+    # testing speeds live in Settings
+    pg.click('#bSet')
+    for spd in ['10', '1']:
+        pg.click(f'#sSpeed [data-spd="{spd}"]')
+    pg.click('#bSet')
 
     # zoom in (sharp map layer and beat), select a creature, zoom back out
     pg.mouse.move(640, 400)
