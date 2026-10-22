@@ -158,13 +158,20 @@ function makeChild(p, x, y, spread = 1) {
 // Survey-glyph style: pale body, ink outline, and hair-like legs: tapering ink strokes from the body's edge, longer
 // for faster creatures. Their outer half swings back and forth while the base stays still: land creatures flip the
 // tip like a hinge, water creatures ripple a wave out along the leg, and creatures in between do a bit of both.
-// A leg starts a little inside the body, so the body always covers its base however far it bends.
+// A leg starts a little inside the body (straight in from the edge), so the body always covers its base however far
+// it bends.
 function drawLeg(g, ex, ey, dir, len, w0, bend) {
   const N = 12,
-    P = [],
-    Q = [];
-  let x = ex - Math.cos(dir) * (w0 * 0.6 + 0.8),
-    y = ey - Math.sin(dir) * (w0 * 0.6 + 0.8);
+    r = Math.hypot(ex, ey) || 1,
+    nx = ex / r,
+    ny = ey / r,
+    inset = w0 * 0.6 + 1.2,
+    // a short stem from inside the body straight out to the edge (hidden under the body, so the base never shows
+    // even when the leg lies almost along the edge), then the leg proper from the edge
+    P = [ex - nx * inset - (ny * w0) / 2, ey - ny * inset + (nx * w0) / 2],
+    Q = [ex - nx * inset + (ny * w0) / 2, ey - ny * inset - (nx * w0) / 2];
+  let x = ex,
+    y = ey;
   for (let i = 0; i <= N; i++) {
     const s = i / N,
       d = dir + bend(s),
@@ -220,12 +227,17 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
         side = a0 < Math.PI ? 1 : -1, // bending towards the tail is +side
         dir = a0 + (Math.PI - a0) * (0.1 + 0.55 * h), // splayed on land, swept back in water
         ph = (swim ? t * 5 : c.walk * 2.2) + k * Math.PI; // neighbouring legs swing in opposite phase
-      // flip (land): the outer half bends like a hinge; whip (water): the bend travels out to the tip
-      drawLeg(g, ex, ey, dir, len, w0, s => {
-        const flip = 1.25 * Math.sin(ph) * s * s + 0.25 * s,
-          whip = 1.3 * Math.sin(ph - s * 4.2) * s * s + 0.2 * s;
-        return side * ((1 - h) * flip + h * whip);
-      });
+      // one swing whose wave spreads further along the leg the more aquatic it is: a hinge flip on land, a ripple
+      // travelling out to the tip in water, and every creature keeps the full swing
+      drawLeg(
+        g,
+        ex,
+        ey,
+        dir,
+        len,
+        w0,
+        s => side * ((1.25 + 0.05 * h) * Math.sin(ph - s * 4.2 * h) * s * s + 0.22 * s)
+      );
     });
     g.fill();
   }
