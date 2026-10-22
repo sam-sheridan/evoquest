@@ -176,20 +176,24 @@ $('#bPause').onclick = () => {
   S.paused = !S.paused;
   syncUI(true);
 };
-// fast forward: FAST.speed for FAST.dur real seconds (pressing again stops it early), then FAST.cool real seconds
-// before it can be used again; it is off while a testing speed above 1× is set
-const fast = { until: 0, ready: 0 },
-  fastOn = () => performance.now() < fast.until;
+// fast forward works like a battery holding up to FAST.dur real seconds at FAST.speed: it drains while on (and
+// switches itself off when empty) and refills while off, from empty to full in FAST.cool real seconds. It can be
+// switched on whenever at least a second is stored, and is off while a testing speed above 1× is set.
+const fast = { on: false, charge: FAST.dur, last: performance.now() };
+function tickFast() {
+  const now = performance.now(),
+    dt = (now - fast.last) / 1000;
+  fast.last = now;
+  if (fast.on) {
+    fast.charge -= dt;
+    if (fast.charge <= 0) [fast.charge, fast.on] = [0, false];
+  } else fast.charge = Math.min(FAST.dur, fast.charge + (dt * FAST.dur) / FAST.cool);
+}
+const fastOn = () => (tickFast(), fast.on);
 $('#bFast').onclick = () => {
-  const now = performance.now();
-  if (now < fast.until) {
-    fast.until = now;
-    fast.ready = now + FAST.cool * 1000;
-    return syncUI(true);
-  }
-  if (!S || S.over || S.speed > 1 || now < fast.ready) return;
-  fast.until = now + FAST.dur * 1000;
-  fast.ready = fast.until + FAST.cool * 1000;
+  tickFast();
+  if (fast.on) fast.on = false;
+  else if (S && !S.over && S.speed === 1 && fast.charge >= 1) fast.on = true;
   syncUI(true);
 };
 document.querySelectorAll('#sSpeed button').forEach(
@@ -197,7 +201,7 @@ document.querySelectorAll('#sSpeed button').forEach(
     (b.onclick = () => {
       if (!S) return;
       S.speed = +b.dataset.spd;
-      if (S.speed > 1) fast.until = 0;
+      if (S.speed > 1) fast.on = false;
       syncUI(true);
     })
 );
@@ -472,26 +476,22 @@ function syncUI() {
     $('#bPause').classList.toggle('on', pl);
   }
   {
-    // the ring drains while fast forward runs and fills again as it recharges
-    const now = performance.now(),
-      b = $('#bFast'),
-      on = now < fast.until,
-      wait = !on && now < fast.ready,
-      off = S.speed > 1 || S.over;
-    b.classList.toggle('on', on);
-    b.classList.toggle('charging', wait);
-    b.disabled = off || wait;
-    b.style.setProperty(
-      '--p',
-      on ? (fast.until - now) / (FAST.dur * 1000) : 1 - (fast.ready - now) / (FAST.cool * 1000)
-    );
+    // the ring shows the charge: it drains while fast forward runs and fills again while it is off
+    tickFast();
+    const b = $('#bFast'),
+      off = S.speed > 1 || S.over,
+      full = fast.charge >= FAST.dur;
+    b.classList.toggle('on', fast.on);
+    b.classList.toggle('charging', !fast.on && !full);
+    b.disabled = off || (!fast.on && fast.charge < 1);
+    b.style.setProperty('--p', fast.charge / FAST.dur);
     b.title = off
       ? 'Fast forward is off while a testing speed is set'
-      : on
-        ? `Fast forward: ${Math.ceil((fast.until - now) / 1000)} s left (press to stop)`
-        : wait
-          ? `Fast forward ready in ${fmtT((fast.ready - now) / 1000)}`
-          : `Fast forward: ${FAST.speed}× for ${FAST.dur} s`;
+      : fast.on
+        ? `Fast forward: ${Math.ceil(fast.charge)} s left (press to stop)`
+        : full
+          ? `Fast forward: ${FAST.speed}× for up to ${FAST.dur} s`
+          : `Fast forward: ${Math.floor(fast.charge)} s stored, full in ${fmtT(((FAST.dur - fast.charge) * FAST.cool) / FAST.dur)}`;
     document
       .querySelectorAll('#sSpeed button')
       .forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.spd === S.speed)));

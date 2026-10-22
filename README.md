@@ -621,7 +621,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Button | What it does |
 |---|---|
 | Play / pause | Pauses the simulation. |
-| Fast forward (⏩) | Runs the game at 4× for 20 real seconds; press it again to stop early. Then it needs 2 minutes (real time) to recharge (`FAST`). A ring round the icon drains while it runs and fills as it recharges; hover to see the time left. It is greyed out while a testing speed above 1× is set. |
+| Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |

@@ -185,7 +185,8 @@ const SEASONS = [
     msg: 'Winter. Snow on the peaks; food is slow to return on land and in the water. Storms bring floods.',
   },
 ];
-// fast forward: how much faster, for how many real seconds, then how many real seconds before it can be used again
+// fast forward: how much faster; the most real seconds it can store (it drains while on); real seconds to refill
+// from empty to full while off
 const FAST = { speed: 4, dur: 20, cool: 120 };
 const CHART_SPAN = 1200; // most seconds of history an inspector chart shows at once (20 minutes); a slider moves back
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
