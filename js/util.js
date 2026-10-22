@@ -11,9 +11,10 @@ const fmtT = s => {
 const esc = s =>
   String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const col = c => `hsl(${c.hue} ${c.sat ?? 60}% ${c.lt}%)`;
-const habTxt = h => {
+// the tail: none means a land creature, full a water creature
+const tailTxt = h => {
   const w = Math.round(h * 100);
-  return w <= 0 ? '100% land' : w >= 100 ? '100% water' : `${100 - w}% land`;
+  return w <= 0 ? 'None · land only' : w >= 100 ? 'Full · water only' : `${w}%`;
 };
 // the mouth's name along the way from claw (0) to straw (1)
 const mouthTxt = m =>

@@ -42,7 +42,7 @@ with sync_playwright() as p:
         pg.click(f'[data-tab={tab}]')
         time.sleep(0.2)
     pg.click('[data-tab=pop]')
-    for metric in ['n', 'spd', 'hab', 'thick', 'round', 'taper']:
+    for metric in ['n', 'spd', 'hab', 'mth', 'thick', 'round']:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
     pg.click('#cmode [data-cm=species]')

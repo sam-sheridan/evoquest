@@ -126,15 +126,15 @@ const TEMP = {
   heatCost: 0.15,
 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
-// habitat: range = how far (px) a 50% creature goes from shore into water, and from water onto land; the limit
-// grows quickly towards either end. food = how much habitat changes the energy from food: berries give FOOD x
-// (1 + food x (1 - 2 x habitat)) and algae the opposite, so 0% gets 10 from a berry and 6 from algae
-const HAB = { range: 200, food: 0.25 };
+// tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
+// the limit grows quickly towards either end
+const HAB = { range: 200 };
+const TAIL = { len: 1.1 }; // length of a full tail, as a share of body length (drawing only)
 // mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
 //   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut (x FOOD)
 //   crack: seconds a creature spends cracking a nut [claw, straw], on top of the usual pause after eating
 //   algae: how much the mouth changes the energy from algae: a straw gets 1 + algae times as much, a claw
-//   1 - algae; berries suit any mouth
+//   1 - algae; berries suit any mouth (the tail doesn't change what food gives)
 const MOUTH = { share: 0.5, nut: 1.5, crack: [0.5, 8], algae: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (habitat counts 1)
 const LEG6 = 4; // body length (h) from which a creature has 6 legs rather than 4
