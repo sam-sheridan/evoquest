@@ -73,7 +73,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Habitat** | Body trait, 0% (land) to 100% (water). Splits speed between land and water and limits how far from home ground the creature goes. |
 | **Starting shape** | Presets: **Round** (roundness 1, taper 0), **Block** (roundness 0.22, taper 0), **Peak** (roundness 0.25, taper 0.9). |
 | **Roundness, Taper** | Look traits, 0 to 1. Roundness softens corners. Taper narrows the front of the body. |
-| **Legs** | 4, 6 or 8. Fixed: never changes through evolution. |
+| **Legs** | 2, 4 or 6. Fixed: never changes through evolution. Past designs saved with 8 come back with 6. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
@@ -167,7 +167,7 @@ split.
 | Lightness | 22–82% | |
 | Roundness | 0–1 | |
 | Taper | 0–1 | |
-| Legs | 4, 6, 8 | Never changes. |
+| Legs | 2, 4, 6 | Never changes. |
 
 ### Inheritance
 
@@ -772,8 +772,8 @@ The look is a scientific **field notebook / survey map**.
   - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
     legs. Length barely changes with habitat: at speed 5 a leg is 7.2 units long on land, 7.0 at 50% and 6.8 in
     water, for an average-sized body about 15 units across. Legs scale with the body (smaller creatures get
-    shorter, thinner legs) and are slimmer the more legs a creature has, so small 8-legged creatures don't
-    disappear under their legs. Water creatures' legs are only slightly broader at the base than land creatures'. Land creatures' legs splay out to the sides; water creatures' legs are
+    shorter, thinner legs) and are slimmer the more legs a creature has (but never chunkier with fewer), so
+    small many-legged creatures don't disappear under their legs. Water creatures' legs are only slightly broader at the base than land creatures'. Land creatures' legs splay out to the sides; water creatures' legs are
     swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
     edge, and turns back over its first half. The more aquatic the creature, the further back along its sides its
     legs join the body (a water creature's front legs sit about level with its middle, not at the front corners), the

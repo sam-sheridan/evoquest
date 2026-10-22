@@ -117,7 +117,7 @@ function randomDesign() {
     lt: o[4],
     preset: pre,
     ...PRESETS[pre],
-    legs: pick([4, 6, 8]),
+    legs: pick([2, 4, 6]),
   });
   if (rand() < 0.5) {
     D.round = +r(0, 1).toFixed(2);
@@ -227,7 +227,14 @@ function drawPreview(t) {
 }
 function openCreator(seed, design, canCancel) {
   if (design && design.spd !== undefined && design.sat !== undefined)
-    D = { ...D, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+    D = {
+      ...D,
+      ...design,
+      preset: null,
+      w: Math.min(design.w, 7),
+      h: Math.min(design.h, 7),
+      legs: Math.min(design.legs, 6),
+    };
   else randomDesign();
   const opts = [`<option value="">New random world</option>`];
   const seen = new Set();
