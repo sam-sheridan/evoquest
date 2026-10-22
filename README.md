@@ -680,6 +680,12 @@ accident.
 - **Colours come from the Okabe–Ito palette** for colour-blind accessibility.
 - **The music is original.** The ambient note set and the zoom beat were written for the game.
 
+### Ideas for later
+
+- **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
+  slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
+  now.
+
 ---
 
 ## 17. Changing the balance
