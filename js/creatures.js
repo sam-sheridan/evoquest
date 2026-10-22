@@ -257,7 +257,9 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
         base = a0 + side * fwd * h,
         // how far the leg turns back towards the tail: a little on land, a lot in water
         sweep = Math.abs(Math.PI - base) * (0.1 + 0.55 * h),
-        ph = (swim ? t * 5 : c.walk * 2.2) + k * Math.PI; // neighbouring legs swing in opposite phase
+        // legs move with distance covered, so faster walkers and swimmers move them faster; in water a slow drift
+        // carries on even when still. Neighbouring legs swing in opposite phase.
+        ph = c.walk * (swim ? 1 : 2.2) + (swim ? t * 1.2 : 0) + k * Math.PI;
       // one swing whose wave spreads further along the leg the more aquatic it is: a hinge flip on land, a ripple
       // travelling out to the tip in water, and every creature keeps the full swing
       drawLeg(

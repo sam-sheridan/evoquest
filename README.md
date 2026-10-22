@@ -783,7 +783,9 @@ The look is a scientific **field notebook / survey map**.
     head to pointing towards the tail and back, with neighbouring legs in opposite phase. On land the leg bends
     like a hinge; in water a wave ripples out along it to the tip; in between, the wave spreads part-way, so every
     creature keeps the full swing. Legs
-    move as the creature walks (and all the time while swimming), and are only drawn when zoomed in a little.
+    move with the distance the creature covers, so faster walkers and swimmers move their legs faster and a creature
+    standing still on land has still legs; in water a slow drift carries on even when still. Legs are only drawn when
+    zoomed in a little.
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
     further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
