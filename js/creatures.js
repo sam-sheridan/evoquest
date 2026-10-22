@@ -21,7 +21,6 @@ function compute(c) {
   c.bw = 6 + c.w * 2.2;
   c.bh = 6 + c.h * 2.2;
   c.thick = Math.min(c.bw, c.bh);
-  c.legs = c.h >= LEG6 ? 6 : 4;
   c.size = Math.sqrt(c.bw * c.bh) / 17;
   const sm = 1.6 / (0.6 + c.size),
     base = c.spd * 6 * sm;
@@ -97,25 +96,31 @@ function sideAt(P, x) {
   return best;
 }
 // legs in pairs along the sides only (none at the front or back), the front pair splayed forwards and the back
-// pair backwards; on a pointed body the front pair moves back so it stays clear of the mouth
+// pair backwards. They stay on the full-width part of the body (not where it curves into the tail) and clear of the
+// mouth. A long body (length from LEG6) has 6 legs if there is room for them there, otherwise 4.
 function anchors(c) {
-  const m = c.legs / 2,
-    L = c.bh / 2,
+  const L = c.bh / 2,
+    P = outline(c, 0, 0),
     r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
-    xb = -0.55 * L,
+    wd = 2 + c.hab * 1.6, // leg bar width (see drawCreature)
     A = [];
-  let xf = 0.4 * L;
-  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(c.poly, xf)) < r) xf -= 0.2;
+  let xb = -0.55 * L,
+    xf = 0.4 * L;
+  while (xb < 0 && sideAt(P, xb) < 0.6 * (c.bw / 2)) xb += 0.2;
+  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(P, xf)) < r) xf -= 0.2;
+  c.legs = c.h >= LEG6 && xf - xb >= 3.2 * wd ? 6 : 4;
+  const m = c.legs / 2;
   for (let k = 0; k < m; k++) {
     const x = xf + ((xb - xf) * k) / (m - 1),
-      y = sideAt(c.poly, x),
+      y = sideAt(P, x),
       splay = 0.5 * (x / L);
     for (const s of [1, -1]) A.push([x, s * y, s * (Math.PI / 2 - splay)]);
   }
   return A;
 }
-// the outline with its tail: the front of the body as usual, then the straight sides curve quickly in to a slim
-// tail that tapers to a point. A bigger tail is longer and a little broader. amp sways it (0 = still), t is time.
+// the outline with its tail: the front of the body as usual, then the straight sides curve smoothly in to a slim
+// tail that tapers to a point. A bigger tail is longer and a little broader. amp sways it (0 = still), t is time;
+// only the slim part sways, starting gently where the curve-in ends.
 function outline(c, t, amp) {
   if (c.hab <= 0) return c.poly;
   const L = c.bh / 2,
@@ -125,14 +130,16 @@ function outline(c, t, amp) {
     tl = r + c.bh * TAIL.len * c.hab, // from there to the tip
     k0 = Math.min(0.6, (r + c.bh * 0.12) / tl), // share of that over which the sides curve in
     slim = Wd * (0.22 + 0.12 * c.hab), // the slim tail's half-width where the curve-in ends
-    n = 20,
+    n = 28,
     P = c.poly.filter(p => p[0] > x0 - 1e-6),
     T = [];
   for (let k = 1; k <= n; k++) {
     const s = k / n,
-      thin = slim * (1 - Math.max(0, s - k0) / (1 - k0)) ** 1.1,
-      w = s >= k0 ? thin : thin + (Wd - thin) * 0.5 * (1 + Math.cos((Math.PI * s) / k0)),
-      y = amp * Math.sin(t * 4 + c.id - s * 2.6) * s ** 1.6 * tl * 0.14;
+      thin = slim * (1 - s), // the slim tail, tapering straight to the tip
+      // the body's width fades smoothly into it (no slope at the body, so no corner where the tail starts)
+      w = thin + (Wd - thin) * Math.exp(-2.5 * (s / k0) ** 2),
+      q = Math.max(0, (s - k0) / (1 - k0)),
+      y = amp * Math.sin(t * 4 + c.id - q * 2.6) * q * q * tl * 0.16;
     T.push([x0 - s * tl, y, w]);
   }
   for (const [x, y, w] of T) P.push([x, y + w]);

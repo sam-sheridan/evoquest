@@ -175,8 +175,9 @@ Designs from before mouths existed (saved past lineages) start with a mouth of 0
 
 ### Tails
 
-The tail is the visible form of the old habitat setting. The back of the body's straight sides curves quickly in
-to a slim tail that tapers to a point, with no corner where body and tail meet. A bigger tail is longer (up to
+The tail is the visible form of the old habitat setting. The body's straight sides curve smoothly in to a slim
+tail that tapers to a point, with no corner where body and tail meet. Only the slim part sways, starting gently
+where the curve-in ends. A bigger tail is longer (up to
 1.1 times the body's length, `TAIL.len`) and a little broader. With no tail the back of the body is rounded off
 like the front. Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
@@ -803,10 +804,11 @@ The look is a scientific **field notebook / survey map**.
   mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
-  - Legs: 4, or 6 once the body's length trait is 4 or more (`LEG6`), so they follow body length and change as it
-    evolves; there is no leg control. They sit in pairs along the sides only, never at the front or back: the front
-    pair splays forwards, the back pair backwards. On a pointed body the front pair moves back to stay clear of the
-    mouth. Longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
+  - Legs: 4, or 6 once the body's length trait is 4 or more (`LEG6`) and there is room for three pairs, so they
+    follow body length and change as it evolves; there is no leg control. They sit in pairs along the full-width
+    part of the sides only, never at the front, at the back or where the body curves into the tail: the front pair
+    splays forwards, the back pair backwards, and the front pair keeps clear of the mouth. A big tail leaves less
+    room, so a long-tailed creature may have 4 legs where a tailless one of the same length has 6. Longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
   - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
     [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
