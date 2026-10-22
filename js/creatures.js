@@ -38,12 +38,15 @@ function compute(c) {
 }
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added
 const moveBurn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
-const burn = (c, v) => moveBurn(c, v) + climate(c);
-// extra energy per second for the temperature where the creature stands: keeping warm costs small bodies most,
-// cooling down costs big bodies most
-function climate(c) {
-  const t =
-    world.temp[cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1))] + world.tOff + TEMP.season[S.season];
+// deep water costs more for creatures that aren't fully aquatic
+function burn(c, v) {
+  const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
+  return (moveBurn(c, v) + climate(c, i)) * (world.deep[i] ? 1 + SEA.deepCost * (1 - c.hab) : 1);
+}
+// extra energy per second for the temperature in cell i: keeping warm costs small bodies most, cooling down
+// costs big bodies most
+function climate(c, i) {
+  const t = world.temp[i] + world.tOff + TEMP.season[S.season];
   if (t < TEMP.cold)
     return TEMP.coldCost * Math.min(1, (TEMP.cold - t) / TEMP.cold) * clamp(1.4 - 0.6 * c.size, 0.4, 1.2);
   if (t > TEMP.hot) return TEMP.heatCost * Math.min(1, (t - TEMP.hot) / (1 - TEMP.hot)) * c.size * c.size;

@@ -92,8 +92,10 @@ function renderTerrain() {
   // stopping at the grid cells it cut
   const fade = i => clamp(w.seaD[i] / 3, 0, 1),
     sm = f => i => f(i) * fade(i);
-  const sea = i => (T[i] === 0 ? 200 - w.dLand[i] : 200);
-  V.bands = [110, 64, 30].map(d => march(sea, 200 - d, true, false).fill);
+  // the shallow shelf, with its edge as the dashed drop-off line
+  const shelf = march(i => (T[i] === 0 ? SEA.shelf - w.depth[i] : 1), 0, true, true);
+  V.shelf = shelf.fill;
+  V.drop = shelf.line;
   V.river = march(
     i => (w.lS[i] > -2.5 && T[i] !== 0 ? clamp(0.5 + w.lS[i] * 0.35, 0, 1) : T[i] === 4 ? 1 : 0),
     0.5,
@@ -275,15 +277,16 @@ function renderTerrain() {
 }
 function paintTerrain(g) {
   const V = world.vec;
-  g.fillStyle = BAND[3];
+  g.fillStyle = SEA_COL.deep;
   g.fillRect(0, 0, W, H);
-  g.fillStyle = BAND[2];
-  g.fill(V.bands[0]);
-  g.fillStyle = BAND[1];
-  g.fill(V.bands[1]);
-  g.fillStyle = BAND[0];
-  g.fill(V.bands[2]);
-  g.fillStyle = BAND[0];
+  g.fillStyle = SEA_COL.shelf;
+  g.fill(V.shelf);
+  g.setLineDash([5, 4]);
+  g.strokeStyle = SEA_COL.edge;
+  g.lineWidth = 1.1;
+  g.stroke(V.drop);
+  g.setLineDash([]);
+  g.fillStyle = SEA_COL.river;
   g.fill(V.river);
   g.fillStyle = '#e9ecde';
   g.fill(V.land);

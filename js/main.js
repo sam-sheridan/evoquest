@@ -67,7 +67,7 @@ function drawDetail() {
       }
     const g = d.can.getContext('2d');
     g.setTransform(1, 0, 0, 1, 0, 0);
-    g.fillStyle = BAND[3];
+    g.fillStyle = SEA_COL.deep;
     g.fillRect(0, 0, Wc, Hc);
     g.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cw - cam.x * z), dpr * (ch - cam.y * z));
     paintTerrain(g);
@@ -120,7 +120,7 @@ function render(nowT) {
 function renderScene(nowT) {
   const t = nowT / 1000;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = BAND[3];
+  ctx.fillStyle = SEA_COL.deep;
   ctx.fillRect(0, 0, cw, ch);
   if (!world) return;
   if (S && S.follow && S.sel && !S.sel.dead) {

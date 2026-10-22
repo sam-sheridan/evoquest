@@ -264,7 +264,7 @@ function genWorld(seed, att = 0) {
       i = cellI(x, y),
       t = world.type[i];
     if (!isWater(t) || border(i)) continue;
-    if (t === 0 && world.dLand[i] > 56) continue;
+    if (t === 0 && world.deep[i]) continue;
     world.sites.push({ x, y, i, kind: 'w', active: true, t: 0 });
     nw++;
   }
@@ -462,6 +462,23 @@ function buildTerrain() {
   }
   w.dLand = distField(i => isLand(w.type[i]));
   w.dWater = distField(i => isWater(w.type[i]));
+  // sea depth: a blend of distance from shore and the sea floor, each as a rank among sea cells, so shallow
+  // shelves follow the coasts and reach out over offshore banks; the shallowest share is the shelf
+  const sea = [];
+  for (let i = 0; i < N; i++) if (w.type[i] === 0) sea.push(i);
+  const rank = f => {
+    const r = new Float32Array(N);
+    sea.sort((a, b) => f(a) - f(b)).forEach((i, k) => (r[i] = k / sea.length));
+    return r;
+  };
+  const rD = rank(i => w.dLand[i]),
+    rF = rank(i => w.level - w.hgt[i]);
+  w.depth = new Float32Array(N);
+  w.deep = new Uint8Array(N);
+  for (const i of sea) {
+    w.depth[i] = 0.65 * rD[i] + 0.35 * rF[i];
+    w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
+  }
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
     w.fl[i] = isLand(t)

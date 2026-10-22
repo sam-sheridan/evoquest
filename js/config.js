@@ -113,6 +113,9 @@ const REGIONS = { strength: 1.3 };
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
+// sea depth: shelf is the share of the sea that is shallow shelf (by distance from shore and the sea floor);
+// algae grows only there. In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones)
+const SEA = { shelf: 0.3, deepCost: 0.8 };
 const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.35, heatCost: 0.3 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
@@ -120,7 +123,8 @@ const VAR = 1.6; // how much offspring traits vary from their parent (1 = base a
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
 const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
-const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
+// sea: the shallow shelf, deep water, the dashed drop-off line between them, and rivers
+const SEA_COL = { shelf: '#d6e6e4', deep: '#a9c1cc', edge: 'rgba(60,95,110,.6)', river: '#d2e0e5' };
 
 /* ---- colours ---- */
 // Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers
