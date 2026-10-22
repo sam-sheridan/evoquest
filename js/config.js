@@ -53,8 +53,8 @@ const WORLD_TYPES = {
   archipelago: {
     w: 2,
     land: [0.2, 0.04],
-    split: 1,
-    seas: [1, 2],
+    split: 0,
+    seas: [0, 0],
     isles: 1,
     rivers: [0.3, 0],
     thicket: 0.2,
