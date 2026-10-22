@@ -538,8 +538,7 @@ function syncUI() {
     const sp = S.species[c.sp];
     $('#p-one').innerHTML =
       `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div><span class="lbl">Specimen ${c.id}</span><h3 class="latin" style="font-size:17px;font-weight:500">${esc(S.genus)} ${sp.epithet}</h3></div>
-      ${c.dead ? '' : `<button class="btn${S.ctrl === c ? ' on' : ''}" id="ctl">${S.ctrl === c ? 'Stop controlling' : 'Control'}</button>`}</div>
-      ${S.ctrl === c ? '<p class="hint" style="margin:-4px 0 10px">Steer with the arrow keys. Press Esc to let go.</p>' : ''}
+      ${c.dead ? '' : `<button class="btn" id="ctl" aria-pressed="${S.ctrl === c}">Control</button>`}</div>
       ${c.dead ? `<p class="hint">Died of ${c.dead} at ${fmtT(c.diedAt)}, aged ${Math.round(c.age)} s.</p>` : ''}
       <div class="kv">
         <div><span>Generation</span><b>${c.gen}</b></div><div><span>Parent</span><b>${c.parent ? '#' + c.parent : 'Founder'}</b></div>

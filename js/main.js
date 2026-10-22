@@ -324,15 +324,11 @@ cv.addEventListener(
   },
   { passive: false }
 );
-// arrow keys steer a controlled creature; Escape lets go
+// arrow keys steer a controlled creature
 const keys = { left: 0, right: 0, up: 0, down: 0 },
   ARROWS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
 addEventListener('keydown', e => {
   if (!S || !S.ctrl || e.target.closest('input, textarea, select')) return;
-  if (e.key === 'Escape') {
-    S.ctrl = null;
-    return syncUI(true);
-  }
   if (!ARROWS[e.key]) return;
   e.preventDefault();
   keys[ARROWS[e.key]] = 1;

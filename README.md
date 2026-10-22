@@ -675,12 +675,13 @@ Collapse or expand it with the arrow. It has three tabs.
 
   The selected creature has orange corner brackets and a dashed line to its food target.
 
-  **Control** lets you steer it with the **arrow keys** (keyboard only). Everything else stays the same: its
+  **Control** lets you steer it with the **arrow keys** (keyboard only). The button turns black while you are in
+  control; press it again to let go. Everything else stays the same: its
   speed, the ground it can and can't enter, energy, ageing, its 90-second lifespan and breeding. It moves only
   while a key is held and stands still otherwise (burning just its resting energy). It eats any food it reaches,
   then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
-  bump. The dashed food line is hidden while you control it. Control ends when you press **Esc** or *Stop
-  controlling*, select another creature, or it dies.
+  bump. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
+  select another creature, or it dies.
 - **World**: world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
   crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and

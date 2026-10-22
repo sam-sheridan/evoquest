@@ -89,7 +89,7 @@ with sync_playwright() as p:
             pg.keyboard.down(key)
             time.sleep(0.2)
             pg.keyboard.up(key)
-        pg.keyboard.press('Escape')
+        pg.click('#ctl')
 
     # extinction -> summary -> replay -> new run on the same world -> creator from settings
     pg.evaluate("""() => { const q = window.EvoQuestDebug;
