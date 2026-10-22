@@ -586,8 +586,10 @@ Species never merge back together.
 - *insularis* is used first if the new group was cut off on an island (not the main landmass).
 - If those names are all taken, the fallbacks are *novus*, *alter*, *tertius* and *remotus*.
 
-A notification welcomes the new species and says how it differs, for example "Welcome the first Blorbus natans,
-who is more at home in water than Blorbus primus. It diverged after being cut off on separate land."
+A notification headed **"A new species has formed!"** welcomes it with its biggest change from its parent, always
+put as a strength: for example "Welcome the first Blorbus natans, who is more at home in water." A species that
+became slower is "slower but thriftier with energy", and one that lost the ability to cross rivers is "more settled
+on dry land". The event log keeps the same line.
 
 ---
 
@@ -628,10 +630,9 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 |---|---|
 | Play / pause | Pauses the simulation. |
 | Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
-| Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -734,7 +735,7 @@ back into view, and on the next tap or key press if the browser insists on one.
 Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
 after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
 moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
-Turning sound off and on with the speaker button always starts a fresh engine, as a sure cure for silence.
+Turning *Sound* off and on in Settings always starts a fresh engine, as a sure cure for silence.
 
 **Sound goes out through an audio element.** On some Macs Safari keeps sound sent straight to the speakers
 silent, even though the tab shows the speaker, while sound from an audio element (the kind of player YouTube

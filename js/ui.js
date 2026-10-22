@@ -23,9 +23,9 @@ function syncEvent() {
   el.dataset.k = key;
   const sym =
     key === '!'
-      ? '<g class="sym" fill="currentColor"><rect x="14.8" y="11.5" width="1.4" height="8" rx=".7"/><circle cx="15.5" cy="22.6" r="1.1"/></g>'
-      : `<g class="sym" transform="translate(9.2 14.6) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`;
-  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M14.22 5.26Q15.5 3 16.78 5.26L27.22 23.74Q28.5 26 25.90 26.00L5.10 26.00Q2.5 26 3.78 23.74Z" stroke-width="1.6" stroke-linejoin="round"/>${sym}</svg>`;
+      ? '<g class="sym" fill="currentColor"><rect x="14.75" y="10.2" width="1.5" height="8" rx=".75"/><circle cx="15.5" cy="21.4" r="1.15"/></g>'
+      : `<g class="sym" transform="translate(9.2 13.8) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`;
+  el.innerHTML = `<svg width="31" height="29" viewBox="0 0 31 29"><path class="tri" d="M14.22 5.26Q15.5 3 16.78 5.26L27.22 23.74Q28.5 26 25.90 26.00L5.10 26.00Q2.5 26 3.78 23.74Z" stroke-width="1.6" stroke-linejoin="round"/>${sym}</svg>`;
 }
 const ICON_PLAY =
     '<svg viewBox="0 0 12 12" width="14" height="14" style="transform:translateX(1px)"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
@@ -490,9 +490,6 @@ function syncUI() {
       .querySelectorAll('#sSpeed button')
       .forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.spd === S.speed)));
   }
-  $('#bSound').innerHTML = sound ? SPK_ON : SPK_OFF;
-  $('#bSound').setAttribute('aria-label', sound ? 'Turn sound off' : 'Turn sound on');
-  $('#bSound').title = sound ? 'Sound on' : 'Sound off';
   updScale();
   if ($('#sheet').classList.contains('closed') || $('#sheet').hidden) return;
   if (tab === 'pop') {
@@ -533,13 +530,27 @@ function syncUI() {
     if (!c) {
       $('#p-one').innerHTML =
         '<p class="hint">Tap any creature on the map to inspect and follow it, and to take control of it.</p>';
+      $('#p-one').dataset.k = '';
       return;
     }
-    const sp = S.species[c.sp];
-    $('#p-one').innerHTML =
-      `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div><span class="lbl">Specimen ${c.id}</span><h3 class="latin" style="font-size:17px;font-weight:500">${esc(S.genus)} ${sp.epithet}</h3></div>
-      ${c.dead ? '' : `<button class="btn" id="ctl" aria-pressed="${S.ctrl === c}">Control</button>`}</div>
-      ${c.dead ? `<p class="hint">Died of ${c.dead} at ${fmtT(c.diedAt)}, aged ${Math.round(c.age)} s.</p>` : ''}
+    const sp = S.species[c.sp],
+      el = $('#p-one'),
+      // the heading and Control button are rebuilt only when they change, so the button doesn't flicker under the
+      // mouse as the figures below refresh
+      key = c.id + '|' + (S.ctrl === c) + '|' + !!c.dead;
+    if (el.dataset.k !== key) {
+      el.dataset.k = key;
+      el.innerHTML = `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div><span class="lbl">Specimen ${c.id}</span><h3 class="latin" style="font-size:17px;font-weight:500">${esc(S.genus)} ${sp.epithet}</h3></div>
+      ${c.dead ? '' : `<button class="btn" id="ctl" aria-pressed="${S.ctrl === c}">Control</button>`}</div><div id="oneBody"></div>`;
+      if ($('#ctl'))
+        $('#ctl').onclick = () => {
+          S.ctrl = S.ctrl === c ? null : c;
+          S.follow = true;
+          syncUI(true);
+        };
+    }
+    $('#oneBody').innerHTML =
+      `${c.dead ? `<p class="hint">Died of ${c.dead} at ${fmtT(c.diedAt)}, aged ${Math.round(c.age)} s.</p>` : ''}
       <div class="kv">
         <div><span>Generation</span><b>${c.gen}</b></div><div><span>Parent</span><b>${c.parent ? '#' + c.parent : 'Founder'}</b></div>
         <div><span>Offspring</span><b>${c.births}</b></div><div><span>Meals</span><b>${c.eaten}</b></div>
@@ -557,12 +568,6 @@ function syncUI() {
         <div><span>Habitat</span><b>${habTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
         <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)} · taper ${c.taper.toFixed(2)}</b></div>
       </div>`;
-    if ($('#ctl'))
-      $('#ctl').onclick = () => {
-        S.ctrl = S.ctrl === c ? null : c;
-        S.follow = true;
-        syncUI(true);
-      };
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
