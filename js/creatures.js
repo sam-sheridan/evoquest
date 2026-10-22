@@ -266,15 +266,8 @@ function mouthKey(name, m) {
     i = Math.floor(p);
   return v[i] + (v[i + 1] - v[i]) * (p - i);
 }
-// mouth colour: ink for the claw, fading to pale straw
-function mouthCol(m) {
-  const k = Math.min(1, m * 1.4),
-    a = [21, 25, 24],
-    b = [242, 230, 201];
-  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`;
-}
 // two jaws at the front, drawn under the body; they snap quickly while the creature eats and open and close
-// gently otherwise. From 0.75 to 1 the two prongs close together into one straw.
+// gently otherwise. From 0.75 to 1 the two prongs close together into one straw that flares slightly at the end.
 function drawMouth(g, c, L, t) {
   const m = c.mth ?? 0.5,
     s = clamp(Math.sqrt(c.bw * c.bh) / 12.5, 0.7, 1.8),
@@ -285,42 +278,37 @@ function drawMouth(g, c, L, t) {
     close = clamp((m - 0.75) / 0.2, 0, 1),
     tipY = mouthKey('tipY', m),
     tipOut = tipY + th / 2,
+    flare = 0.35 * clamp((m - 0.75) / 0.25, 0, 1),
     tipIn = Math.max(0, tipY - th / 2) * (1 - close),
     eating = c.rest > 0,
     osc = 0.5 + 0.5 * Math.sin(eating ? t * 9 : t * 1.3 + c.id),
-    swing = (mouthKey('rest', m) + mouthKey('amp', m) * osc * (eating ? 1 : 0.35)) * (1 - close),
-    fill = mouthCol(m);
+    swing = (mouthKey('rest', m) + mouthKey('amp', m) * osc * (eating ? 1 : 0.35)) * (1 - close);
   g.save();
   g.translate(L - 0.6 * s, 0);
   g.scale(s, s);
   g.lineJoin = 'round';
   g.lineWidth = 0.45;
   g.strokeStyle = INK;
-  g.fillStyle = fill;
+  g.fillStyle = INK;
   for (const k of [-1, 1]) {
     g.save();
     g.rotate(k * swing * (k < 0 ? 1 : 0.4));
     g.beginPath();
     g.moveTo(0, k * root);
-    g.bezierCurveTo(len * 0.25, k * (root + bulge), len * 0.8, k * (tipOut + bulge * 0.8), len, k * tipOut);
+    g.bezierCurveTo(
+      len * 0.25,
+      k * (root + bulge),
+      len * 0.8,
+      k * (tipOut + bulge * 0.8),
+      len,
+      k * (tipOut + flare)
+    );
     g.lineTo(len, k * tipIn);
     g.bezierCurveTo(len * 0.7, k * (tipIn + bulge * 0.25), len * 0.3, k * tipIn * 0.5, 0, k * tipIn * 0.3);
     g.closePath();
     g.fill();
     g.stroke();
     g.restore();
-  }
-  // the seam between the closed prongs fades away, leaving a single straw
-  const seam = clamp((m - 0.9) / 0.1, 0, 1);
-  if (seam > 0) {
-    g.globalAlpha = seam;
-    g.strokeStyle = fill;
-    g.lineWidth = 0.5;
-    g.beginPath();
-    g.moveTo(0.3, 0);
-    g.lineTo(len - 0.3, 0);
-    g.stroke();
-    g.globalAlpha = 1;
   }
   g.restore();
 }

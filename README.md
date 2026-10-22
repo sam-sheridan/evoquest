@@ -161,11 +161,11 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Cracks a nut in | Energy from algae |
 |---|---|---|---|
-| 0 (Claw) | a stout black claw that snaps shut | 0.5 s | × 0.75 |
+| 0 (Claw) | a stout claw that snaps shut | 0.5 s | × 0.75 |
 | 0.25 (Slim claw) | a slimmer claw | 2.4 s | × 0.88 |
 | 0.5 (Tweezers) | straighter jaws that stay a little open | 4.3 s | × 1 |
 | 0.75 (Prongs) | two thin prongs with a small gap | 6.1 s | × 1.13 |
-| 1 (Straw) | the prongs closed into one pale tube | 8 s | × 1.25 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 8 s | × 1.25 |
 
 - **Nuts** (`MOUTH.nut`) give 1.5 times the energy of a berry, but the creature must crack them first: from
   0.5 s with a claw to 8 s with a straw (`MOUTH.crack`), on top of the usual pause after eating. When choosing
@@ -176,7 +176,8 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 So a world full of thickets favours claws and a watery world favours straws, and the mouth evolves like any other
 body trait. Between the two ends, the claw stretches into tweezers, the tweezers straighten into prongs, and from
-0.75 the prongs close together until the seam between them fades and leaves a single straw. The jaws snap quickly
+0.75 the prongs close together into a single straw with a slight trumpet at the end. The mouth is always drawn in
+black ink. The jaws snap quickly
 while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
 when zoomed in.
 
@@ -810,7 +811,8 @@ The look is a scientific **field notebook / survey map**.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
   - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
-  - Mouth: one mouthpart at the front, from a black snapping claw to a pale straw (see [mouths](#mouths)).
+  - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
+    [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
     further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
