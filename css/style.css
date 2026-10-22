@@ -160,6 +160,14 @@ h3 {
 /* fast forward: a ring round the icon drains while it runs and fills as it recharges */
 #bFast {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* arrows look left-heavy, so they sit a pixel right of true centre to look centred in the ring */
+#bFast svg {
+  display: block;
+  transform: translateX(1px);
 }
 #bFast.on::before,
 #bFast.charging::before {
