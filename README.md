@@ -417,9 +417,9 @@ There are two kinds of food, at fixed sites that regrow after being eaten.
 
 | Speed | Regrowth time |
 |---|---|
-| Fast | 17–23 s |
-| Normal | 20–28 s |
-| Slow | 25–33 s |
+| Fast | 15–20 s |
+| Normal | 17.5–24.5 s |
+| Slow | 22–29 s |
 
 In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 

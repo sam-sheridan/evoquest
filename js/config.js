@@ -181,7 +181,7 @@ const SEASONS = [
 ];
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
-const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in scenario tests: milder seasons
+const GROW = { f: [15, 5], n: [17.5, 7], s: [22, 7], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
