@@ -178,14 +178,15 @@ function renderScene(nowT) {
   const fine = z >= 1.1,
     bR = new Path2D(),
     bA = new Path2D(),
+    bN = new Path2D(),
     bY = new Path2D();
   for (const f of S.sites) {
     if (!onScreen(f.x, f.y)) continue;
     if (f.gone) continue;
     const p = f.active || f.vis > 0 ? 1 : 1 - clamp(f.t / (f.t0 || 20), 0, 1) < 0.5 ? 0 : 0.5;
-    if (fine) (f.kind === 'w' ? drawAlgae : drawBerry)(ctx, f.x, f.y, p);
+    if (fine) (f.kind === 'w' ? drawAlgae : f.kind === 'n' ? drawNut : drawBerry)(ctx, f.x, f.y, p);
     else if (p >= 1) {
-      const P = f.kind === 'w' ? bA : bR;
+      const P = f.kind === 'w' ? bA : f.kind === 'n' ? bN : bR;
       P.moveTo(f.x + 3.4, f.y);
       P.arc(f.x, f.y, 3.4, 0, TAU);
     } else if (f.kind === 'w') {
@@ -198,6 +199,8 @@ function renderScene(nowT) {
     ctx.fill(bR);
     ctx.fillStyle = '#009E73';
     ctx.fill(bA);
+    ctx.fillStyle = '#8a5a2b';
+    ctx.fill(bN);
     ctx.fillStyle = '#D9C21E';
     ctx.fill(bY);
   }

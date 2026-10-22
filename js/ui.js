@@ -119,6 +119,7 @@ const METRICS = [
   ['n', 'Population'],
   ['spd', 'Speed'],
   ['hab', 'Habitat'],
+  ['mth', 'Mouth'],
   ['thick', 'Narrowest'],
   ['round', 'Roundness'],
   ['taper', 'Taper'],
@@ -273,7 +274,8 @@ function drawChart() {
     slider.style.setProperty('--p', `calc(${v * 100}% - ${v * 12 - 6}px)`); // the track fills up to the thumb
   }
   g.clearRect(0, 0, w, h);
-  const mul = metric === 'hab' ? 100 : 1;
+  const pct = metric === 'hab' || metric === 'mth',
+    mul = pct ? 100 : 1;
   const series = S.species
     .map(sp => ({ sp, pts: HS.filter(e => e.sp[sp.id]).map(e => [e.t, e.sp[sp.id][metric] * mul]) }))
     .filter(s => s.pts.length);
@@ -299,14 +301,14 @@ function drawChart() {
   g.fillStyle = '#636d69';
   g.strokeStyle = '#d2d8d4';
   g.lineWidth = 1;
-  const dec = metric === 'n' || metric === 'hab' ? 0 : small ? 2 : 1;
+  const dec = metric === 'n' || pct ? 0 : small ? 2 : 1;
   for (let k = 0; k <= 3; k++) {
     const v = lo + ((hi - lo) * k) / 3;
     g.beginPath();
     g.moveTo(pad.l, Y(v));
     g.lineTo(w - pad.r, Y(v));
     g.stroke();
-    g.fillText(v.toFixed(dec) + (metric === 'hab' ? '%' : ''), 2, Y(v) + 3);
+    g.fillText(v.toFixed(dec) + (pct ? '%' : ''), 2, Y(v) + 3);
   }
   g.fillText(fmtT(t0), pad.l, h - 4);
   const lab = fmtT(t1);
@@ -351,6 +353,7 @@ function cell(v, o, d = 1, suf = '') {
 // rank the traits that separate two groups, biggest difference first (scaled so traits are comparable)
 const DIFF = [
   ['hab', 'Habitat', 0.12, v => Math.round(v * 100) + '% water'],
+  ['mth', 'Mouth', 0.12, v => `${mouthTxt(v)} (${Math.round(v * 100)}% straw)`],
   ['spd', 'Speed', 1.2, v => v.toFixed(1)],
   ['w', 'Width', 1.2, v => v.toFixed(1)],
   ['h', 'Length', 1.2, v => v.toFixed(1)],
@@ -513,6 +516,7 @@ function syncUI() {
       ['Narrowest side', 'thick', 1, ' px'],
       ['Speed', 'spd'],
       ['Habitat (water)', 'hab', 0, '%'],
+      ['Mouth (straw)', 'mth', 0, '%'],
       ['Crosses rivers', 'river', 0, '%'],
     ];
     const R2 = [
@@ -566,6 +570,7 @@ function syncUI() {
         }</b></div>
         <div><span>Speed</span><b>${c.spd.toFixed(1)} · land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
         <div><span>Habitat</span><b>${habTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
+        <div><span>Mouth</span><b>${mouthTxt(c.mth)} · ${Math.round(c.mth * 100)}% straw</b></div><div><span>Feeding</span><b>${mouthFeed(c)}</b></div>
         <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)} · taper ${c.taper.toFixed(2)}</b></div>
       </div>`;
   } else {
@@ -581,6 +586,7 @@ function syncUI() {
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean a narrower gap: 10, 13 or 16 px.</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. Richer than a berry, but a claw cracks them far quicker than a straw.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>
        ${sw('#b9cfd7', '#151918')}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
@@ -590,6 +596,9 @@ function syncUI() {
 `;
   }
 }
+// how the mouth suits each food: nut cracking time and how much it gets from algae
+const mouthFeed = c =>
+  `cracks a nut in ${crackTime(c).toFixed(1)} s · algae ×${(1 + MOUTH.algae * (2 * c.mth - 1)).toFixed(2)}`;
 function rangeTxt(c) {
   if (c.hab <= 0.0) return 'Never enters water';
   if (c.hab >= 1) return 'Never leaves water';

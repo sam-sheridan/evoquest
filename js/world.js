@@ -252,7 +252,9 @@ function genWorld(seed, att = 0) {
     if (t === 2) f = Math.min(1, f * 0.6 + (world.gap[i] === 10 ? 0.65 : world.gap[i] === 13 ? 0.5 : 0.35));
     if (world.comp[i] !== world.main) f = Math.min(1, f + 0.35);
     if (rng() < f * f * 0.9 + 0.04) {
-      world.sites.push({ x, y, i, kind: 'l', active: true, t: 0 });
+      // some thicket food is nuts rather than berries
+      const kind = t === 2 && rng() < MOUTH.share ? 'n' : 'l';
+      world.sites.push({ x, y, i, kind, active: true, t: 0 });
       nl++;
     }
   }

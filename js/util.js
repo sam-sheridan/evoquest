@@ -15,6 +15,9 @@ const habTxt = h => {
   const w = Math.round(h * 100);
   return w <= 0 ? '100% land' : w >= 100 ? '100% water' : `${100 - w}% land`;
 };
+// the mouth's name along the way from claw (0) to straw (1)
+const mouthTxt = m =>
+  m < 0.2 ? 'Claw' : m < 0.4 ? 'Slim claw' : m < 0.62 ? 'Tweezers' : m < 0.88 ? 'Prongs' : 'Straw';
 
 /* storage */
 const KEY = 'evoquest.v4';
