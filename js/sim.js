@@ -721,18 +721,34 @@ function worldEvent(kind, major, forced) {
     amt = EVENTS.shift[m];
   if (k === 'flood') {
     w.landFrac = Math.max(w.land0 + LAND.min, w.landFrac - amt);
+    const [opened] = widen(EVENTS.widen[m]);
     msg = major
       ? 'Major flood. The sea surged far inland, drowning low land and its food.'
       : 'Flood. The sea rose; low land and its food are underwater.';
+    const nr = w.channels.filter(ch => !ch.sea).length + opened,
+      ns = w.channels.length - nr;
+    if (nr || ns)
+      msg += ` ${nr && ns ? 'Rivers and sea channels have' : nr ? (nr > 1 ? 'Rivers have' : 'A river has') : ns > 1 ? 'Sea channels have' : 'A sea channel has'} widened.`;
+    if (opened)
+      msg +=
+        opened > 1
+          ? ` ${opened} rivers have become channels of sea.`
+          : ' A river has become a channel of sea.';
   } else if (k === 'drought') {
     w.landFrac = Math.min(w.land0 + LAND.max, w.landFrac + amt);
     const rivers = dryUp(false, m),
-      seas = dryUp(true, m);
+      seas = dryUp(true, m),
+      [, closed] = widen(1 / EVENTS.widen[m]);
     msg = major
       ? 'Major drought. The sea fell sharply, exposing new land and joining islands.'
       : 'Drought. The sea fell, joining some islands back to the mainland.';
     if (rivers) msg += rivers > 1 ? ` ${rivers} rivers have dried up.` : ' A river has dried up.';
     if (seas) msg += seas > 1 ? ` ${seas} sea channels have closed.` : ' A sea channel has closed.';
+    if (closed)
+      msg +=
+        closed > 1
+          ? ` ${closed} channels of sea have shrunk back to rivers.`
+          : ' A channel of sea has shrunk back to a river.';
   } else {
     let seas = 0;
     for (let n = 0; n < EVENTS.splits[m]; n++) {
@@ -767,6 +783,19 @@ function worldEvent(kind, major, forced) {
 }
 // droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
 // are, and at least a set number (EVENTS.dry, dryShare); returns how many
+// floods widen rivers and sea channels (f above 1) and droughts narrow them (f below 1); returns how many rivers
+// became sea channels and how many sea channels that began as rivers became rivers again
+function widen(f) {
+  let opened = 0,
+    closed = 0;
+  for (const ch of world.channels) {
+    if (ch.w0 === undefined) [ch.w0, ch.wasRiver] = [ch.w, !ch.sea];
+    ch.w = clamp(ch.w * f, ch.w0, EVENTS.seaMax);
+    if (!ch.sea && ch.w >= EVENTS.toSea) [ch.sea, opened] = [true, opened + 1];
+    else if (ch.sea && ch.wasRiver && ch.w < EVENTS.toSea) [ch.sea, closed] = [false, closed + 1];
+  }
+  return [opened, closed];
+}
 function dryUp(sea, m) {
   const pick = world.channels.filter(ch => ch.sea === sea),
     n = Math.max(EVENTS.dry[m], Math.round(pick.length * EVENTS.dryShare[m]));

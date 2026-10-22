@@ -215,6 +215,12 @@ const EVENTS = {
   seaSplit: 0.3,
   dry: [1, 2],
   dryShare: [0.25, 0.5],
+  // floods widen every river and sea channel by widen (normal, major) and droughts narrow them again, never below
+  // the width they started at nor wider than seaMax cells; a river toSea cells wide becomes a sea channel (and a
+  // sea channel that began as a river turns back into one when it narrows below that)
+  widen: [1.35, 1.6],
+  toSea: 2.6,
+  seaMax: 6,
   warn: 7, // seconds before an event that the world event sign starts flashing with its symbol
   show: 2, // real seconds the sign stays bright orange once the event happens
 };
