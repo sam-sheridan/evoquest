@@ -615,6 +615,11 @@ All sound is generated live in the browser. There are no audio files.
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
 back into view, and on the next tap or key press if the browser insists on one.
 
+Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
+after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
+moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
+Turning sound off and on with the speaker button always starts a fresh engine, as a sure cure for silence.
+
 ---
 
 ## 15. How things are drawn

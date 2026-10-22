@@ -14,22 +14,55 @@ function ensureAudio() {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {}
+    clockT = AC ? AC.currentTime : 0;
+    clockWall = performance.now();
+    stale = false;
   }
   if (AC && AC.state === 'suspended') AC.resume();
 }
+// throw the sound engine away and start a fresh one; Safari can leave an engine "playing" (the tab shows the
+// speaker) while nothing reaches the speakers, often after the Mac sleeps or the audio device changes
+function resetAudio() {
+  if (AC && AC.close) AC.close().catch(() => {});
+  AC = beatBus = noiseBuf = null;
+  ensureAudio();
+}
 // browsers pause a page's sound while it is hidden or the device sleeps (Safari calls this "interrupted"), so wake
 // it when the page comes back into view, or on the next click or key press if the browser wants a gesture first;
-// only a paused context is touched
+// an engine found stuck is replaced on that click or key press, since browsers only start sound from one
 function wakeAudio() {
-  if (!AC || (AC.state !== 'suspended' && AC.state !== 'interrupted')) return;
+  if (!AC) return;
+  if (stale) return resetAudio();
+  if (AC.state !== 'suspended' && AC.state !== 'interrupted') return;
   const p = AC.resume();
-  if (p && p.catch) p.catch(() => {});
+  if (p && p.catch) p.catch(() => (stale = true));
 }
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) wakeAudio();
+  clockWall = performance.now();
+  if (AC) clockT = AC.currentTime;
+  if (!document.hidden && AC && AC.state !== 'running') {
+    const p = AC.resume();
+    if (p && p.catch) p.catch(() => (stale = true));
+  }
 });
 addEventListener('click', wakeAudio, true);
 addEventListener('keydown', wakeAudio, true);
+// watchdog: while the page is visible, an engine that says it is running must have its clock moving; one that
+// is frozen, or still paused after a resume, is marked stuck and replaced on the next click or key press
+let clockT = 0,
+  clockWall = 0,
+  stale = false;
+setInterval(() => {
+  if (!AC || !sound || document.hidden) return;
+  const now = performance.now(),
+    wall = (now - clockWall) / 1000,
+    moved = AC.currentTime - clockT;
+  if (wall >= AUDIO_CHECK) {
+    if (AC.state === 'running' ? moved < wall * 0.5 : AC.state !== 'closed') stale = true;
+    clockT = AC.currentTime;
+    clockWall = now;
+  }
+}, 500);
 function tone(f, d, type, vol, when = 0) {
   if (!AC || !sound) return;
   const t = AC.currentTime + when,
@@ -70,9 +103,10 @@ setInterval(() => {
     if (rand() < 0.35) tone(f * 2, 0.9, 'sine', 0.006, 0.2);
   }
 }, 1200);
+// turning sound back on always starts a fresh engine, so the speaker button is a sure cure for silence
 $('#bSound').onclick = () => {
-  ensureAudio();
   sound = !sound;
+  if (sound) resetAudio();
   syncUI(true);
   if (sound) SND.birth();
 };
