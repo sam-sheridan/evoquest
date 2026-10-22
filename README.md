@@ -924,40 +924,6 @@ anywhere. `dist/` isn't stored in the repo, so run the build again whenever you 
 
 ## 20. Ideas for later
 
-Things Sam wants to try one day, grouped by area. Nothing here is built yet.
-
-**Water**
-
-- **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
-  slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
-  now.
-
-**Map redesign**
-
-- A more natural look, less like a survey map.
-- More interesting water.
-- Lake options.
-- Thickets that change over time.
-
-**Speciation**
-
-- Better features and world variation, so that traits don't all converge on the same ideal. (World types,
-  temperature and the new habitat rules were a first step.)
-- Mouth shape or type as a big feature for evolution.
-- Fur or warmth as a feature.
-
-**Creature redesign**
-
-- Squiggly legs that change between water and land.
-- An outline pattern.
-- A mouth.
-
-**Redo the inspector**
-
-- A size measure instead of length and width.
-- Drop "narrowest side", which isn't very meaningful to players.
-
-**Bigger features**
-
-- An intro or tutorial screen.
-- Redo the achievements.
+Ideas live in the repository's **[Issues](https://github.com/sam-sheridan/evoquest/issues)** tab: one issue per idea,
+labelled by area (*map*, *speciation*, *creature design*, *inspector*, *big feature*). An idea's issue is closed
+when it is built.
