@@ -811,6 +811,8 @@ The look is a scientific **field notebook / survey map**.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
   - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
+    They are spread evenly round the outline, leaving a gap at the front that widens on pointed bodies so no leg
+    sits beside the mouth.
   - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
     [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the

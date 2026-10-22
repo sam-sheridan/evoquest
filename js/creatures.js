@@ -89,23 +89,38 @@ function shapePoly(c) {
   }
   return P;
 }
+// where a ray from the body's centre at angle a meets its outline
 function edgeAt(P, a) {
-  let best = P[0],
-    bd = 9;
-  for (const p of P) {
-    const d = Math.abs(((((Math.atan2(p[1], p[0]) - a + Math.PI) % TAU) + TAU) % TAU) - Math.PI);
-    if (d < bd) {
-      bd = d;
-      best = p;
-    }
+  const dx = Math.cos(a),
+    dy = Math.sin(a);
+  let best = 0;
+  for (let k = 0; k < P.length; k++) {
+    const [x1, y1] = P[k],
+      [x2, y2] = P[(k + 1) % P.length],
+      ex = x2 - x1,
+      ey = y2 - y1,
+      den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const t = (x1 * ey - y1 * ex) / den,
+      u = (x1 * dy - y1 * dx) / den;
+    if (t > best && u >= 0 && u <= 1) best = t;
   }
-  return best;
+  return [dx * best, dy * best];
 }
+// legs spread evenly round the body, leaving a gap at the front that is wide enough to keep them clear of the
+// mouth
 function anchors(c) {
   const n = Math.round(c.legs),
+    r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
     A = [];
+  let a0 = 0.6;
+  while (a0 < 1.5) {
+    const e = edgeAt(c.poly, a0);
+    if (Math.hypot(e[0] - c.bh / 2, e[1]) >= r) break;
+    a0 += 0.02;
+  }
   for (let k = 0; k < n; k++) {
-    const a = 0.6 + ((k + 0.5) / n) * (TAU - 1.2),
+    const a = a0 + ((k + 0.5) / n) * (TAU - 2 * a0),
       e = edgeAt(c.poly, a);
     A.push([e[0], e[1], a]);
   }
@@ -260,6 +275,8 @@ const MOUTH_SHAPE = {
   rest: [0.04, 0.1, 0.14, 0.08, 0], // resting opening angle: tweezers and prongs stay a little open
   amp: [0.35, 0.22, 0.12, 0.06, 0], // how far the jaws swing: a big snap for the claw, a waggle for prongs
 };
+// the mouth's size goes with the body's
+const mouthScale = c => clamp(Math.sqrt(c.bw * c.bh) / 12.5, 0.7, 1.8);
 function mouthKey(name, m) {
   const v = MOUTH_SHAPE[name],
     p = Math.min(3.999, m * 4),
@@ -270,7 +287,7 @@ function mouthKey(name, m) {
 // gently otherwise. From 0.75 to 1 the two prongs close together into one straw that flares slightly at the end.
 function drawMouth(g, c, L, t) {
   const m = c.mth ?? 0.5,
-    s = clamp(Math.sqrt(c.bw * c.bh) / 12.5, 0.7, 1.8),
+    s = mouthScale(c),
     len = mouthKey('len', m),
     root = mouthKey('root', m),
     bulge = mouthKey('bulge', m),
@@ -278,7 +295,7 @@ function drawMouth(g, c, L, t) {
     close = clamp((m - 0.75) / 0.2, 0, 1),
     tipY = mouthKey('tipY', m),
     tipOut = tipY + th / 2,
-    flare = 0.35 * clamp((m - 0.75) / 0.25, 0, 1),
+    flare = 0.7 * clamp((m - 0.75) / 0.25, 0, 1),
     tipIn = Math.max(0, tipY - th / 2) * (1 - close),
     eating = c.rest > 0,
     osc = 0.5 + 0.5 * Math.sin(eating ? t * 9 : t * 1.3 + c.id),
