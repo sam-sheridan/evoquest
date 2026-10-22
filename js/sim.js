@@ -1101,22 +1101,23 @@ function split(sp, small, rest, reason, island) {
   sp.lastSplit = S.t;
   for (const c of small) c.sp = ns.id;
   sp.n = rest.length;
+  // the biggest change, always put as a strength: [when the trait went up, when it went down]
   const top = diffs(a, b, 1)[0],
     TRAIT = {
       hab: ['more at home in water', 'more at home on land'],
-      spd: ['faster', 'slower'],
-      w: ['wider', 'narrower'],
-      h: ['longer', 'shorter'],
-      thick: ['broader', 'slimmer'],
-      river: ['better at crossing rivers', 'worse at crossing rivers'],
-      dhue: ['a different colour', 'a different colour'],
-      round: ['rounder', 'more angular'],
-      taper: ['more tapered', 'squarer'],
+      spd: ['faster', 'slower but thriftier with energy'],
+      w: ['wider and sturdier', 'narrower, fitting through tighter gaps'],
+      h: ['longer, with a longer reach', 'more compact'],
+      thick: ['broader and sturdier', 'slimmer, slipping through tighter thickets'],
+      river: ['better at crossing rivers', 'more settled on dry land'],
+      dhue: ['a striking new colour', 'a striking new colour'],
+      round: ['rounder', 'sleeker and more angular'],
+      taper: ['more streamlined', 'squarer and sturdier'],
     };
   const how = top ? (TRAIT[top.k] || [top.l, top.l])[top.va > top.vb ? 0 : 1] : 'a little different';
-  const m = `Welcome the first ${S.genus} ${ep}, who is ${how} than ${S.genus} ${sp.epithet}. It ${reason}.`;
+  const m = `Welcome the first ${S.genus} ${ep}, who is ${how}.`;
   logEv('New species: ' + m);
-  toast(m, 'Speciation has occurred!');
+  toast(m, 'A new species has formed!');
   SND.badge();
 }
 

@@ -26,23 +26,13 @@
           <svg viewBox="0 0 16 12" width="16" height="12">
             <path d="M1 1l6.5 5L1 11zM8.5 1L15 6l-6.5 5z" fill="currentColor" />
           </svg></button
-        ><button id="bSound" aria-label="Turn sound off"></button
         ><button id="bLog" aria-label="Event log" title="Event log">
-          <svg viewBox="0 0 512 512" width="15" height="15" style="vertical-align: -3px">
-            <g
-              fill="none"
-              stroke="currentColor"
-              stroke-width="40"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M372 330v116a40 40 0 0 1-40 40H72a40 40 0 0 1-40-40V96a40 40 0 0 1 40-40h260a40 40 0 0 1 40 40v40"
-              />
-              <path d="M80 24v64M140 24v64M200 24v64M260 24v64M320 24v64" />
-              <path d="M80 170h170M80 240h120M80 310h90M80 380h80" />
-              <path d="M432 120l46 46-200 200-62 16 16-62z" />
-              <path d="M402 150l46 46" />
+          <svg viewBox="0 0 20 24" width="13" height="16" style="vertical-align: -3px">
+            <!-- a spiral notepad: four rings over the top edge and three lines of writing -->
+            <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="2" y="4" width="16" height="18.5" rx="2.6" />
+              <path d="M5.6 1.5v5M8.5 1.5v5M11.5 1.5v5M14.4 1.5v5" />
+              <path d="M6 10.6h8M6 14.1h8M6 17.6h8" />
             </g>
           </svg></button
         ><button id="bBadge" aria-label="Achievements menu" title="Achievements">
@@ -74,12 +64,8 @@
           New species…
         </button>
         <div class="setrow">
-          <span>Ambient notes</span>
-          <div class="seg2"><button id="sAmb">On</button></div>
-        </div>
-        <div class="setrow">
-          <span>Beat when zoomed in</span>
-          <div class="seg2"><button id="sBeat">On</button></div>
+          <span>Sound</span>
+          <div class="seg2"><button id="sSound">On</button></div>
         </div>
         <div class="setrow"><span>Testing: speed</span></div>
         <div class="spdset" id="sSpeed">

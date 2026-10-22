@@ -58,12 +58,14 @@ with sync_playwright() as p:
         pg.mouse.click(500, 500)
 
     # controls
-    for button in ['#bFast', '#bSound', '#bSound', '#bPause', '#bPause']:
+    for button in ['#bFast', '#bPause', '#bPause']:
         pg.click(button)
     # testing speeds live in Settings
     pg.click('#bSet')
     for spd in ['10', '1']:
         pg.click(f'#sSpeed [data-spd="{spd}"]')
+    pg.click('#sSound')
+    pg.click('#sSound')
     pg.click('#bSet')
 
     # zoom in (sharp map layer and beat), select a creature, zoom back out

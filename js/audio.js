@@ -5,10 +5,6 @@
 let AC = null,
   sound = true,
   lastSnd = 0;
-const SPK_ON =
-    '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5q2 2.5 0 5M13 2.5q4 4.5 0 9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
-  SPK_OFF =
-    '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5l5 5M16 4.5l-5 5" stroke="currentColor" stroke-width="1.4"/></svg>';
 // Safari can keep sound sent straight to the speakers silent even though the tab shows it playing, while sound
 // played through an <audio> element (as YouTube does) is heard, so all the game's sound goes to OUT, which feeds
 // a hidden <audio> element; browsers without that route send OUT straight to the speakers
@@ -124,22 +120,21 @@ function audible(c) {
 // every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quiet octave echo
 const NOTES = [220, 247, 294, 330, 392, 440, 494];
 setInterval(() => {
-  if (sound && ambient && S && !S.paused && !S.over && rand() < 0.6) {
+  if (sound && S && !S.paused && !S.over && rand() < 0.6) {
     const f = NOTES[(rand() * NOTES.length) | 0];
     tone(f, 1.4, 'sine', AMB_VOL);
     if (rand() < 0.35) tone(f * 2, 0.9, 'sine', AMB_ECHO, 0.2);
   }
 }, 1200);
-// turning sound back on always starts a fresh engine, so the speaker button is a sure cure for silence
-$('#bSound').onclick = () => {
+// the Sound setting turns all sound on or off; turning it back on always starts a fresh engine, so it is a sure
+// cure for silence
+$('#sSound').onclick = () => {
   sound = !sound;
   if (sound) resetAudio();
-  syncUI(true);
+  syncSettings();
   if (sound) SND.birth();
 };
-let ambient = true,
-  beatOn = true,
-  beatBus = null,
+let beatBus = null,
   noiseBuf = null,
   beatNext = 0,
   beatStep = 0;
@@ -198,7 +193,7 @@ function hat(t, acc) {
 setInterval(() => {
   if (!AC || !sound) return;
   beatInit();
-  const on = beatOn && S && !S.paused && !S.over && !S.replay,
+  const on = S && !S.paused && !S.over && !S.replay,
     lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * BEAT_VOL : 0;
   beatBus.gain.setTargetAtTime(lvl, AC.currentTime, 0.4);
   if (lvl <= 0.001 && beatBus.gain.value < 0.002) {
@@ -288,14 +283,5 @@ const SFX = {
   },
 };
 function syncSettings() {
-  $('#sAmb').setAttribute('aria-pressed', String(ambient));
-  $('#sBeat').setAttribute('aria-pressed', String(beatOn));
+  $('#sSound').setAttribute('aria-pressed', String(sound));
 }
-$('#sAmb').onclick = () => {
-  ambient = !ambient;
-  syncSettings();
-};
-$('#sBeat').onclick = () => {
-  beatOn = !beatOn;
-  syncSettings();
-};
