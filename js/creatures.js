@@ -243,8 +243,12 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   g.strokeStyle = INK;
   if (detail) {
     const h = c.hab,
-      len = (6.5 + c.spd * 0.3) * (0.9 - 0.05 * h) * (swim ? 0.85 : 1),
-      w0 = 2.1 + 0.9 * h;
+      // legs scale with the body, so small creatures get shorter, thinner legs
+      bodyK = clamp(c.size / 0.9, 0.6, 1.2),
+      len = (6.5 + c.spd * 0.3) * (0.9 - 0.05 * h) * bodyK * (swim ? 0.85 : 1),
+      w0 = (2.1 + 0.4 * h) * Math.sqrt(6 / c.anch.length) * bodyK, // slimmer when there are more legs
+      // the leg rhythm also follows the speed trait, so fast creatures' legs go noticeably faster than slow ones'
+      pace = 0.4 + 0.12 * c.spd;
     g.fillStyle = INK;
     g.beginPath();
     c.anch.forEach(([ex, ey, a], k) => {
@@ -259,7 +263,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
         sweep = Math.abs(Math.PI - base) * (0.1 + 0.55 * h),
         // legs move with distance covered, so faster walkers and swimmers move them faster; in water a slow drift
         // carries on even when still. Neighbouring legs swing in opposite phase.
-        ph = c.walk * (swim ? 1 : 2.2) + (swim ? t * 1.2 : 0) + k * Math.PI;
+        ph = c.walk * (swim ? 1 : 2.2) * pace + (swim ? t * 1.2 : 0) + k * Math.PI;
       // one swing whose wave spreads further along the leg the more aquatic it is: a hinge flip on land, a ripple
       // travelling out to the tip in water, and every creature keeps the full swing
       drawLeg(

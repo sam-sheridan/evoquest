@@ -771,9 +771,10 @@ The look is a scientific **field notebook / survey map**.
   - Body: a pale body with an ink outline, an eye pair at the front, and hair-like legs round its sides.
   - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
     legs. Length barely changes with habitat: at speed 5 a leg is 7.2 units long on land, 7.0 at 50% and 6.8 in
-    water (a body is about 15 units across). Land creatures' legs splay out to the sides; water creatures' legs are
-    broader at
-    the base, and swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
+    water, for an average-sized body about 15 units across. Legs scale with the body (smaller creatures get
+    shorter, thinner legs) and are slimmer the more legs a creature has, so small 8-legged creatures don't
+    disappear under their legs. Water creatures' legs are only slightly broader at the base than land creatures'. Land creatures' legs splay out to the sides; water creatures' legs are
+    swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
     edge, and turns back over its first half. The more aquatic the creature, the further back along its sides its
     legs join the body (a water creature's front legs sit about level with its middle, not at the front corners), the
     more its front legs start out sideways rather than forwards, and in water the inner third of a leg stays out of the swing, so legs never arch
@@ -783,7 +784,8 @@ The look is a scientific **field notebook / survey map**.
     head to pointing towards the tail and back, with neighbouring legs in opposite phase. On land the leg bends
     like a hinge; in water a wave ripples out along it to the tip; in between, the wave spreads part-way, so every
     creature keeps the full swing. Legs
-    move with the distance the creature covers, so faster walkers and swimmers move their legs faster and a creature
+    move with the distance the creature covers, and their rhythm also follows the speed trait, so a fast creature's
+    legs go noticeably faster than a slow one's and a creature
     standing still on land has still legs; in water a slow drift carries on even when still. Legs are only drawn when
     zoomed in a little.
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
