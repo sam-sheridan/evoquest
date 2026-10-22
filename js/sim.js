@@ -329,7 +329,9 @@ function dijkstra(c) {
   hpush(s, 0);
   let n = 0;
   c._best = null;
-  let bs = Infinity;
+  c._wait = null;
+  let bs = Infinity,
+    ws = Infinity;
   const range = homeRange(c);
   while (hn) {
     hpop2();
@@ -340,10 +342,15 @@ function dijkstra(c) {
     const L = idx.get(i);
     if (L)
       for (const f of L) {
-        if (!edible(f) || !allowed(c, f.i, world.type[f.i])) continue;
+        if (f.gone || !allowed(c, f.i, world.type[f.i])) continue;
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
-        if (cl >= 3) continue;
+        // food that is regrowing or already has three heading for it is somewhere to wait if nothing else is free
+        if (!f.active || cl >= 3) {
+          const w = k + awayCost(c, f, range);
+          if (w < ws) [ws, c._wait] = [w, f];
+          continue;
+        }
         const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
         if (sc < bs) {
           bs = sc;
@@ -392,23 +399,25 @@ function setTarget(c, f) {
 function plan(c) {
   c.rt = 3.5 + rand() * 1.5;
   const strand = dijkstra(c);
-  const best = c._best;
+  const best = c._best,
+    // with no food free, head for the nearest regrowing or busy food and wait there (looking again soon)
+    goal = best || c._wait;
   setTarget(c, best);
   c.blk = 0;
-  if (!best) {
+  if (!best) c.rt = 1.2 + rand();
+  if (!goal) {
     c.path = null;
-    c.rt = 1.2 + rand();
     return;
   }
   const raw = [];
-  let j = best.i;
+  let j = goal.i;
   while (j !== -1 && raw.length < 400) {
     raw.push([((j % GW) + 0.5) * CS, (((j / GW) | 0) + 0.5) * CS]);
     j = pv[j];
   }
   raw.reverse();
   raw.shift();
-  raw.push([best.x, best.y]);
+  raw.push([goal.x, goal.y]);
   const path = [];
   let cx = c.x,
     cy = c.y,
@@ -468,10 +477,11 @@ function update(c, dt) {
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
-    // wanderers drift back towards home once they are outside their range
+    // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
+    // aquatic)
     const hx = c.home[0] - c.x,
       hy = c.home[1] - c.y;
-    if (hx * hx + hy * hy > homeRange(c) ** 2) {
+    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.hab < 1)) {
       const toHome = Math.atan2(hy, hx),
         off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
       c.wander -= off * Math.min(1, dt * 1.5);

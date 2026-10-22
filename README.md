@@ -275,14 +275,16 @@ plans again. It searches outwards across the terrain grid for the food it can re
 shortest-route search (Dijkstra's algorithm). The search allows for terrain speed and avoids anything it isn't
 allowed into.
 
-- It only plans up to **22 seconds of travel** ahead (`MAXT`). If nothing is in range, it wanders.
+- It only plans up to **22 seconds of travel** ahead (`MAXT`). If no food is free in range (say every nearby
+  piece is regrowing or already has three creatures heading for it), it heads for the nearest such food and waits
+  there, looking again every second or two. Only if there is no food at all in range does it wander.
 - **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
   a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
   around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
   counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
   Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
   (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
-  are outside their range.
+  are outside their range, or once they stray into deep water (unless fully aquatic).
 
   This is why a population **spreads slowly**, over generations, instead of every creature roaming the whole
   map: only about a quarter of the land is explored in the first 10 minutes. It also keeps groups in different
@@ -637,8 +639,8 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
   hand that goes round once a year.
 - The current season's **symbol and name**: a flower for spring, sun for summer, leaf for autumn, snowflake for
   winter.
-- A **thermometer and a word** (cold, cool, mild, warm or hot) for the whole world's temperature this season: the
-  season's shift plus the world type's offset, around a mild middle. High ground is always colder than this, and
+- A **thermometer** for the whole world's temperature this season: the season's shift plus the world type's
+  offset, around a mild middle. Hover over it to see it in words (cold, cool, mild, warm or hot). High ground is always colder than this, and
   lowland warmer (see [temperature](#temperature)).
 - **Click it** for a quick reference to seasons.
 - Beside it, in its own square, the **world event sign**: a warning triangle with rounded corners and "!". For the

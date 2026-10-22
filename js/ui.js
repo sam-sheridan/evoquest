@@ -25,7 +25,7 @@ function syncEvent() {
     key === '!'
       ? '<g class="sym" fill="currentColor"><rect x="14.8" y="11.5" width="1.4" height="8" rx=".7"/><circle cx="15.5" cy="22.6" r="1.1"/></g>'
       : `<g class="sym" transform="translate(9.2 14.6) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`;
-  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M14.22 5.26Q15.5 3 16.78 5.26L27.22 23.74Q28.5 26 25.90 26.00L5.10 26.00Q2.5 26 3.78 23.74Z" stroke-width="1.3" stroke-linejoin="round"/>${sym}</svg>`;
+  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M14.22 5.26Q15.5 3 16.78 5.26L27.22 23.74Q28.5 26 25.90 26.00L5.10 26.00Q2.5 26 3.78 23.74Z" stroke-width="1.6" stroke-linejoin="round"/>${sym}</svg>`;
 }
 const ICON_PLAY =
     '<svg viewBox="0 0 12 12" width="14" height="14" style="transform:translateX(1px)"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
@@ -68,7 +68,7 @@ function syncClock(sp) {
   for (let q = 0; q < 4; q++) {
     const a0 = (q / 4) * TAU - Math.PI / 2,
       a1 = ((q + 1) / 4) * TAU - Math.PI / 2;
-    pie += `<path d="M0 0L${R * Math.cos(a0)} ${R * Math.sin(a0)}A${R} ${R} 0 0 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)}Z" fill="${SEASONS[q].col}" fill-opacity="${q === k ? 0.7 : 0.15}" stroke="${INK}" stroke-width=".8"/>`;
+    pie += `<path d="M0 0L${R * Math.cos(a0)} ${R * Math.sin(a0)}A${R} ${R} 0 0 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)}Z" fill="${SEASONS[q].col}" fill-opacity="${q === k ? 1 : 0.35}" stroke="${INK}" stroke-width=".8"/>`;
   }
   pie += `<line x1="0" y1="0" x2="${(R + 1) * Math.sin(a)}" y2="${-(R + 1) * Math.cos(a)}" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>`;
   $('#clkPie').innerHTML = pie;
@@ -81,7 +81,8 @@ function syncClock(sp) {
   $('#clkSeason').innerHTML =
     `<svg width="16" height="16" viewBox="-8 -8 16 16">${SEASON_ICON[k]}</svg>${SEASONS[k].name}`;
   $('#clkTemp').innerHTML =
-    `<svg width="14" height="26" viewBox="0 0 14 26"><rect x="4" y="2" width="6" height="16" rx="3" fill="var(--panel)" stroke="${INK}"/><rect x="6" y="${4 + 12 * (1 - f)}" width="2" height="${12 * f + 4}" fill="${c}"/><circle cx="7" cy="20.5" r="4.5" fill="${c}" stroke="${INK}"/></svg><span style="font-weight:400">${tempWord(v)}</span>`;
+    `<svg width="14" height="26" viewBox="0 0 14 26"><rect x="4" y="2" width="6" height="16" rx="3" fill="var(--panel)" stroke="${INK}"/><rect x="6" y="${4 + 12 * (1 - f)}" width="2" height="${12 * f + 4}" fill="${c}"/><circle cx="7" cy="20.5" r="4.5" fill="${c}" stroke="${INK}"/></svg>`;
+  $('#clkTemp').title = `World temperature this season: ${tempWord(v)}`;
 }
 function syncMeters() {
   if (!S) return;
