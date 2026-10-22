@@ -1,19 +1,20 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
-   Body traits (affect survival): w width, h length, spd speed, hab habitat (0 = land, 1 = water).
-   Look traits (drift by chance): hue, lt (lightness), round, taper, legs. */
+   Body traits (affect survival): w width, h length, spd speed, hab habitat (0 = land, 1 = water),
+   mth mouth (0 = claw, 1 = straw).
+   Look traits (drift by chance): hue, lt (lightness), round, taper. Legs come from body length. */
 
 /* ---------- creatures ---------- */
-// Body (functional): w width, h height, spd speed, hab habitat 0 = land … 1 = water.  Look (neutral): hue, lt, round, taper, legs.
+// Body (functional): w width, h height, spd speed, hab habitat 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw.  Look (neutral): hue, lt, round, taper, legs.
 let nextId = 1;
 function enforce(c) {
   c.w = clamp(c.w, 1, 7);
   c.h = clamp(c.h, 1, 7);
   c.spd = clamp(c.spd, 1, 10);
   c.hab = clamp(c.hab, 0, 1);
+  c.mth = clamp(c.mth ?? 0.5, 0, 1);
   c.round = clamp(c.round, 0, 1);
   c.taper = clamp(c.taper, 0, 1);
-  c.legs = clamp(c.legs, 4, 8);
   c.lt = clamp(c.lt, 22, 82);
   c.hue = ((c.hue % 360) + 360) % 360;
 }
@@ -21,6 +22,7 @@ function compute(c) {
   c.bw = 6 + c.w * 2.2;
   c.bh = 6 + c.h * 2.2;
   c.thick = Math.min(c.bw, c.bh);
+  c.legs = c.h >= LEG6 ? 6 : 4;
   c.size = Math.sqrt(c.bw * c.bh) / 17;
   const sm = 1.6 / (0.6 + c.size),
     base = c.spd * 6 * sm;
@@ -87,25 +89,32 @@ function shapePoly(c) {
   }
   return P;
 }
-function edgeAt(P, a) {
-  let best = P[0],
-    bd = 9;
-  for (const p of P) {
-    const d = Math.abs(((((Math.atan2(p[1], p[0]) - a + Math.PI) % TAU) + TAU) % TAU) - Math.PI);
-    if (d < bd) {
-      bd = d;
-      best = p;
-    }
+// the outline's half-width at distance x along the body
+function sideAt(P, x) {
+  let best = 0;
+  for (let k = 0; k < P.length; k++) {
+    const [x1, y1] = P[k],
+      [x2, y2] = P[(k + 1) % P.length];
+    if (x1 === x2 || (x1 - x) * (x2 - x) > 0) continue;
+    best = Math.max(best, y1 + ((y2 - y1) * (x - x1)) / (x2 - x1));
   }
   return best;
 }
+// legs in pairs along the sides only (none at the front or back), the front pair splayed forwards and the back
+// pair backwards; on a pointed body the front pair moves back so it stays clear of the mouth
 function anchors(c) {
-  const n = Math.round(c.legs),
+  const m = c.legs / 2,
+    L = c.bh / 2,
+    r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
+    xb = -0.55 * L,
     A = [];
-  for (let k = 0; k < n; k++) {
-    const a = 0.6 + ((k + 0.5) / n) * (TAU - 1.2),
-      e = edgeAt(c.poly, a);
-    A.push([e[0], e[1], a]);
+  let xf = 0.4 * L;
+  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(c.poly, xf)) < r) xf -= 0.2;
+  for (let k = 0; k < m; k++) {
+    const x = xf + ((xb - xf) * k) / (m - 1),
+      y = sideAt(c.poly, x),
+      splay = 0.5 * (x / L);
+    for (const s of [1, -1]) A.push([x, s * y, s * (Math.PI / 2 - splay)]);
   }
   return A;
 }
@@ -125,12 +134,12 @@ function makeChild(p, x, y, spread = 1) {
     h: jit(p.h, 0.5 * VAR * spread),
     spd: jit(p.spd, 0.5 * VAR * spread),
     hab: jit(p.hab, 0.05 * VAR * spread),
+    mth: jit(p.mth, 0.05 * VAR * spread),
     hue: jit(p.hue, 6 * spread),
     sat: p.sat,
     lt: jit(p.lt, 2.5 * spread),
     round: jit(p.round, 0.05 * spread),
     taper: jit(p.taper, 0.05 * spread),
-    legs: p.legs,
     x,
     y,
     home: [x, y], // where it prefers to look for food (see HOME)
@@ -183,6 +192,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
       g.stroke();
     }
   }
+  if (detail) drawMouth(g, c, L, t);
   g.strokeStyle = INK;
   if (detail) {
     const Lg = (2.2 + c.spd * 0.25) * (1 - c.hab * 0.4) * (swim ? 0.7 : 1),
@@ -242,6 +252,71 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     g.fillStyle = INK;
     if (c.lt < 40 && fill === col(c)) g.fillStyle = '#fcfcfb';
     for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
+  }
+  g.restore();
+}
+
+// the mouth changes shape smoothly with mth: values at mth = 0, 0.25, 0.5, 0.75 and 1, blended in between
+const MOUTH_SHAPE = {
+  len: [4.4, 4.9, 5.3, 5.6, 5.8], // length, longer towards the straw
+  root: [1.35, 1.15, 0.95, 0.8, 0.75], // half-width where it joins the body
+  bulge: [2.0, 1.3, 0.7, 0.25, 0], // how curved (claw-like) each jaw is
+  tipY: [0.08, 0.35, 0.6, 0.5, 0.28], // how far each jaw's tip sits from the centre line
+  th: [0.05, 0.25, 0.4, 0.5, 0.56], // thickness of each jaw at its tip
+  rest: [0.04, 0.1, 0.14, 0.08, 0], // resting opening angle: tweezers and prongs stay a little open
+  amp: [0.35, 0.22, 0.12, 0.06, 0], // how far the jaws swing: a big snap for the claw, a waggle for prongs
+};
+// the mouth's size goes with the body's
+const mouthScale = c => clamp(Math.sqrt(c.bw * c.bh) / 12.5, 0.7, 1.8);
+function mouthKey(name, m) {
+  const v = MOUTH_SHAPE[name],
+    p = Math.min(3.999, m * 4),
+    i = Math.floor(p);
+  return v[i] + (v[i + 1] - v[i]) * (p - i);
+}
+// two jaws at the front, drawn under the body; they snap quickly while the creature eats and open and close
+// gently otherwise. From 0.75 to 1 the two prongs close together into one straw that flares slightly at the end.
+function drawMouth(g, c, L, t) {
+  const m = c.mth ?? 0.5,
+    s = mouthScale(c),
+    len = mouthKey('len', m),
+    root = mouthKey('root', m),
+    bulge = mouthKey('bulge', m),
+    th = mouthKey('th', m),
+    close = clamp((m - 0.75) / 0.2, 0, 1),
+    tipY = mouthKey('tipY', m),
+    tipOut = tipY + th / 2,
+    flare = 0.7 * clamp((m - 0.75) / 0.25, 0, 1),
+    tipIn = Math.max(0, tipY - th / 2) * (1 - close),
+    eating = c.rest > 0,
+    osc = 0.5 + 0.5 * Math.sin(eating ? t * 9 : t * 1.3 + c.id),
+    swing = (mouthKey('rest', m) + mouthKey('amp', m) * osc * (eating ? 1 : 0.35)) * (1 - close);
+  g.save();
+  g.translate(L - 0.6 * s, 0);
+  g.scale(s, s);
+  g.lineJoin = 'round';
+  g.lineWidth = 0.45;
+  g.strokeStyle = INK;
+  g.fillStyle = INK;
+  for (const k of [-1, 1]) {
+    g.save();
+    g.rotate(k * swing * (k < 0 ? 1 : 0.4));
+    g.beginPath();
+    g.moveTo(0, k * root);
+    g.bezierCurveTo(
+      len * 0.25,
+      k * (root + bulge),
+      len * 0.8,
+      k * (tipOut + bulge * 0.8),
+      len,
+      k * (tipOut + flare)
+    );
+    g.lineTo(len, k * tipIn);
+    g.bezierCurveTo(len * 0.7, k * (tipIn + bulge * 0.25), len * 0.3, k * tipIn * 0.5, 0, k * tipIn * 0.3);
+    g.closePath();
+    g.fill();
+    g.stroke();
+    g.restore();
   }
   g.restore();
 }

@@ -13,6 +13,7 @@ function genus(n) {
   return s[0].toUpperCase() + s.slice(1) + 'us';
 }
 function newGame(design, seed) {
+  design = { mth: 0.5, ...design }; // designs saved before mouths existed get a middling mouth
   if (!world || world.seed !== seed || world.dirty) genWorld(seed);
   nextId = 1;
   // S: everything about the current run
@@ -155,7 +156,8 @@ function newGame(design, seed) {
   selectTab('pop');
   syncUI(true);
 }
-// does the ground suit this food? berries need land or thicket, algae shallow water (rivers or the sea's shelf)
+// does the ground suit this food? berries and nuts need land or thicket, algae shallow water (rivers or the sea's
+// shelf)
 function suits(f) {
   const t = world.type[f.i];
   return f.kind === 'w' ? isWater(t) && !world.deep[f.i] : t === 1 || t === 2;
@@ -351,7 +353,9 @@ function dijkstra(c) {
           if (w < ws) [ws, c._wait] = [w, f];
           continue;
         }
-        const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
+        // a nut counts the time it takes this creature's mouth to crack it
+        const sc =
+          k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range) + (f.kind === 'n' ? crackTime(c) : 0);
         if (sc < bs) {
           bs = sc;
           c._best = f;
@@ -544,8 +548,16 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
-// land creatures get more from berries, water creatures more from algae
-const foodEnergy = (c, f) => FOOD * (1 + (f.kind === 'l' ? 1 : -1) * HAB.food * (1 - 2 * c.hab));
+// land creatures get more from berries and nuts, water creatures more from algae; a nut is richer than a berry, and
+// a straw-like mouth gets more from algae than a claw does
+function foodEnergy(c, f) {
+  const hab = 1 + (f.kind === 'w' ? -1 : 1) * HAB.food * (1 - 2 * c.hab);
+  if (f.kind === 'n') return FOOD * MOUTH.nut * hab;
+  if (f.kind === 'w') return FOOD * hab * (1 + MOUTH.algae * (2 * c.mth - 1));
+  return FOOD * hab;
+}
+// seconds spent cracking a nut: quick with a claw, slow with a straw
+const crackTime = c => MOUTH.crack[0] + (MOUTH.crack[1] - MOUTH.crack[0]) * c.mth;
 function eat(c, f) {
   f.active = false;
   f.t = regrow(f);
@@ -556,8 +568,8 @@ function eat(c, f) {
   c.path = null;
   c.rt = 0;
   c.blk = 0;
-  c.rest = 0.8 + rand() * 0.6;
-  f.vis = c.rest / 2;
+  c.rest = 0.8 + rand() * 0.6 + (f.kind === 'n' ? crackTime(c) : 0);
+  f.vis = Math.min(c.rest / 2, 1.5);
   if (c.E >= c.cap * 0.85 && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c))) c.pb = rand() * 3;
   if (audible(c)) SND.eat();
 }
@@ -888,18 +900,27 @@ function logEv(m) {
 
 /* stats */
 const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
-const vec = c => [c.w / 10, c.h / 10, c.spd / 10, c.hab, dHue(c) / 60, c.round * 0.5, c.taper * 0.5];
+const vec = c => [
+  c.w / 10,
+  c.h / 10,
+  c.spd / 10,
+  c.hab,
+  c.mth * MOUTH_SPLIT,
+  dHue(c) / 60,
+  c.round * 0.5,
+  c.taper * 0.5,
+];
 const KEYS = [
   'w',
   'h',
   'spd',
   'hab',
+  'mth',
   'thick',
   'river',
   'size',
   'round',
   'taper',
-  'legs',
   'dhue',
   'lt',
   'vL',
@@ -1060,6 +1081,8 @@ function checkSpeciation() {
 const EPI = [
   ['hab', 1, 'natans'],
   ['hab', -1, 'terrestris'],
+  ['mth', 1, 'sorbens'],
+  ['mth', -1, 'chelifer'],
   ['spd', 1, 'velox'],
   ['spd', -1, 'lentus'],
   ['thick', -1, 'gracilis'],
@@ -1074,7 +1097,7 @@ function split(sp, small, rest, reason, island) {
   const a = summ(small),
     b = summ(rest);
   const used = new Set(S.species.map(s => s.epithet));
-  const scale = { hab: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25, taper: 0.25, legs: 1 };
+  const scale = { hab: 0.15, mth: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25, taper: 0.25 };
   const cand = EPI.map(([k, s, name]) => ({ name, v: (s * (a[k] - b[k])) / scale[k] }))
     .filter(x => x.v > 0)
     .sort((x, y) => y.v - x.v)
@@ -1105,6 +1128,7 @@ function split(sp, small, rest, reason, island) {
   const top = diffs(a, b, 1)[0],
     TRAIT = {
       hab: ['more at home in water', 'more at home on land'],
+      mth: ['better at sipping algae through its straw-like mouth', 'better at cracking nuts with its claw'],
       spd: ['faster', 'slower but thriftier with energy'],
       w: ['wider and sturdier', 'narrower, fitting through tighter gaps'],
       h: ['longer, with a longer reach', 'more compact'],
@@ -1158,6 +1182,18 @@ const BADGES = [
     name: 'Coming Ashore',
     d: 'A species shifts 40 points towards land',
     f: () => live().some(m => S.orig.hab - m.hab >= 0.4),
+  },
+  {
+    id: 'claw',
+    name: 'Nutcracker',
+    d: 'A species shifts 40 points towards a claw',
+    f: () => live().some(m => S.orig.mth - m.mth >= 0.4),
+  },
+  {
+    id: 'straw',
+    name: 'Sipper',
+    d: 'A species shifts 40 points towards a straw',
+    f: () => live().some(m => m.mth - S.orig.mth >= 0.4),
   },
   {
     id: 'squeeze',

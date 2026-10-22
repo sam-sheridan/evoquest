@@ -71,16 +71,17 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Width, Length** | Body traits, 1 to 7. Bigger bodies hold more energy but burn more and are slower. |
 | **Speed** | Body trait, 1 to 10. Faster creatures reach food sooner but burn much more energy moving. |
 | **Habitat** | Body trait, 0% (land) to 100% (water). Splits speed between land and water and limits how far from home ground the creature goes. |
+| **Mouth** | Body trait, from claw to straw. A claw cracks nuts quickly; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives the nut-cracking time and algae bonus. |
 | **Starting shape** | Presets: **Round** (roundness 1, taper 0), **Block** (roundness 0.22, taper 0), **Peak** (roundness 0.25, taper 0.9). |
 | **Roundness, Taper** | Look traits, 0 to 1. Roundness softens corners. Taper narrows the front of the body. |
-| **Legs** | 4, 6 or 8. Fixed: never changes through evolution. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
+| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (mouth included), colour and shape. |
 | **Release 25 specimens** | Starts the run. |
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
-The **preview** shows the creature at 7× zoom with a 10 px scale bar. It also shows the body size in pixels
+The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few seconds it acts out eating, so
+you can see its mouth snap. It also shows the body size in pixels
 and which thicket gaps it fits through. The **chips** under it show:
 
 - land speed and water speed in px/s
@@ -111,6 +112,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. |
 | Speed (`spd`) | 1–10 | Base speed before size and habitat are applied. |
 | Habitat (`hab`) | 0–1 | 0 = fully land, 1 = fully water. |
+| Mouth (`mth`) | 0–1 | 0 = claw, 1 = straw (see [mouths](#mouths)). |
 
 From these, the game works out:
 
@@ -152,6 +154,34 @@ From these, the game works out:
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size.
 
+### Mouths
+
+Every creature has one mouthpart at the front, which changes shape gradually along the mouth trait:
+
+| Mouth | Look | Cracks a nut in | Energy from algae |
+|---|---|---|---|
+| 0 (Claw) | a stout claw that snaps shut | 0.5 s | × 0.75 |
+| 0.25 (Slim claw) | a slimmer claw | 2.4 s | × 0.88 |
+| 0.5 (Tweezers) | straighter jaws that stay a little open | 4.3 s | × 1 |
+| 0.75 (Prongs) | two thin prongs with a small gap | 6.1 s | × 1.13 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 8 s | × 1.25 |
+
+- **Nuts** (`MOUTH.nut`) give 1.5 times the energy of a berry, but the creature must crack them first: from
+  0.5 s with a claw to 8 s with a straw (`MOUTH.crack`), on top of the usual pause after eating. When choosing
+  food, a creature counts that cracking time as extra travel time, so straw mouths mostly leave nuts alone.
+- **Algae** gives 1 + 0.25 × (2 × mouth − 1) times its usual energy (`MOUTH.algae`): a straw gets 25% more, a
+  claw 25% less. This comes on top of the habitat effect above.
+- **Berries** suit any mouth.
+
+So a world full of thickets favours claws and a watery world favours straws, and the mouth evolves like any other
+body trait. Between the two ends, the claw stretches into tweezers, the tweezers straighten into prongs, and from
+0.75 the prongs close together into a single straw with a slight trumpet at the end. The mouth is always drawn in
+black ink. The jaws snap quickly
+while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
+when zoomed in.
+
+Designs from before mouths existed (saved past lineages) start with a mouth of 0.5.
+
 The default design (width 4, length 4.5, speed 5, habitat 20%) walks at about 26 px/s, swims at about 10 px/s,
 can't cross rivers, and holds about 53 energy.
 
@@ -167,7 +197,6 @@ split.
 | Lightness | 22–82% | |
 | Roundness | 0–1 | |
 | Taper | 0–1 | |
-| Legs | 4, 6, 8 | Never changes. |
 
 ### Inheritance
 
@@ -177,7 +206,7 @@ moves by a random amount up to:
 | Trait | Maximum change per generation |
 |---|---|
 | Width, length, speed | ±0.8 (that is 0.5 × `VAR`, and `VAR` = 1.6) |
-| Habitat | ±8 percentage points (0.05 × `VAR`) |
+| Habitat, mouth | ±8 percentage points (0.05 × `VAR`) |
 | Hue | ±6° |
 | Lightness | ±2.5 |
 | Roundness, taper | ±0.05 |
@@ -202,9 +231,10 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
     burns 64% more there; a fully aquatic one burns nothing extra.
   - The creator shows the burn when walking, without temperature or deep water.
 - **Food** gives 8 energy (`FOOD`), changed by habitat (see [traits](#3-traits-body-and-look)): a berry gives a
-  0% creature 10 and a 100% creature 6, and algae the opposite. Energy never goes over the creature's capacity.
-- After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
-  meal.
+  0% creature 10 and a 100% creature 6, and algae the opposite. A nut gives 1.5 times a berry, and the mouth
+  changes what algae gives (see [mouths](#mouths)). Energy never goes over the creature's capacity.
+- After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), plus the time to crack
+  it if it was a nut, then plans its next meal.
 
 ### Breeding
 
@@ -291,6 +321,7 @@ allowed into.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
+- A nut counts the time this creature would take to crack it as extra travel (see [mouths](#mouths)).
 - The route is then smoothed into straight lines wherever the way is clear.
 
 ### Moving
@@ -411,11 +442,12 @@ The same world number always produces the same starting world, so you can replay
 
 ## 7. Food
 
-There are two kinds of food, at fixed sites that regrow after being eaten.
+There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 250–440 sites, depending on the world type. More likely on fertile ground, in thickets (most in the narrowest-gap thickets) and on islands. |
+| **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most in the narrowest-gap thickets) and on islands. |
+| **Nuts** (acorns) | Thicket | Half of the food sites in thickets grow nuts instead of berries (`MOUTH.share`). Richer than berries, but quick to eat only with a claw (see [mouths](#mouths)). |
 | **Algae** (green) | Shallow shelf and rivers | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf. Not in the outer margin. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
@@ -440,10 +472,11 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 
 - Eaten food fades out over a moment rather than vanishing.
 - A regrowing berry is a small ring that fills out, with its leaf appearing at half-grown.
+- A regrowing nut is a small, faint acorn that grows and darkens.
 - A regrowing algae site shows as small yellow fronds and turns green when ready.
 - When zoomed out, food is drawn as simple dots.
 
-**Floods and droughts wipe food out.** Berries on land that floods, algae on water that dries up, and algae left
+**Floods and droughts wipe food out.** Berries and nuts on land that floods, algae on water that dries up, and algae left
 in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown.
 
@@ -555,8 +588,8 @@ becomes a new species.
 (`SPC.extra`). With 2 species alive, splits need 55% more difference, and with 3 alive, 110% more. That keeps
 runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
-**Trait difference** is measured across all seven traits on comparable scales: width, length, speed (each
-÷ 10), habitat, colour drift (÷ 60°), and roundness and taper (each × 0.5). Look traits count too, so long
+**Trait difference** is measured across eight traits on comparable scales: width, length, speed (each
+÷ 10), habitat, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness and taper (each × 0.5). Look traits count too, so long
 separation alone can eventually be enough.
 
 Species never merge back together.
@@ -572,6 +605,8 @@ Species never merge back together.
 |---|---|
 | *natans* | more aquatic |
 | *terrestris* | more land-living |
+| *sorbens* | a more straw-like mouth ("sipping") |
+| *chelifer* | a more claw-like mouth ("claw-bearing") |
 | *velox* | faster |
 | *lentus* | slower |
 | *gracilis* | slimmer |
@@ -587,7 +622,8 @@ Species never merge back together.
 
 A notification headed **"A new species has formed!"** welcomes it with its biggest change from its parent, always
 put as a strength: for example "Welcome the first Blorbus natans, who is more at home in water." A species that
-became slower is "slower but thriftier with energy", and one that lost the ability to cross rivers is "more settled
+became slower is "slower but thriftier with energy", one whose mouth moved towards a claw is "better at cracking
+nuts with its claw" (or towards a straw, "better at sipping algae through its straw-like mouth"), and one that lost the ability to cross rivers is "more settled
 on dry land". The event log keeps the same line.
 
 ---
@@ -608,6 +644,8 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Impact Survivor | Recover to 40 creatures after a meteor kills 5 or more |
 | Taking to the Water | A species' average habitat shifts 40 points towards water |
 | Coming Ashore | A species' average habitat shifts 40 points towards land |
+| Nutcracker | A species' average mouth shifts 40 points towards a claw |
+| Sipper | A species' average mouth shifts 40 points towards a straw |
 | Squeezer | A species slims to fit 10 px gaps (only if it started too wide) |
 | New Look | Average colour drifts 60° from the original |
 | Branching Out | Witness a new species form |
@@ -659,7 +697,7 @@ Collapse or expand it with the arrow. It has three tabs.
 
 - **Traits**
   - **Map colours**: colour creatures by their own body colour, or by species tag.
-  - **Chart**: pick Population, Speed, Habitat, Narrowest, Roundness or Taper. One line per species. For
+  - **Chart**: pick Population, Speed, Habitat, Mouth (as % of the way to a straw), Narrowest, Roundness or Taper. One line per species. For
     population, a thin black line shows the total. The dashed line is the starting value. A chart shows at most
     the last 20 minutes (`CHART_SPAN`). After that a **slider** appears under it: drag it left to look back
     through earlier time, and right to the end to follow the present again.
@@ -671,6 +709,7 @@ Collapse or expand it with the arrow. It has three tabs.
   - energy and burn rate, and age
   - size and which thicket gaps it fits
   - land and water speed, habitat and range
+  - mouth, and how it feeds (how long it takes to crack a nut, and how much it gets from algae)
   - look
 
   The selected creature has orange corner brackets and a dashed line to its food target.
@@ -768,8 +807,13 @@ The look is a scientific **field notebook / survey map**.
   map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
   mid-zoom included.
 - **Creatures** are seen from above.
-  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
-  - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
+  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
+  - Legs: 4, or 6 once the body's length trait is 4 or more (`LEG6`), so they follow body length and change as it
+    evolves; there is no leg control. They sit in pairs along the sides only, never at the front or back: the front
+    pair splays forwards, the back pair backwards. On a pointed body the front pair moves back to stay clear of the
+    mouth. Longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
+  - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
+    [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
     further they are from the body.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
@@ -792,7 +836,8 @@ accident.
   an oval, and regions differ in thicket, rock and wetland.
 - **Body traits are selected; look traits drift.** Colour, roundness and taper do nothing for survival, so
   their change shows pure chance and how long groups have been apart.
-- **Legs are fixed.** They are a choice you make, not something that evolves.
+- **Legs follow body length.** Short bodies have 4 and long ones 6, on the sides only, which keeps the front for
+  the mouth and the back clear (for a possible tail one day).
 - **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
   forest) and a shape. They are never shown, so the player has no say in the world, and no single design is
   best everywhere.
@@ -840,6 +885,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Temperature: cold and hot levels, season shifts, energy costs | `TEMP` |
 | Shallow shelf size and deep-water cost | `SEA` |
 | Habitat ranges and food energy by habitat | `HAB` |
+| Nuts in thickets, nut energy and cracking time, algae bonus for straw mouths | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 

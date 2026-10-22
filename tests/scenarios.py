@@ -65,7 +65,9 @@ MEASURE = """(steps) => {
            maxLiveSpecies: maxLive, seasonAverages: seasons.map(avg), min: min === 1e9 ? 0 : min, max,
            pctOver100: count ? Math.round((over / count) * 100) : 0, worldEvents: S.events,
            explored10, pop10, lateAvg: late.length ? Math.round(late.reduce((x, y) => x + y, 0) / late.length) : null,
-           lateMax: late.length ? Math.max(...late) : null, msPerStep: +((performance.now() - t0) / steps).toFixed(2) };
+           lateMax: late.length ? Math.max(...late) : null,
+           mouthEnd: S.hist.length ? +S.hist.at(-1).all.mth.toFixed(2) : null,
+           msPerStep: +((performance.now() - t0) / steps).toFixed(2) };
 }"""
 
 results = []
@@ -78,7 +80,7 @@ with sync_playwright() as p:
         name, design = DESIGNS[r % len(DESIGNS)]
         seed = 1000 + r * 37
         pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true }")
-        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, spd: 5, hab: 0.2, ...{json.dumps(design)} }})")
+        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, spd: 5, hab: 0.2, mth: 0.5, ...{json.dumps(design)} }})")
         pg.evaluate(f"""() => {{ const sel = document.querySelector('#fWorld');
             sel.innerHTML += `<option value="{seed}">test</option>`; sel.value = '{seed}'; }}""")
         pg.click('#go')
@@ -100,4 +102,5 @@ if alive:
     print(f"  % of land explored at 10 minutes: {[r['explored10'] for r in results]}")
     print(f"  population at 10 minutes: {[r['pop10'] for r in results]}")
     print(f"  average population after 20 minutes: {[r['lateAvg'] for r in results]}")
+    print(f"  average mouth at the end (0 claw, 1 straw; released at 0.5): {[r['mouthEnd'] for r in results]}")
     print(f"  ms per simulation step: {[r['msPerStep'] for r in results]}")

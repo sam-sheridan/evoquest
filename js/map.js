@@ -413,6 +413,34 @@ function drawBerry(g, x, y, p) {
   g.stroke();
   g.restore();
 }
+// an acorn: brown nut under a darker cap; regrowing ones are small and pale
+function drawNut(g, x, y, p) {
+  g.save();
+  g.translate(x, y);
+  g.scale(3.2 * (0.45 + 0.55 * p), 3.2 * (0.45 + 0.55 * p));
+  g.lineWidth = 0.28 / (0.45 + 0.55 * p);
+  g.strokeStyle = INK;
+  g.globalAlpha = p >= 1 ? 1 : p > 0 ? 0.45 : 0.3;
+  g.beginPath();
+  g.ellipse(0, 0.35, 0.95, 1.15, 0, 0, TAU);
+  g.fillStyle = '#b07a3c';
+  g.fill();
+  g.stroke();
+  g.beginPath();
+  g.ellipse(0, -0.55, 1.15, 0.6, 0, Math.PI, TAU);
+  g.lineTo(1.15, -0.45);
+  g.quadraticCurveTo(0, 0, -1.15, -0.45);
+  g.closePath();
+  g.fillStyle = '#5b3a1a';
+  g.fill();
+  g.stroke();
+  g.beginPath();
+  g.moveTo(0, -1.15);
+  g.lineTo(0.15, -1.6);
+  g.lineWidth *= 1.25;
+  g.stroke();
+  g.restore();
+}
 function drawAlgae(g, x, y, p) {
   g.save();
   g.translate(x, y);

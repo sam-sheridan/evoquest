@@ -13,12 +13,12 @@ let D = {
   h: 4.5,
   spd: 5,
   hab: 0.2,
+  mth: 0.5,
   hue: 41,
   sat: 100,
   lt: 45,
   round: 1,
   taper: 0,
-  legs: 6,
   preset: 'round',
 };
 $('#fHue').innerHTML = OKABE.map(
@@ -46,9 +46,9 @@ for (const [id, key, k] of [
   ['#fH', 'h', 1],
   ['#fS', 'spd', 1],
   ['#fHab', 'hab', 0.01],
+  ['#fMth', 'mth', 0.01],
   ['#fR', 'round', 1],
   ['#fT', 'taper', 1],
-  ['#fLeg', 'legs', 1],
 ])
   $(id).oninput = e => {
     D[key] = +e.target.value * k;
@@ -112,12 +112,12 @@ function randomDesign() {
     h: +r(1.5, 6.5).toFixed(1),
     spd: +r(2, 9).toFixed(1),
     hab: +r(0, 0.85).toFixed(2),
+    mth: +r(0, 1).toFixed(2),
     hue: o[2],
     sat: o[3],
     lt: o[4],
     preset: pre,
     ...PRESETS[pre],
-    legs: pick([4, 6, 8]),
   });
   if (rand() < 0.5) {
     D.round = +r(0, 1).toFixed(2);
@@ -154,22 +154,23 @@ function syncCreator() {
   $('#fH').value = D.h;
   $('#fS').value = D.spd;
   $('#fHab').value = Math.round(D.hab * 100);
+  $('#fMth').value = Math.round(D.mth * 100);
   $('#fR').value = D.round;
   $('#fT').value = D.taper;
-  $('#fLeg').value = D.legs;
   $('#oW').textContent = D.w.toFixed(1);
   $('#oH').textContent = D.h.toFixed(1);
   $('#oS').textContent = D.spd.toFixed(1);
   $('#oHab').textContent = habTxt(D.hab);
+  $('#oMth').textContent = mouthTxt(D.mth);
   $('#oR').textContent = D.round.toFixed(2);
   $('#oT').textContent = D.taper.toFixed(2);
-  $('#oLeg').textContent = D.legs;
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
   const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
-    `<b>${rangeTxt(c)}.</b> Habitat splits speed between land and water and sets how far from home ground it will go.`;
+    `<b>${rangeTxt(c)}.</b> Habitat splits speed between land and water and sets how far from home ground it will go.
+    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw cracks nuts quickly; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
     `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
     <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>
@@ -199,6 +200,7 @@ function drawPreview(t) {
   if (!pvC) return;
   const k = 7;
   pvC.walk = t * 3;
+  pvC.rest = t % 5 < 1.6 ? 1 : 0; // every few seconds it pretends to eat, so the mouth snaps
   pvC.dir = -0.35 + Math.sin(t * 0.6) * 0.3;
   drawCreature(g, pvC, 260, 175, k, 7, col(pvC), t, false, 1.1 / k);
   g.strokeStyle = INK;
@@ -227,7 +229,7 @@ function drawPreview(t) {
 }
 function openCreator(seed, design, canCancel) {
   if (design && design.spd !== undefined && design.sat !== undefined)
-    D = { ...D, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+    D = { ...D, mth: 0.5, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
   else randomDesign();
   const opts = [`<option value="">New random world</option>`];
   const seen = new Set();
@@ -276,12 +278,12 @@ $('#go').onclick = () => {
     h: D.h,
     spd: D.spd,
     hab: D.hab,
+    mth: D.mth,
     hue: D.hue,
     sat: D.sat,
     lt: D.lt,
     round: D.round,
     taper: D.taper,
-    legs: D.legs,
   };
   ensureAudio();
   newGame(d, seed);
