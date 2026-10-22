@@ -960,4 +960,3 @@ Things Sam wants to try one day, grouped by area. Nothing here is built yet.
 
 - An intro or tutorial screen.
 - Redo the achievements.
-- Control a specimen: click a creature and choose to steer it with the arrow keys.
