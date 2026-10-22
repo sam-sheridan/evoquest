@@ -23,14 +23,106 @@ const START = 25; // number of creatures released at the start
 // the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
 const SEA_WALL = 0.03;
 const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
-// land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
-// between min and max, and aren't picked once land is below noFlood or above noDrought
+// land as a share of the whole (rectangular) map: each world type sets where it starts; floods and droughts keep
+// it between min and max of the starting share, and aren't picked once land is below noFlood or above noDrought
+// of it (all four are offsets from the world's starting share)
 // strait: how deep the strait between the two starting landmasses is; 1.0 keeps it open at the start but lets a
 // big drought close it in about a third of worlds
-const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42, strait: 1.0 };
+const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1.0 };
+// world types: each world secretly rolls one, never shown to the player, so the same traits don't win everywhere
+//   w: how often it is picked (relative weight); land: starting land share [minimum, random extra]
+//   split: chance of a strait splitting it into two landmasses at the start; seas: [fewest, most] extra sea
+//   channels cutting it up; isles: 0 = solid landmasses, 1 = broken into many islands
+//   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
+//   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); food: [berry sites, algae sites]
+//   temp: added to the whole world's temperature (0 normal, - colder, + warmer)
+const WORLD_TYPES = {
+  classic: {
+    w: 3,
+    land: [0.31, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.55],
+    thicket: 0.2,
+    rock: 0.1,
+    wet: 0,
+    temp: 0,
+    food: [375, 125],
+  },
+  archipelago: {
+    w: 2,
+    land: [0.2, 0.04],
+    split: 0,
+    seas: [0, 0],
+    isles: 1,
+    rivers: [0.3, 0],
+    thicket: 0.2,
+    rock: 0.06,
+    wet: 0,
+    temp: 0.05,
+    food: [250, 250],
+  },
+  supercontinent: {
+    w: 2,
+    land: [0.42, 0.04],
+    split: 0,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [1, 0.7],
+    thicket: 0.18,
+    rock: 0.08,
+    wet: -0.05,
+    temp: 0,
+    food: [440, 60],
+  },
+  highlands: {
+    w: 1.5,
+    land: [0.33, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.3],
+    thicket: 0.08,
+    rock: 0.28,
+    wet: -0.12,
+    temp: -0.08,
+    food: [375, 125],
+  },
+  forest: {
+    w: 1.5,
+    land: [0.32, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.55],
+    thicket: 0.45,
+    rock: 0.05,
+    wet: -0.04,
+    temp: 0,
+    food: [400, 100],
+  },
+};
+// overall shape of the land, rolled separately from the type (relative weights): oval as before, lagoon (land in a
+// ring around a central sea) or crescent (land curving round a big bay)
+const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
 const REGIONS = { strength: 1.3 };
+// temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
+// each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
+// which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
+//   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
+// sea depth: shelf is the share of the sea that is shallow shelf (by distance from shore and the sea floor);
+// algae grows only there, thinning out with distance from shore (algaeFade px). In deep water, creatures burn up
+// to deepCost more energy (none for fully aquatic ones)
+const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8 };
+const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.18, heatCost: 0.15 };
+const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
+// habitat: range = how far (px) a 50% creature goes from shore into water, and from water onto land; the limit
+// grows quickly towards either end. food = how much habitat changes the energy from food: berries give FOOD x
+// (1 + food x (1 - 2 x habitat)) and algae the opposite, so 0% gets 10 from a berry and 6 from algae
+const HAB = { range: 200, food: 0.25 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
@@ -88,7 +180,7 @@ const SEASONS = [
 ];
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
-const GROW = { f: [17, 6], n: [20, 8], s: [25, 8], winter: 1.1 }; // tuned in scenario tests: milder seasons
+const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
@@ -130,8 +222,6 @@ const SHAKE = {
 // parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
 // around the release spot
 const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
-// food sites placed when a world is made: berries on land, algae in water
-const SITES = { land: 375, water: 125 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups can be denser before breeding slows

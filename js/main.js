@@ -153,7 +153,7 @@ function renderScene(nowT) {
         r[1] + r[3] >= cam.y + hh;
     ctx.globalAlpha = Math.max(0, 1 - f.t / f.dur);
     if (covers) ctx.drawImage(f.d.can, ...r);
-    else ctx.drawImage(f.a, 0, 0, W, H);
+    else if (f.a) ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
   if (!S) return;
@@ -375,7 +375,7 @@ function frame(nowT) {
   if (S && S.replay) advanceReplay(dt);
   if (S && S.fade) {
     S.fade.t += dt;
-    if (S.fade.t > S.fade.dur) S.fade = null;
+    if (S.fade.t > S.fade.dur) endFade();
   }
   for (const p of parts) p.t += dt;
   parts = parts.filter(p => p.t < (p.k === 'boom' ? 1.2 : 0.6));

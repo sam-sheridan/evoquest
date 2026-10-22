@@ -26,8 +26,10 @@ function compute(c) {
     base = c.spd * 6 * sm;
   c.vL = base * (1 - 0.85 * c.hab);
   c.vW = base * (0.15 + 0.85 * c.hab);
-  c.dW = c.hab >= 0.5 ? 1e9 : 300 * (c.hab / 0.5) ** 3; // how far it will swim from shore
-  c.dL = c.hab <= 0.5 ? 1e9 : 300 * ((1 - c.hab) / 0.5) ** 3; // how far it will walk from water
+  // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
+  // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
+  c.dW = c.hab >= 1 ? 1e9 : HAB.range * (c.hab / (1 - c.hab)) ** 2;
+  c.dL = c.hab <= 0 ? 1e9 : HAB.range * ((1 - c.hab) / c.hab) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
   c.cap = 30 + 25 * c.size;
   c.poly = shapePoly(c);
@@ -36,7 +38,22 @@ function compute(c) {
   c.poly.forEach((p, i) => (i ? c.p2.lineTo(p[0], p[1]) : c.p2.moveTo(p[0], p[1])));
   c.p2.closePath();
 }
-const burn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
+// energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added
+const moveBurn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
+// deep water costs more for creatures that aren't fully aquatic
+function burn(c, v) {
+  const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
+  return (moveBurn(c, v) + climate(c, i)) * (world.deep[i] ? 1 + SEA.deepCost * (1 - c.hab) : 1);
+}
+// extra energy per second for the temperature in cell i: keeping warm costs small bodies most, cooling down
+// costs big bodies most
+function climate(c, i) {
+  const t = world.temp[i] + world.tOff + TEMP.season[S.season];
+  if (t < TEMP.cold)
+    return TEMP.coldCost * Math.min(1, (TEMP.cold - t) / TEMP.cold) * clamp(1.4 - 0.6 * c.size, 0.4, 1.2);
+  if (t > TEMP.hot) return TEMP.heatCost * Math.min(1, (t - TEMP.hot) / (1 - TEMP.hot)) * c.size * c.size;
+  return 0;
+}
 // bird's-eye body: length runs along the heading (+x), width across it; taper narrows the front
 function shapePoly(c) {
   const L = c.bh,

@@ -209,9 +209,11 @@ function renderTerrain() {
     return rf0(i);
   };
   V.rings = [0, 1, 2, 3].map(k => march(sm(rf), w.rThr + k * rs, true, true));
+  // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
+  V.contB = new Path2D();
   for (let k = 1; k <= 24; k++)
-    V.cont.addPath(
+    (k % 3 ? V.cont : V.contB).addPath(
       march(
         sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
         k / 9,
@@ -250,6 +252,36 @@ function renderTerrain() {
   bakeLo();
   detail.ok = false;
   if (typeof S !== 'undefined' && S) for (const c of S.creatures) c.rt = 0;
+}
+// temperature wash: one pixel per cell, scaled up smoothly, so it shades gradually without adding detailed shapes
+// to the map (Safari drops the land's colours when a map holds too many). Five frosty layers fade in below the
+// cold level and five warm ones above the hot level, and the season decides how far each reaches.
+const washCan = document.createElement('canvas'),
+  wash = { temp: null, se: -1 };
+washCan.width = GW;
+washCan.height = GH;
+function tempWash(se) {
+  const w = world;
+  if (wash.temp === w.temp && wash.se === se) return washCan;
+  wash.temp = w.temp;
+  wash.se = se;
+  const g = washCan.getContext('2d'),
+    img = g.createImageData(GW, GH),
+    d = img.data,
+    sh = w.tOff + TEMP.season[se];
+  for (let i = 0; i < GW * GH; i++) {
+    if (!isLand(w.type[i])) continue;
+    const t = w.temp[i];
+    let nc = 0,
+      nw = 0;
+    for (const L of [0.05, 0.15, 0.25, 0.35, 0.45]) if (t <= L && L + sh <= TEMP.cold + 0.05) nc++;
+    for (const L of [0.55, 0.65, 0.75, 0.85, 0.95]) if (t >= L && L + sh >= TEMP.hot - 0.05) nw++;
+    const k = i * 4;
+    if (nc) [d[k], d[k + 1], d[k + 2], d[k + 3]] = [222, 235, 246, 255 * (1 - 0.8 ** nc)];
+    else if (nw) [d[k], d[k + 1], d[k + 2], d[k + 3]] = [236, 204, 135, 255 * (1 - 0.93 ** nw)];
+  }
+  g.putImageData(img, 0, 0);
+  return washCan;
 }
 function paintTerrain(g) {
   const V = world.vec;
@@ -298,6 +330,8 @@ function paintTerrain(g) {
   g.strokeStyle = '#47643a';
   g.lineWidth = 1;
   g.stroke(V.thickL);
+  g.imageSmoothingEnabled = true;
+  g.drawImage(tempWash(se), 0, 0, W, H);
   g.restore();
   const RF =
     se === 3 ? ['#cfc8bb', '#bfb7a8', '#e9eeef', '#fbfcfc'] : ['#cfc8bb', '#bfb7a8', '#aea595', '#9d9483']; // winter: snow on the peaks
@@ -306,13 +340,17 @@ function paintTerrain(g) {
     g.fill(r.fill);
   });
   g.save();
-  g.strokeStyle = 'rgba(21,25,24,.14)';
-  g.lineWidth = 0.8;
+  g.strokeStyle = 'rgba(70,62,50,.32)';
+  g.lineWidth = 0.9;
   g.stroke(V.cont);
+  g.strokeStyle = 'rgba(70,62,50,.5)';
+  g.lineWidth = 1.6;
+  g.stroke(V.contB);
   g.clip(V.rings[0].fill);
   g.strokeStyle = 'rgba(60,55,48,.45)';
   g.lineWidth = 0.9;
   g.stroke(V.cont);
+  g.stroke(V.contB);
   g.restore();
   g.strokeStyle = INK;
   g.lineWidth = 1.2;
@@ -398,10 +436,13 @@ function drawAlgae(g, x, y, p) {
 // the map as it was, kept sharp for the cross-fade: a full-resolution copy of the base map, plus the zoomed-in
 // detail image if there is one (handed over to the fade; the detail layer gets a fresh canvas to redraw into)
 function snapMap() {
-  const a = document.createElement('canvas');
+  let a = document.createElement('canvas');
   a.width = tcan.width;
   a.height = tcan.height;
-  a.getContext('2d').drawImage(tcan, 0, 0);
+  // if the browser refuses another big canvas, skip the fade rather than stop the map repainting
+  const ga = a.getContext('2d');
+  if (ga) ga.drawImage(tcan, 0, 0);
+  else a = null;
   let d = null;
   if (detail.ok) {
     d = { can: detail.can, x: detail.x, y: detail.y, z: detail.z };
@@ -414,7 +455,15 @@ function snapMap() {
 function detailRect(d) {
   return [d.x - cw / d.z, d.y - ch / d.z, d.can.width / (dpr * d.z), d.can.height / (dpr * d.z)];
 }
+// Safari frees a canvas's memory only when it is garbage collected, and caps the total, so the fade's copies are
+// emptied as soon as the fade is over or replaced
+function endFade() {
+  if (!S || !S.fade) return;
+  for (const c of [S.fade.a, S.fade.d && S.fade.d.can]) if (c) c.width = c.height = 0;
+  S.fade = null;
+}
 function seasonFade() {
+  endFade();
   const old = snapMap();
   const g = tcan.getContext('2d');
   g.setTransform(TS, 0, 0, TS, 0, 0);
@@ -425,5 +474,6 @@ function seasonFade() {
   S.fade = { t: 0, ...old, dur: 2.5 };
 }
 function startFade(old) {
+  endFade();
   if (S) S.fade = { t: 0, ...old, dur: 3 };
 }

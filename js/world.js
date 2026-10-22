@@ -44,8 +44,38 @@ function makeChannel(rng, sea = false) {
     b = Math.min(all.length - 1, all.findLastIndex(on) + 1);
   return { pts: all.slice(a, b + 1), w: sea ? 2.6 + rng() * 1.2 : 1.15 + rng() * 0.45, sea };
 }
+// the world type and shape come from the seed alone, so they stay the same when a world has to be remade
+function rollWorld(seed) {
+  const r = mulberry32((seed ^ 0x2c1b3c6d) >>> 0),
+    pick = wts => {
+      const e = Object.entries(wts);
+      let x = r() * e.reduce((a, [, v]) => a + v, 0);
+      for (const [k, v] of e) if ((x -= v) <= 0) return k;
+      return e[0][0];
+    };
+  const kind = pick(Object.fromEntries(Object.entries(WORLD_TYPES).map(([k, t]) => [k, t.w])));
+  return { kind, shape: pick(SHAPES) };
+}
 function genWorld(seed, att = 0) {
-  const rng = mulberry32(seed + att * 7777);
+  const rng = mulberry32(seed + att * 7777),
+    { kind, shape } = rollWorld(seed),
+    T = WORLD_TYPES[kind],
+    // a second random stream for what world types and shapes add, so a classic oval world keeps the layout it
+    // had before types existed
+    rx = mulberry32(seed * 7 + 99991 + att * 131),
+    fi = field(rx, [
+      [10, 0.5],
+      [17, 0.3],
+      [29, 0.2],
+    ]),
+    // relief: ridges, hills and valleys on land
+    fR = field(rx, [
+      [10, 0.6],
+      [21, 0.4],
+    ]),
+    bay = rx() * TAU, // which side a crescent's bay opens towards
+    split = rx() < T.split,
+    nSeas = T.seas[0] + Math.floor(rx() * (T.seas[1] - T.seas[0] + 1));
   const fo = field(rng, [
       [2, 0.4],
       [4, 0.35],
@@ -113,13 +143,31 @@ function genWorld(seed, att = 0) {
         wv = v + (fo2(v, u) - 0.5) * 0.22,
         dx = (wu - 0.5) * 2,
         dy = (wv - 0.5) * 2,
-        rr = Math.hypot(dx * 0.92, dy) + (fo(u, v) - 0.5) * 1.25,
-        fall = clamp((rr - 0.3) / 0.55, 0, 1);
+        r0 = Math.hypot(dx * 0.92, dy),
+        rr = r0 + (fo(u, v) - 0.5) * 1.25,
+        fall = clamp((rr - 0.3) / 0.55, 0, 1),
+        // lagoon: a broad hollow in the middle leaves the land as a ring around a central sea; crescent: a bigger
+        // hollow pushed off to one side, so the land curves round a bay open to the sea
+        rb = Math.hypot(dx * 0.92 - Math.cos(bay) * 0.55, dy - Math.sin(bay) * 0.55),
+        lagoon =
+          shape === 'lagoon'
+            ? 1.1 * Math.exp(-((r0 / 0.38) ** 2))
+            : shape === 'crescent'
+              ? 1.3 * Math.exp(-((rb / 0.5) ** 2))
+              : 0,
+        I = T.isles;
       // the oval edge is roughened by the same warp as the coast, so it never reads as a clean ellipse
       const hard = clamp((EDGE + 12 - edgeDist(x, y) + (fo2(u, v) - 0.5) * 16) / 13, 0, 1);
       const along = (x - cx) * Math.cos(ang) + (y - cy) * Math.sin(ang),
         sd = (x - cx) * nx + (y - cy) * ny + Math.sin(along * 0.18 + wob) * 2.5;
-      hgt[i] = fh(u, v) * 1.25 - fall * 0.95 - hard * hard * 0.9 - LAND.strait * Math.exp(-((sd / 3) ** 2));
+      // isles blends in a finer pattern and weakens the fall-off towards the edge, breaking land into islands
+      hgt[i] =
+        fh(u, v) * 1.25 * (1 - I) +
+        fi(u, v) * 1.5 * I -
+        fall * 0.95 * (1 - 0.6 * I) -
+        hard * hard * 0.9 -
+        lagoon -
+        (split ? LAND.strait * Math.exp(-((sd / 3) ** 2)) : 0);
       const R = REGIONS.strength,
         bt = (rT(u, v) - 0.5) * R,
         br = (rR(u, v) - 0.5) * R;
@@ -128,22 +176,30 @@ function genWorld(seed, att = 0) {
       fert[i] = ff(u, v);
       gapN[i] = fg(u, v) - bt * 0.8; // thicket country also has the narrowest gaps
     }
-  // wetlands: in wet regions the land is flattened down to just above the starting sea level, with hollows that
-  // hold lakes, so floods drown these areas first and droughts drain them first
-  const landFrac = LAND.start[0] + rng() * LAND.start[1],
+  // relief: ridged hills are added to the land, growing with height above the starting sea level so coasts stay
+  // where they are; wetlands: in wet regions the land is then flattened down to just above that sea level, with
+  // hollows that hold lakes, so floods drown these areas first and droughts drain them first
+  const landFrac = T.land[0] + rng() * T.land[1],
     lvl0 = quant(hgt, 1 - landFrac);
   for (let y = 0; y < GH; y++)
     for (let x = 0; x < GW; x++) {
       const i = y * GW + x,
         u = (x + 0.5) / GW,
         v = (y + 0.5) / GH,
-        wet = clamp((rW(u, v) - 0.5) * 4.5 * REGIONS.strength, 0, 1);
-      if (!wet || hgt[i] < lvl0) continue;
+        wet = clamp((rW(u, v) - 0.5 + T.wet) * 4.5 * REGIONS.strength, 0, 1);
+      if (hgt[i] < lvl0) continue;
+      const rd = 1 - Math.abs(2 * fR(u, v) - 1);
+      hgt[i] += rd * rd * RELIEF * clamp((hgt[i] - lvl0) / 0.1, 0, 1);
+      if (!wet) continue;
       const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9;
       hgt[i] += (flat - hgt[i]) * wet;
     }
+  // thicket and rock are shares of the starting land, so each world type gets the amount it asks for
+  const onLand = a => a.filter((_, i) => hgt[i] >= lvl0 && !border(i));
   world = {
     seed,
+    kind,
+    shape,
     hgt,
     thk,
     rck,
@@ -156,31 +212,36 @@ function genWorld(seed, att = 0) {
     dLand: null,
     dWater: null,
     landFrac,
+    land0: landFrac,
+    tOff: T.temp,
     channels: [],
     craters: [],
     level: 0,
-    tThr: quant(thk, 0.79),
-    rThr: quant(rck, 0.9),
+    tThr: quant(onLand(thk), 1 - T.thicket),
+    rThr: quant(onLand(rck), 1 - T.rock),
     fLo: quant(fert, 0.1),
     fHi: quant(fert, 0.92),
     gLo: quant(gapN, 0.34),
     gHi: quant(gapN, 0.67),
   };
-  if (rng() < 0.85) world.channels.push(makeChannel(rng));
-  if (rng() < 0.55) world.channels.push(makeChannel(rng));
+  if (rng() < T.rivers[0]) world.channels.push(makeChannel(rng));
+  if (rng() < T.rivers[1]) world.channels.push(makeChannel(rng));
+  for (let k = 0; k < nSeas; k++) world.channels.push(makeChannel(rx, true));
   buildTerrain();
-  // must be two decent landmasses; otherwise try again with a variation of the same seed
-  if (att < 5) {
+  // a split world must have two decent landmasses (smaller ones will do on broken-up worlds); otherwise try
+  // again with a variation of the same seed
+  if (split && att < 5) {
     const cnt = {};
     for (const c of world.comp) if (c >= 0) cnt[c] = (cnt[c] || 0) + 1;
     const sz = Object.values(cnt).sort((a, b) => b - a);
-    if (!(sz[1] >= Math.max(1100, sz[0] * 0.25))) return genWorld(seed, att + 1);
+    if (!(sz[1] >= Math.max(1100 * (1 - 0.5 * T.isles), sz[0] * 0.25 * (1 - 0.6 * T.isles))))
+      return genWorld(seed, att + 1);
   }
   world.sites = [];
   let tries = 0,
     nl = 0,
     nw = 0;
-  while (nl < SITES.land && tries < SITES.land * 200) {
+  while (nl < T.food[0] && tries < T.food[0] * 200) {
     tries++;
     const x = rng() * W,
       y = rng() * H,
@@ -196,14 +257,15 @@ function genWorld(seed, att = 0) {
     }
   }
   tries = 0;
-  while (nw < SITES.water && tries < SITES.water * 600) {
+  while (nw < T.food[1] && tries < T.food[1] * 600) {
     tries++;
     const x = rng() * W,
       y = rng() * H,
       i = cellI(x, y),
       t = world.type[i];
     if (!isWater(t) || border(i)) continue;
-    if (t === 0 && world.dLand[i] > 56) continue;
+    // algae grows only on the shelf, and most thickly close to shore
+    if (t === 0 && (world.deep[i] || rng() > Math.exp(-world.dLand[i] / SEA.algaeFade))) continue;
     world.sites.push({ x, y, i, kind: 'w', active: true, t: 0 });
     nw++;
   }
@@ -376,8 +438,48 @@ function buildTerrain() {
   };
   w.main = ord.length ? ord[0][1] : 0;
   w.second = ord.length > 1 ? ord[1][1] : w.main;
+  // temperature: land by its height among the world's original land (high is cold), water mild
+  if (!w.refH) {
+    const a = [];
+    for (let i = 0; i < N; i++) if (isLand(w.type[i])) a.push(w.hgt[i]);
+    w.refH = Float32Array.from(a).sort();
+  }
+  w.temp = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!isLand(w.type[i])) {
+      w.temp[i] = TEMP.water;
+      continue;
+    }
+    const R = w.refH,
+      v = w.hgt[i];
+    let lo = 0,
+      hi = R.length;
+    while (lo < hi) {
+      const m = (lo + hi) >> 1;
+      if (R[m] < v) lo = m + 1;
+      else hi = m;
+    }
+    w.temp[i] = 1 - lo / R.length;
+  }
   w.dLand = distField(i => isLand(w.type[i]));
   w.dWater = distField(i => isWater(w.type[i]));
+  // sea depth: a blend of distance from shore and the sea floor, each as a rank among sea cells, so shallow
+  // shelves follow the coasts and reach out over offshore banks; the shallowest share is the shelf
+  const sea = [];
+  for (let i = 0; i < N; i++) if (w.type[i] === 0) sea.push(i);
+  const rank = f => {
+    const r = new Float32Array(N);
+    sea.sort((a, b) => f(a) - f(b)).forEach((i, k) => (r[i] = k / sea.length));
+    return r;
+  };
+  const rD = rank(i => w.dLand[i]),
+    rF = rank(i => w.level - w.hgt[i]);
+  w.depth = new Float32Array(N);
+  w.deep = new Uint8Array(N);
+  for (const i of sea) {
+    w.depth[i] = 0.65 * rD[i] + 0.35 * rF[i];
+    w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
+  }
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
     w.fl[i] = isLand(t)

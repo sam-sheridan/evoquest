@@ -163,7 +163,7 @@ function syncCreator() {
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
-  const b = burn(c, c.vL);
+  const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
     `<b>${rangeTxt(c)}.</b> Habitat splits speed between land and water and sets how far from home ground it will go.`;
   $('#pvChips').innerHTML =

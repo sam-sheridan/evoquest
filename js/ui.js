@@ -468,8 +468,9 @@ function syncUI() {
 }
 function rangeTxt(c) {
   if (c.hab <= 0.0) return 'Never enters water';
-  if (c.hab < 0.5) return `Swims up to ${Math.round(c.dW)} px from shore`;
   if (c.hab >= 1) return 'Never leaves water';
-  if (c.hab > 0.5) return `Walks up to ${Math.round(c.dL)} px from water`;
-  return 'Equally at home in both';
+  // past 2000 px the limit no longer matters on this map
+  const sw = c.dW > 2000 ? 'Swims anywhere' : `Swims up to ${Math.round(c.dW)} px from shore`,
+    wk = c.dL > 2000 ? 'walks anywhere' : `walks up to ${Math.round(c.dL)} px from water`;
+  return `${sw}, ${wk}`;
 }
