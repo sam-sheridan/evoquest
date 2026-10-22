@@ -40,6 +40,7 @@ be changed, its name in `js/config.js` is shown like `this`.
 17. [Changing the balance](#17-changing-the-balance)
 18. [Code layout](#18-code-layout)
 19. [Tests and building](#19-tests-and-building)
+20. [Ideas for later](#20-ideas-for-later)
 
 ---
 
@@ -781,59 +782,6 @@ accident.
 - **Colours come from the Okabe–Ito palette** for colour-blind accessibility.
 - **The music is original.** The ambient note set and the zoom beat were written for the game.
 
-### Ideas for later
-
-**World events**
-
-- Floods widen rivers and straits.
-
-**Water**
-
-- **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
-  slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
-  now.
-
-**Map redesign**
-
-- A more natural look, less like a survey map.
-- More interesting water.
-- Lake options.
-- Thickets that change over time.
-
-**Speciation**
-
-- Better features and world variation, so that traits don't all converge on the same ideal. (World types,
-  temperature and the new habitat rules were a first step.)
-- Mouth shape or type as a big feature for evolution.
-- Fur or warmth as a feature.
-
-**Small UI changes**
-
-- Speed up the cooldown.
-- A season clock with symbols, bottom left.
-- A temperature symbol.
-
-**Creature redesign**
-
-- Squiggly legs that change between water and land.
-- An outline pattern.
-- A mouth.
-
-**Creator improvements**
-
-- The creator starts with a randomised design.
-
-**Redo the inspector**
-
-- A size measure instead of length and width.
-- Drop "narrowest side", which isn't very meaningful to players.
-
-**Bigger features**
-
-- An intro or tutorial screen.
-- Redo the achievements.
-- Control a specimen: click a creature and choose to steer it with the arrow keys.
-
 ---
 
 ## 17. Changing the balance
@@ -939,3 +887,60 @@ it out.
 
 `python3 tools/build.py` writes `dist/evoquest.html`: the whole game in one file you can share or host
 anywhere. `dist/` isn't stored in the repo, so run the build again whenever you need a fresh copy.
+
+---
+
+## 20. Ideas for later
+
+Things Sam wants to try one day, grouped by area. Nothing here is built yet.
+
+**World events**
+
+- Floods widen rivers and straits.
+
+**Water**
+
+- **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
+  slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
+  now.
+
+**Map redesign**
+
+- A more natural look, less like a survey map.
+- More interesting water.
+- Lake options.
+- Thickets that change over time.
+
+**Speciation**
+
+- Better features and world variation, so that traits don't all converge on the same ideal. (World types,
+  temperature and the new habitat rules were a first step.)
+- Mouth shape or type as a big feature for evolution.
+- Fur or warmth as a feature.
+
+**Small UI changes**
+
+- Speed up the cooldown.
+- A season clock with symbols, bottom left.
+- A temperature symbol.
+
+**Creature redesign**
+
+- Squiggly legs that change between water and land.
+- An outline pattern.
+- A mouth.
+
+**Creator improvements**
+
+- The creator starts with a randomised design.
+
+**Redo the inspector**
+
+- A size measure instead of length and width.
+- Drop "narrowest side", which isn't very meaningful to players.
+
+**Bigger features**
+
+- An intro or tutorial screen.
+- Redo the achievements.
+- Control a specimen: click a creature and choose to steer it with the arrow keys.
