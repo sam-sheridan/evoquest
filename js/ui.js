@@ -13,10 +13,11 @@ function eventAlert(kick) {
   el.classList.add('flash');
   if (!$('#logPop').hidden) renderLog();
 }
+// the play triangle sits a pixel right of true centre so it looks centred
 const ICON_PLAY =
-    '<svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
+    '<svg viewBox="0 0 12 12" width="14" height="14" style="transform:translateX(1px)"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
   ICON_PAUSE =
-    '<svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor"/></svg>';
+    '<svg viewBox="0 0 12 12" width="14" height="14"><path d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor"/></svg>';
 // season symbols for the clock: flower, sun, leaf, snowflake (drawn in a 16-unit box centred on 0)
 const SEASON_ICON = [
   '<g fill="none" stroke="currentColor" stroke-width="1.3"><circle r="1.6"/>' +

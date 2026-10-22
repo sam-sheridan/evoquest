@@ -160,9 +160,16 @@ h3 {
 /* fast forward: a ring round the icon drains while it runs and fills as it recharges */
 #bFast {
   position: relative;
+}
+/* play/pause and fast forward icons sit centred in their buttons */
+#bPause,
+#bFast {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+#bPause svg {
+  display: block;
 }
 /* arrows look left-heavy, so they sit a pixel right of true centre to look centred in the ring */
 #bFast svg {
