@@ -23,11 +23,102 @@ const START = 25; // number of creatures released at the start
 // the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
 const SEA_WALL = 0.03;
 const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval edge of the map
-// land as a share of the whole (rectangular) map: start = [minimum, random extra]; floods and droughts stay
-// between min and max, and aren't picked once land is below noFlood or above noDrought
+// land as a share of the whole (rectangular) map: each world type sets where it starts; floods and droughts keep
+// it between min and max of the starting share, and aren't picked once land is below noFlood or above noDrought
+// of it (all four are offsets from the world's starting share)
 // strait: how deep the strait between the two starting landmasses is; 1.0 keeps it open at the start but lets a
 // big drought close it in about a third of worlds
-const LAND = { start: [0.31, 0.04], min: 0.2, max: 0.46, noFlood: 0.25, noDrought: 0.42, strait: 1.0 };
+const LAND = { min: -0.13, max: 0.13, noFlood: -0.08, noDrought: 0.09, strait: 1.0 };
+// world types: each world secretly rolls one, never shown to the player, so the same traits don't win everywhere
+//   w: how often it is picked (relative weight); land: starting land share [minimum, random extra]
+//   split: chance of a strait splitting it into two landmasses at the start; seas: [fewest, most] extra sea
+//   channels cutting it up; isles: 0 = solid landmasses, 1 = broken into many islands
+//   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
+//   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); lakes: how deep the hollows in
+//   wetlands are (1 normal, more gives more and bigger lakes); food: [berry sites, algae sites]
+const WORLD_TYPES = {
+  classic: {
+    w: 3,
+    land: [0.31, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.55],
+    thicket: 0.2,
+    rock: 0.1,
+    wet: 0,
+    lakes: 1,
+    food: [375, 125],
+  },
+  archipelago: {
+    w: 2,
+    land: [0.2, 0.04],
+    split: 1,
+    seas: [1, 2],
+    isles: 1,
+    rivers: [0.3, 0],
+    thicket: 0.2,
+    rock: 0.06,
+    wet: 0,
+    lakes: 1,
+    food: [250, 250],
+  },
+  supercontinent: {
+    w: 2,
+    land: [0.42, 0.04],
+    split: 0,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [1, 0.7],
+    thicket: 0.18,
+    rock: 0.08,
+    wet: -0.05,
+    lakes: 1,
+    food: [440, 60],
+  },
+  highlands: {
+    w: 1.5,
+    land: [0.33, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.3],
+    thicket: 0.08,
+    rock: 0.28,
+    wet: -0.12,
+    lakes: 1,
+    food: [375, 125],
+  },
+  wetlands: {
+    w: 1.5,
+    land: [0.29, 0.04],
+    split: 1,
+    seas: [0, 1],
+    isles: 0.3,
+    rivers: [1, 0.8],
+    thicket: 0.16,
+    rock: 0.03,
+    wet: 0.25,
+    lakes: 2.2,
+    food: [300, 200],
+  },
+  forest: {
+    w: 1.5,
+    land: [0.32, 0.04],
+    split: 1,
+    seas: [0, 0],
+    isles: 0,
+    rivers: [0.85, 0.55],
+    thicket: 0.45,
+    rock: 0.05,
+    wet: -0.04,
+    lakes: 1,
+    food: [400, 100],
+  },
+};
+// overall shape of the land, rolled separately from the type (relative weights): oval as before, lagoon (land in a
+// ring around a central sea) or crescent (land curving round a big bay)
+const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
 const REGIONS = { strength: 1.3 };
@@ -130,8 +221,6 @@ const SHAKE = {
 // parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
 // around the release spot
 const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
-// food sites placed when a world is made: berries on land, algae in water
-const SITES = { land: 375, water: 125 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups can be denser before breeding slows

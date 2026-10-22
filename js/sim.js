@@ -653,11 +653,11 @@ function pickEvent() {
   const ev = { ...SEASONS[S.season].ev };
   // when land is too high for a drought (or too low for a flood), that share goes to the opposite event,
   // not to earthquakes, so earthquakes stay as common as the season says
-  if (w.landFrac > LAND.noDrought) {
+  if (w.landFrac > w.land0 + LAND.noDrought) {
     ev.flood += ev.drought;
     ev.drought = 0;
   }
-  if (w.landFrac < LAND.noFlood) {
+  if (w.landFrac < w.land0 + LAND.noFlood) {
     ev.drought += ev.flood;
     ev.flood = 0;
   }
@@ -675,7 +675,8 @@ function worldEvent(kind, major, forced) {
   let k = kind || pickEvent();
   if (
     !forced &&
-    ((k === 'drought' && w.landFrac > LAND.noDrought) || (k === 'flood' && w.landFrac < LAND.noFlood))
+    ((k === 'drought' && w.landFrac > w.land0 + LAND.noDrought) ||
+      (k === 'flood' && w.landFrac < w.land0 + LAND.noFlood))
   )
     k = pickEvent();
   let msg;
@@ -693,12 +694,12 @@ function worldEvent(kind, major, forced) {
   const m = major ? 1 : 0,
     amt = EVENTS.shift[m];
   if (k === 'flood') {
-    w.landFrac = Math.max(LAND.min, w.landFrac - amt);
+    w.landFrac = Math.max(w.land0 + LAND.min, w.landFrac - amt);
     msg = major
       ? 'Major flood. The sea surged far inland, drowning low land and its food.'
       : 'Flood. The sea rose; low land and its food are underwater.';
   } else if (k === 'drought') {
-    w.landFrac = Math.min(LAND.max, w.landFrac + amt);
+    w.landFrac = Math.min(w.land0 + LAND.max, w.landFrac + amt);
     const rivers = dryUp(false, m),
       seas = dryUp(true, m);
     msg = major
