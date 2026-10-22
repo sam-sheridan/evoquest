@@ -127,12 +127,26 @@ $('#bPause').onclick = () => {
   S.paused = !S.paused;
   syncUI(true);
 };
-$('#bSpeed').onclick = () => {
-  if (!S) return;
-  const L = [1, 2, 4];
-  S.speed = L[(L.indexOf(S.speed) + 1) % L.length];
+// fast forward: FAST.speed for FAST.dur real seconds, then FAST.cool real seconds before it can be used again; it
+// is off while a testing speed above 1× is set
+const fast = { until: 0, ready: 0 },
+  fastOn = () => performance.now() < fast.until;
+$('#bFast').onclick = () => {
+  const now = performance.now();
+  if (!S || S.over || S.speed > 1 || now < fast.ready) return;
+  fast.until = now + FAST.dur * 1000;
+  fast.ready = fast.until + FAST.cool * 1000;
   syncUI(true);
 };
+document.querySelectorAll('#sSpeed button').forEach(
+  b =>
+    (b.onclick = () => {
+      if (!S) return;
+      S.speed = +b.dataset.spd;
+      if (S.speed > 1) fast.until = 0;
+      syncUI(true);
+    })
+);
 $('#bNew').onclick = () => {
   $('#setPop').hidden = true;
   $('#bSet').classList.remove('on');
@@ -174,6 +188,13 @@ document.addEventListener('click', e => {
   }
 });
 const liveSp = () => S.species.filter(s => !s.died).sort((a, b) => b.n - a.n);
+// the chart shows at most CHART_SPAN seconds; chartEnd is the time at its right edge, or null to follow the present
+let chartEnd = null;
+$('#chartPos').oninput = e => {
+  const v = +e.target.value;
+  chartEnd = v >= 1000 ? null : CHART_SPAN + ((S.t - CHART_SPAN) * v) / 1000;
+  drawChart();
+};
 function drawChart() {
   const c = $('#chart'),
     r = c.getBoundingClientRect();
@@ -185,7 +206,20 @@ function drawChart() {
   const w = r.width,
     h = r.height,
     HS = S.hist,
-    pad = { l: 34, r: 8, t: 10, b: 18 };
+    pad = { l: 34, r: 8, t: 10, b: 18 },
+    now = Math.max(10, S.t),
+    span = Math.min(CHART_SPAN, now);
+  if (chartEnd !== null && (chartEnd >= S.t || S.t <= CHART_SPAN)) chartEnd = null;
+  const t1 = chartEnd === null ? now : Math.max(span, chartEnd),
+    t0 = t1 - span,
+    seen = t => t >= t0 && t <= t1,
+    slider = $('#chartPos');
+  slider.hidden = S.t <= CHART_SPAN;
+  if (!slider.hidden) {
+    const v = chartEnd === null ? 1 : (t1 - CHART_SPAN) / (S.t - CHART_SPAN);
+    slider.value = v * 1000;
+    slider.style.setProperty('--p', `calc(${v * 100}% - ${v * 12 - 6}px)`); // the track fills up to the thumb
+  }
   g.clearRect(0, 0, w, h);
   const mul = metric === 'hab' ? 100 : 1;
   const series = S.species
@@ -194,8 +228,8 @@ function drawChart() {
   const tot = metric === 'n' ? HS.map(e => [e.t, e.total]) : null;
   const o = metric === 'n' ? START : S.orig[metric] * mul;
   let vals = [o];
-  series.forEach(s => s.pts.forEach(p => vals.push(p[1])));
-  if (tot) tot.forEach(p => vals.push(p[1]));
+  series.forEach(s => s.pts.forEach(p => seen(p[0]) && vals.push(p[1])));
+  if (tot) tot.forEach(p => seen(p[0]) && vals.push(p[1]));
   const small = metric === 'round';
   let lo = Math.min(...vals),
     hi = Math.max(...vals);
@@ -207,8 +241,7 @@ function drawChart() {
   lo -= sp * 0.08;
   hi += sp * 0.08;
   lo = Math.max(0, lo);
-  const T = Math.max(10, S.t),
-    X = t => pad.l + ((w - pad.l - pad.r) * t) / T,
+  const X = t => pad.l + ((w - pad.l - pad.r) * (t - t0)) / span,
     Y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
   g.font = '10px "IBM Plex Mono", monospace';
   g.fillStyle = '#636d69';
@@ -223,8 +256,8 @@ function drawChart() {
     g.stroke();
     g.fillText(v.toFixed(dec) + (metric === 'hab' ? '%' : ''), 2, Y(v) + 3);
   }
-  g.fillText('0:00', pad.l, h - 4);
-  const lab = fmtT(S.t);
+  g.fillText(fmtT(t0), pad.l, h - 4);
+  const lab = fmtT(t1);
   g.fillText(lab, w - pad.r - g.measureText(lab).width, h - 4);
   g.setLineDash([3, 3]);
   g.strokeStyle = '#636d69';
@@ -241,16 +274,22 @@ function drawChart() {
     pts.forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1]))));
     g.stroke();
   };
+  g.save();
+  g.beginPath();
+  g.rect(pad.l, 0, w - pad.l, h);
+  g.clip();
   if (tot && series.length > 1) line(tot, INK, 1);
   for (const s of series) {
     line(s.pts, s.sp.tag, 1.8);
-    if (!s.sp.died) {
+    if (!s.sp.died && seen(s.pts.at(-1)[0])) {
       const e = s.pts.at(-1);
       g.fillStyle = s.sp.tag;
       g.fillRect(X(e[0]) - 3, Y(e[1]) - 3, 6, 6);
     }
   }
+  g.restore();
 }
+
 function cell(v, o, d = 1, suf = '') {
   const x = v - o,
     thr = suf === '%' ? 0.05 : d === 2 ? 0.04 : 0.15,
@@ -373,7 +412,31 @@ function syncUI() {
     $('#bPause').title = pl ? 'Play' : 'Pause';
     $('#bPause').classList.toggle('on', pl);
   }
-  $('#bSpeed').textContent = S.speed + '×';
+  {
+    // the ring drains while fast forward runs and fills again as it recharges
+    const now = performance.now(),
+      b = $('#bFast'),
+      on = now < fast.until,
+      wait = !on && now < fast.ready,
+      off = S.speed > 1 || S.over;
+    b.classList.toggle('on', on);
+    b.classList.toggle('charging', wait);
+    b.disabled = off || wait;
+    b.style.setProperty(
+      '--p',
+      on ? (fast.until - now) / (FAST.dur * 1000) : 1 - (fast.ready - now) / (FAST.cool * 1000)
+    );
+    b.title = off
+      ? 'Fast forward is off while a testing speed is set'
+      : on
+        ? `Fast forward: ${Math.ceil((fast.until - now) / 1000)} s left`
+        : wait
+          ? `Fast forward ready in ${fmtT((fast.ready - now) / 1000)}`
+          : `Fast forward: ${FAST.speed}× for ${FAST.dur} s`;
+    document
+      .querySelectorAll('#sSpeed button')
+      .forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.spd === S.speed)));
+  }
   $('#bSound').innerHTML = sound ? SPK_ON : SPK_OFF;
   $('#bSound').setAttribute('aria-label', sound ? 'Turn sound off' : 'Turn sound on');
   $('#bSound').title = sound ? 'Sound on' : 'Sound off';

@@ -117,7 +117,14 @@ const REGIONS = { strength: 1.3 };
 // algae grows only there, thinning out with distance from shore (algaeFade px). In deep water, creatures burn up
 // to deepCost more energy (none for fully aquatic ones)
 const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8 };
-const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.18, heatCost: 0.15 };
+const TEMP = {
+  cold: 0.3,
+  hot: 0.8,
+  water: 0.55,
+  season: [0, 0.12, 0, -0.15],
+  coldCost: 0.18,
+  heatCost: 0.15,
+};
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
 // habitat: range = how far (px) a 50% creature goes from shore into water, and from water onto land; the limit
 // grows quickly towards either end. food = how much habitat changes the energy from food: berries give FOOD x
@@ -178,6 +185,9 @@ const SEASONS = [
     msg: 'Winter. Snow on the peaks; food is slow to return on land and in the water. Storms bring floods.',
   },
 ];
+// fast forward: how much faster, for how many real seconds, then how many real seconds before it can be used again
+const FAST = { speed: 3, dur: 20, cool: 180 };
+const CHART_SPAN = 1200; // most seconds of history an inspector chart shows at once (20 minutes); a slider moves back
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
 const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests

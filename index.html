@@ -21,7 +21,11 @@
         </div>
       </div>
       <div class="strip panelx" role="toolbar" aria-label="Controls">
-        <button id="bPause" aria-label="Pause"></button><button id="bSpeed">1×</button
+        <button id="bPause" aria-label="Pause"></button
+        ><button id="bFast" aria-label="Fast forward">
+          <svg viewBox="0 0 16 12" width="16" height="12" style="vertical-align: -1px">
+            <path d="M1 1l6.5 5L1 11zM8.5 1L15 6l-6.5 5z" fill="currentColor" />
+          </svg></button
         ><button id="bSound" aria-label="Turn sound off"></button
         ><button id="bLog" aria-label="Event log" title="Event log">
           <svg viewBox="0 0 512 512" width="15" height="15" style="vertical-align: -3px">
@@ -77,6 +81,11 @@
           <span>Beat when zoomed in</span>
           <div class="seg2"><button id="sBeat">On</button></div>
         </div>
+        <div class="setrow"><span>Testing: speed</span></div>
+        <div class="spdset" id="sSpeed">
+          <button class="btn" data-spd="1">1×</button><button class="btn" data-spd="2">2×</button
+          ><button class="btn" data-spd="4">4×</button><button class="btn" data-spd="10">10×</button>
+        </div>
         <div class="setrow">
           <span>Testing: trigger an event now</span>
           <div class="seg2"><button id="sMajor" aria-pressed="false">Major</button></div>
@@ -122,6 +131,15 @@
           </div>
           <div class="metrics" id="metrics"></div>
           <canvas class="chart" id="chart"></canvas>
+          <input
+            type="range"
+            id="chartPos"
+            min="0"
+            max="1000"
+            value="1000"
+            aria-label="Move back through the chart"
+            hidden
+          />
           <div class="tw">
             <table>
               <thead id="thead"></thead>

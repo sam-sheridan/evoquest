@@ -23,7 +23,7 @@ function newGame(design, seed) {
     creatures: [], // living creatures
     newborns: [], // born this step, added at the end of the step
     sites: world.sites, // food sites (berries on land, algae in water)
-    speed: 1, // 1×, 2× or 4×
+    speed: 1, // testing speed from Settings: 1×, 2×, 4× or 10× (fast forward multiplies on top)
     paused: false,
     over: false, // lineage extinct
     hist: [], // trait averages sampled every 2 s, for the charts

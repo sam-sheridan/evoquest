@@ -89,6 +89,9 @@ and which thicket gaps it fits through. The **chips** under it show:
 - energy capacity and how fast it burns energy while walking
 - reach (how close it must get to food to eat it)
 
+The creator **starts randomised**: every time it opens, it is as if *Randomise* had been pressed, including a new
+name. The only exception is **Revisit world** on a past lineage, which brings back that run's design.
+
 **Past lineages** appear under the creator once you have finished a run, with a "Revisit world" button for
 each.
 
@@ -618,11 +621,11 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Button | What it does |
 |---|---|
 | Play / pause | Pauses the simulation. |
-| 1× / 2× / 4× | Simulation speed. |
+| Fast forward (⏩) | Runs the game at 3× for 20 real seconds, then needs 3 minutes (real time) to recharge (`FAST`). A ring round the icon drains while it runs and fills as it recharges; hover to see the time left. It is greyed out while a testing speed above 1× is set. |
 | Speaker | Sound on or off. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing** buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
+| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
 
 ### Top right: season and event bars
 
@@ -641,7 +644,9 @@ Collapse or expand it with the arrow. It has three tabs.
 - **Traits**
   - **Map colours**: colour creatures by their own body colour, or by species tag.
   - **Chart**: pick Population, Speed, Habitat, Narrowest, Roundness or Taper. One line per species. For
-    population, a thin black line shows the total. The dashed line is the starting value.
+    population, a thin black line shows the total. The dashed line is the starting value. A chart shows at most
+    the last 20 minutes (`CHART_SPAN`). After that a **slider** appears under it: drag it left to look back
+    through earlier time, and right to the end to follow the present again.
   - **Table**: compares the released design with the three biggest living species. Values noticeably up or
     down from the release are highlighted. Body traits and look traits are grouped separately.
 - **Specimen**: tap any creature on the map to see its:

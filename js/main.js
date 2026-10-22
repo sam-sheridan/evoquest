@@ -351,7 +351,7 @@ let last = performance.now(),
 // run the simulation for dt seconds of real time at the chosen speed
 function advance(dt) {
   if (!S || S.paused || S.over || S.replay) return;
-  let sim = dt * S.speed;
+  let sim = dt * S.speed * (fastOn() ? FAST.speed : 1);
   while (sim > 1e-6 && !S.over) {
     const h = Math.min(sim, 0.05);
     step(h);

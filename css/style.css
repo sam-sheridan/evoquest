@@ -157,6 +157,38 @@ h3 {
   cursor: default;
   background: transparent;
 }
+/* fast forward: a ring round the icon drains while it runs and fills as it recharges */
+#bFast {
+  position: relative;
+}
+#bFast.on::before,
+#bFast.charging::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  background: conic-gradient(currentColor calc(var(--p, 1) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 10px, #000 10.5px);
+  mask: radial-gradient(circle, transparent 10px, #000 10.5px);
+}
+.spdset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding-bottom: 4px;
+}
+.spdset .btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.spdset .btn[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--panel);
+}
 #scale {
   position: fixed;
   z-index: 3;
@@ -294,6 +326,10 @@ h3 {
 .metrics button.on {
   background: var(--ink);
   color: var(--panel);
+}
+/* the chart's history slider has no tick marks */
+#chartPos {
+  background: none;
 }
 canvas.chart {
   width: 100%;
