@@ -215,7 +215,7 @@ const EVENTS = {
   seaSplit: 0.3,
   dry: [1, 2],
   dryShare: [0.25, 0.5],
-  warn: 10, // seconds before an event that its warning symbol appears in the event bar
+  warn: 10, // seconds before an event that it is decided (there is no warning on screen)
 };
 
 // screen shake, each [normal, major]: amp = how far the view jolts in screen px, dur = seconds until it settles,

@@ -97,19 +97,20 @@
           ><button class="btn" data-ev="meteor">Meteor</button>
         </div>
       </div>
-      <div class="meters panelx" id="meters">
-        <div class="mbar">
-          <div class="m2" id="mEvent" role="status">
-            <i></i><button class="info" data-info="event" aria-label="About world events">i</button
-            ><span>World event</span><em id="omen" hidden></em>
-          </div>
-        </div>
-      </div>
     </header>
-    <div id="clock" class="panelx" role="status" hidden>
-      <svg id="clkPie" width="34" height="34" viewBox="-17 -17 34 34"></svg>
-      <span id="clkSeason"></span><i class="clkDiv"></i><span id="clkTemp"></span
-      ><button class="info" data-info="season" aria-label="About seasons and temperature">i</button>
+    <div id="hud" hidden>
+      <div id="clock" class="panelx" role="status">
+        <svg id="clkPie" width="34" height="34" viewBox="-17 -17 34 34"></svg>
+        <span id="clkSeason"></span><i class="clkDiv"></i><span id="clkTemp"></span
+        ><button class="info" data-info="season" aria-label="About seasons and temperature">i</button>
+      </div>
+      <button
+        id="evSq"
+        class="panelx"
+        data-info="event"
+        aria-label="World events"
+        title="World events"
+      ></button>
     </div>
     <div id="scale"><span id="scaleL">100 px</span><i id="scaleI"></i></div>
     <div id="toast" role="status"></div>

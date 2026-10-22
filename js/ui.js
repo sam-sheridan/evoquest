@@ -2,18 +2,27 @@
    popovers, event log and achievements menu. */
 
 /* ---------- UI ---------- */
-// the event bar pulses and briefly names what just happened; details go to the event log
-function eventAlert(kick) {
+// while an event is happening, the world event sign shows its symbol and flashes; details go to the event log
+function eventAlert(kind) {
   if (!S) return;
   S.hl = S.hl || {};
-  S.hl.event = { until: performance.now() + 7000, text: kick };
-  const el = $('#mEvent');
-  el.classList.remove('flash');
-  void el.offsetWidth;
-  el.classList.add('flash');
+  S.hl.event = { until: performance.now() + 7000, kind };
+  syncEvent();
   if (!$('#logPop').hidden) renderLog();
 }
-// the play triangle sits a pixel right of true centre so it looks centred
+// the sign: a warning triangle with "!", or with the event's symbol while one is happening
+function syncEvent() {
+  const el = $('#evSq'),
+    he = S.hl && S.hl.event && S.hl.event.until > performance.now(),
+    key = he ? S.hl.event.kind : '!';
+  el.classList.toggle('hot', !!he);
+  if (el.dataset.k === key) return;
+  el.dataset.k = key;
+  const sym = he
+    ? `<g class="sym" transform="translate(9.2 14.6) scale(0.63)">${OMEN[key].replace(/<\/?svg[^>]*>/g, '')}</g>`
+    : '<g class="sym" fill="currentColor"><rect x="14.8" y="11.5" width="1.4" height="8" rx=".7"/><circle cx="15.5" cy="22.6" r="1.1"/></g>';
+  el.innerHTML = `<svg width="26" height="24" viewBox="0 0 31 29"><path class="tri" d="M15.5 3 L28.5 26 H2.5 Z" stroke-width="1.3" stroke-linejoin="round"/>${sym}</svg>`;
+}
 const ICON_PLAY =
     '<svg viewBox="0 0 12 12" width="14" height="14" style="transform:translateX(1px)"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>',
   ICON_PAUSE =
@@ -46,7 +55,7 @@ const worldTemp = () => 0.5 + world.tOff + TEMP.season[S.season],
   tempWord = v => (v < 0.3 ? 'cold' : v < 0.45 ? 'cool' : v < 0.58 ? 'mild' : v < 0.72 ? 'warm' : 'hot');
 // the clock: a pie in four quarters (the current one stronger) with a hand that goes round once a year
 function syncClock(sp) {
-  const el = $('#clock'),
+  const el = $('#hud'),
     k = S.season,
     a = ((k + sp) / 4) * TAU,
     R = 15;
@@ -72,27 +81,10 @@ function syncClock(sp) {
 }
 function syncMeters() {
   if (!S) return;
-  const sp = clamp((S.t - S.seasonStart) / (S.nextSeason - S.seasonStart), 0, 1),
-    ep = clamp((S.t - S.evStart) / (S.nextEvent - S.evStart), 0, 1);
-  const now = performance.now(),
-    he = S.hl && S.hl.event && S.hl.event.until > now;
-  syncClock(sp);
-  $('#mEvent i').style.width = ep * 100 + '%';
-  $('#mEvent span').textContent = he ? S.hl.event.text : 'World event';
-  $('#mEvent').classList.toggle('hot', !!he);
-  const om = $('#omen'),
-    show = S.nextEvent - S.t <= EVENTS.warn && S.nextKind && !S.over;
-  om.hidden = !show;
-  const key = S.nextKind + (S.nextMajor ? '!' : '');
-  if (show && om.dataset.k !== key) {
-    om.dataset.k = key;
-    om.innerHTML =
-      OMEN[S.nextKind] + (S.nextMajor ? '<b style="font-family:var(--mono);margin-left:2px">!</b>' : '');
-    om.style.color = S.nextMajor ? '#D55E00' : '#151918';
-    om.title = (S.nextMajor ? 'A major ' : '') + OMEN_T[S.nextKind].replace(/^An? /, S.nextMajor ? '' : '$&');
-  }
+  syncClock(clamp((S.t - S.seasonStart) / (S.nextSeason - S.seasonStart), 0, 1));
+  syncEvent();
 }
-// small symbols that appear in the event bar shortly before an event
+// a symbol for each world event, shown in the world event sign while it happens
 const OMEN = {
   flood:
     '<svg viewBox="0 0 20 14" width="20" height="14"><path d="M1 5q2.25-3 4.5 0t4.5 0 4.5 0 4.5 0M1 10q2.25-3 4.5 0t4.5 0 4.5 0 4.5 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
@@ -102,12 +94,6 @@ const OMEN = {
     '<svg viewBox="0 0 20 14" width="20" height="14"><path d="M1 8 5 4l3 6 3-8 3 7 2-3h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   meteor:
     '<svg viewBox="0 0 20 14" width="20" height="14"><circle cx="14" cy="9" r="3.2" fill="currentColor"/><path d="M2 2l9 5M5 1l7 5M1 5l9 4" stroke="currentColor" stroke-width="1.2"/></svg>',
-};
-const OMEN_T = {
-  flood: 'A flood is coming',
-  drought: 'A drought is coming',
-  quake: 'An earthquake is coming',
-  meteor: 'A meteor is coming',
 };
 function toast(m, k) {
   const box = $('#toast'),
@@ -404,7 +390,7 @@ const INFO = {
     () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely. The clock's hand goes round once a year. The thermometer shows how cold or warm the whole world is this season; high ground is always colder than that, and lowland warmer.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
-    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">The bar fills until the next event. Near the end a symbol warns you what is coming. In orange with a “!”, it will be a major event.</p>
+    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">One comes every ${EVENTS.gap[0] / 60} minutes, without warning. While it happens, the warning sign flashes orange with its symbol.</p>
   <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears, islands may join, and rivers and sea channels can dry up.', quake: 'The land splits, usually with a new river, sometimes with a channel of sea.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
   <p class="hint" style="margin:6px 0 0">About 1 in 10 events is major: floods and droughts move the sea further, earthquakes open two rivers, and meteors hit a wider area.</p>`,
 };
@@ -417,16 +403,16 @@ function openInfo(which, btn) {
   p.dataset.w = which;
   p.innerHTML = INFO[which]();
   p.hidden = false;
-  // seasons open above the clock (bottom left), events below the event bar (top right)
-  const r = (which === 'season' ? $('#clock') : $('#meters')).getBoundingClientRect();
-  Object.assign(
-    p.style,
-    which === 'season'
-      ? { top: 'auto', right: 'auto', bottom: innerHeight - r.top + 6 + 'px', left: r.left + 'px' }
-      : { bottom: 'auto', left: 'auto', top: r.bottom + 6 + 'px', right: innerWidth - r.right + 'px' }
-  );
+  // both guides open above the season clock and world event sign (bottom left)
+  const r = $('#hud').getBoundingClientRect();
+  Object.assign(p.style, {
+    top: 'auto',
+    right: 'auto',
+    bottom: innerHeight - r.top + 6 + 'px',
+    left: r.left + 'px',
+  });
 }
-document.querySelectorAll('.info').forEach(
+document.querySelectorAll('.info, #evSq').forEach(
   b =>
     (b.onclick = e => {
       e.stopPropagation();

@@ -471,8 +471,8 @@ All of this is in the `SEASONS` table in `js/config.js`.
 - After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
   events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
   different season from the one before.
-- The **event bar** fills up until the next event. In the last 10 seconds (`EVENTS.warn`), a flashing **warning
-  symbol** shows which event is coming. An orange symbol with "!" means a major event.
+- There is **no timer or advance warning** on screen: events simply arrive. While one is happening, the
+  **world event sign** (bottom left) flashes orange with its symbol. Major events look the same there.
 
 ### Which event
 
@@ -515,7 +515,7 @@ Each event:
   one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
   to reduce motion
 - plays its own sound effect
-- flashes the event bar with its name for 7 seconds
+- makes the world event sign flash orange with the event's symbol for 7 seconds
 - adds a line to the event log
 
 Land heights never change, only the sea level (and rivers and sea channels cut on top), so the colours of land
@@ -627,12 +627,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Medal | **Achievements** for this run, with a count. |
 | Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Ambient notes* on/off, *Beat when zoomed in* on/off. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event. |
 
-### Top right: event bar
-
-- The **event bar** fills until the next world event. The warning symbol flashes for the last 10 seconds.
-- Its **i** button opens a quick reference for events.
-
-### Bottom left: season clock and temperature
+### Bottom left: season clock, temperature and world event sign
 
 - A small **clock** split into four quarters, one per season in its colour (the current one stronger), with a
   hand that goes round once a year.
@@ -642,7 +637,10 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
   season's shift plus the world type's offset, around a mild middle. High ground is always colder than this, and
   lowland warmer (see [temperature](#temperature)).
 - Its **i** button opens a quick reference for seasons.
-- On narrow screens, an expanded inspector covers it.
+- Beside it, in its own square, the **world event sign**: a warning triangle with "!". While an event is happening
+  (for 7 seconds), the "!" changes to that event's symbol (waves, sun, jagged line or falling rock) and the
+  triangle flashes orange. Major events look the same. Click it for a quick reference to events.
+- On narrow screens, an expanded inspector covers them.
 
 ### Notifications
 
@@ -848,7 +846,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
 | `js/audio.js` | All sound, generated live: ambient notes, creature sounds, event effects, zoomed-in beat |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
-| `js/ui.js` | Status bar, season and event bars, inspector, notifications, menus |
+| `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |
 | `js/main.js` | Camera, input, rendering each frame, the main loop |
 | `tools/build.py` | Bundles everything into one HTML file in `dist/` |

@@ -39,7 +39,7 @@ function newGame(design, seed) {
     events: 0, // world events so far
     lastEvent: -1,
     nextEvent: EVENTS.first[0] + rand() * EVENTS.first[1], // when the next world event happens
-    nextKind: null, // which event it will be (decided early so the warning symbol can show)
+    nextKind: null, // which event it will be (decided a little early; changing season must not re-roll it)
     evStart: 0,
     season: 0, // 0 spring, 1 summer, 2 autumn, 3 winter
     nextSeason: SEASON_LEN,
@@ -739,7 +739,7 @@ function worldEvent(kind, major, forced) {
   if (major) S.majorAt = S.t;
   SFX[k] && SFX[k](major);
   if (k === 'quake') startShake('quake', major);
-  eventAlert((major ? 'Major ' : '') + { flood: 'flood', drought: 'drought', quake: 'earthquake' }[k] + '!');
+  eventAlert(k);
 }
 // droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
 // are, and at least a set number (EVENTS.dry, dryShare); returns how many
@@ -780,7 +780,7 @@ function meteor(x, y, major) {
   if (major) S.majorAt = S.t;
   SFX.meteor(major);
   startShake('meteor', major);
-  eventAlert(major ? 'Major meteor!' : 'Meteor strike!');
+  eventAlert('meteor');
   if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
 }
 function logEv(m) {
