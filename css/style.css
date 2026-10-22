@@ -167,11 +167,12 @@ h3 {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 24px;
-  height: 24px;
-  margin: -12px 0 0 -12px;
+  width: 27px;
+  height: 27px;
+  margin: -13.5px 0 0 -13.5px;
   border-radius: 50%;
-  background: conic-gradient(currentColor calc(var(--p, 1) * 1turn), transparent 0);
+  /* the charged part in the icon's colour, the empty part as a faint track */
+  background: conic-gradient(currentColor calc(var(--p, 1) * 1turn), rgba(128, 128, 128, 0.22) 0);
   -webkit-mask: radial-gradient(circle, transparent 10px, #000 10.5px);
   mask: radial-gradient(circle, transparent 10px, #000 10.5px);
 }
