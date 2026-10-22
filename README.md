@@ -181,8 +181,8 @@ The tail is the visible form of the old habitat setting. The body's straight sid
 tail that tapers to a point, with no corner where body and tail meet. Only the slim part sways, starting gently
 where the curve-in ends. A bigger tail is longer (up to
 1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (33% or less) the back of the body is
-rounded off like the front; just above 33% a small stub grows out of that rounded back, so the shape changes
-smoothly as the tail evolves. Because the bottom third of the scale has no effect, a land lineage drifts there
+rounded off like the front. Just above 33% the tail appears at once as a short but proper tail, 30% of the full
+length (`TAIL.first`), rather than a thin spike, and grows from there. Because the bottom third of the scale has no effect, a land lineage drifts there
 freely and has to reach 33% before a tail starts to help it, so tails evolve from scratch only when the water pays.
 
 **Randomise** gives about a third of designs no tail (0–30%) and the rest a clearly visible one (40–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn

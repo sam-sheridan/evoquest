@@ -121,33 +121,30 @@ function anchors(c) {
   return A;
 }
 // the outline with its tail: the front of the body as usual, then the straight sides curve smoothly in to a slim
-// tail that tapers to a point. A bigger tail is longer and a little broader; a small one grows out of the rounded
-// back of a tailless body, so the shape changes smoothly as the tail evolves. amp sways it (0 = still), t is time;
-// only the slim part sways, starting gently where the curve-in ends.
+// tail that tapers to a point. A bigger tail is longer and a little broader; the smallest is already a short, proper
+// tail (TAIL.first of the full length). amp sways it (0 = still), t is time; only the slim part sways, starting
+// gently where the curve-in ends.
 function outline(c, t, amp) {
   if (c.tail <= 0) return c.poly;
   const L = c.bh / 2,
     Wd = c.bw / 2,
     r = Math.min(c.round * Math.min(c.bh, c.bw) * 0.5 + 0.8, L, Wd), // the corner radius used by shapePoly
     x0 = -L + r, // the tail begins where the straight sides end
-    tl = r + c.bh * TAIL.len * c.tail, // from there to the tip
+    tl = r + c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail), // from there to the tip
     k0 = Math.min(0.6, (r + c.bh * 0.12) / tl), // share of that over which the sides curve in
     slim = Wd * (0.22 + 0.12 * c.tail), // the slim tail's half-width where the curve-in ends
-    g = Math.min(1, c.tail / 0.25), // how far the back has changed from tailless (rounded) to tailed
     n = 36,
     P = c.poly.filter(p => p[0] > x0 - 1e-6),
     T = [];
   for (let k = 1; k <= n; k++) {
     const s = k / n,
       dx = s * tl,
-      // the tailless back: the rounded corners, then nothing behind the body
-      round = dx <= r ? Wd - r + Math.sqrt(r * r - dx * dx) : 0,
       thin = slim * (1 - s), // the slim tail, tapering straight to the tip
       // the body's width fades smoothly into it (no slope at the body, so no corner where the tail starts)
       tail = thin + (Wd - thin) * Math.exp(-2.5 * (s / k0) ** 2),
       q = Math.max(0, (s - k0) / (1 - k0)),
-      y = g * amp * Math.sin(t * 4 + c.id - q * 2.6) * q * q * tl * 0.16;
-    T.push([x0 - dx, y, g * tail + (1 - g) * round]);
+      y = amp * Math.sin(t * 4 + c.id - q * 2.6) * q * q * tl * 0.16;
+    T.push([x0 - dx, y, tail]);
   }
   for (const [x, y, w] of T) P.push([x, y + w]);
   for (let k = T.length - 2; k >= 0; k--) P.push([T[k][0], T[k][1] - T[k][2]]);
@@ -223,7 +220,11 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     for (let k = 0; k < 3; k++) {
       const kk = k + ph,
         r = (11 + kk * 3.5) * s,
-        apex = -L - c.bh * TAIL.len * c.tail - 1.5 * s - kk * 2.4 * s,
+        apex =
+          -L -
+          (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0) -
+          1.5 * s -
+          kk * 2.4 * s,
         span = 0.38 + kk * 0.11, // each arc spans wider the further it is behind, so the wake spreads out
         a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
       g.strokeStyle = `rgba(77,115,133,${a.toFixed(3)})`;
