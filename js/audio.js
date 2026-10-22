@@ -9,34 +9,47 @@ const SPK_ON =
     '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5q2 2.5 0 5M13 2.5q4 4.5 0 9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
   SPK_OFF =
     '<svg viewBox="0 0 18 14" width="16" height="13" style="vertical-align:-2px"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor"/><path d="M11 4.5l5 5M16 4.5l-5 5" stroke="currentColor" stroke-width="1.4"/></svg>';
+// Safari can keep sound sent straight to the speakers silent even though the tab shows it playing, while sound
+// played through an <audio> element (as YouTube does) is heard, so all the game's sound goes to OUT, which feeds
+// a hidden <audio> element; browsers without that route send OUT straight to the speakers
+let OUT = null,
+  outEl = null;
 function ensureAudio() {
   if (!AC) {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {}
-    unlockAudio();
+    if (AC) {
+      OUT = AC.createGain();
+      try {
+        const dest = AC.createMediaStreamDestination();
+        OUT.connect(dest);
+        outEl = new Audio();
+        outEl.srcObject = dest.stream;
+      } catch (e) {
+        OUT.connect(AC.destination);
+        outEl = null;
+      }
+    }
     clockT = AC ? AC.currentTime : 0;
     clockWall = performance.now();
     stale = false;
   }
   if (AC && AC.state === 'suspended') AC.resume();
+  playOut();
 }
-// Safari may keep a new engine silent until something has played during a click or key press, so play one
-// silent sample straight away (this runs inside the click that starts a run or turns sound on)
-function unlockAudio() {
-  if (!AC) return;
-  try {
-    const s = AC.createBufferSource();
-    s.buffer = AC.createBuffer(1, 1, AC.sampleRate);
-    s.connect(AC.destination);
-    s.start(0);
-  } catch (e) {}
+// the <audio> element may only start during a click or key press, and the browser may pause it while hidden
+function playOut() {
+  if (!outEl || !outEl.paused) return;
+  const p = outEl.play();
+  if (p && p.catch) p.catch(() => {});
 }
 // throw the sound engine away and start a fresh one; Safari can leave an engine "playing" (the tab shows the
 // speaker) while nothing reaches the speakers, often after the Mac sleeps or the audio device changes
 function resetAudio() {
+  if (outEl) outEl.pause();
   if (AC && AC.close) AC.close().catch(() => {});
-  AC = beatBus = noiseBuf = null;
+  AC = OUT = outEl = beatBus = noiseBuf = null;
   ensureAudio();
 }
 // browsers pause a page's sound while it is hidden or the device sleeps (Safari calls this "interrupted"), so wake
@@ -45,6 +58,7 @@ function resetAudio() {
 function wakeAudio() {
   if (!AC) return;
   if (stale) return resetAudio();
+  playOut();
   if (AC.state !== 'suspended' && AC.state !== 'interrupted') return;
   const p = AC.resume();
   if (p && p.catch) p.catch(() => (stale = true));
@@ -52,6 +66,7 @@ function wakeAudio() {
 document.addEventListener('visibilitychange', () => {
   clockWall = performance.now();
   if (AC) clockT = AC.currentTime;
+  if (!document.hidden) playOut();
   if (!document.hidden && AC && AC.state !== 'running') {
     const p = AC.resume();
     if (p && p.catch) p.catch(() => (stale = true));
@@ -85,7 +100,7 @@ function tone(f, d, type, vol, when = 0) {
   g.gain.setValueAtTime(0, t);
   g.gain.linearRampToValueAtTime(vol, t + 0.006);
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  o.connect(g).connect(AC.destination);
+  o.connect(g).connect(OUT);
   o.start(t);
   o.stop(t + d + 0.05);
 }
@@ -132,7 +147,7 @@ function beatInit() {
   if (beatBus || !AC) return;
   beatBus = AC.createGain();
   beatBus.gain.value = 0;
-  beatBus.connect(AC.destination);
+  beatBus.connect(OUT);
   noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -214,7 +229,7 @@ function sfxNoise(t, dur, type, f0, f1, q, vol) {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(vol, t + Math.min(0.4, dur * 0.3));
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  s.connect(f).connect(g).connect(AC.destination);
+  s.connect(f).connect(g).connect(OUT);
   s.start(t);
   s.stop(t + dur + 0.05);
   return g;
@@ -228,7 +243,7 @@ function sweep(t, dur, type, f0, f1, vol) {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(vol, t + 0.05);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(AC.destination);
+  o.connect(g).connect(OUT);
   o.start(t);
   o.stop(t + dur + 0.05);
 }
@@ -286,10 +301,9 @@ $('#sBeat').onclick = () => {
 };
 
 /* ---------- temporary sound check for the Safari silence bug ---------- */
-// Test 1 plays a clear chime the normal way; Test 2 plays it through an <audio> element instead, a known way
-// round Safari quirks. The line under the buttons shows what the sound engine reports.
+// Test 1 plays a clear chime straight to the speakers (the old way); Test 2 plays it the way the game now does,
+// through the <audio> element. The line under the buttons shows what the sound engine reports.
 let sndMsg = '',
-  sndEl = null,
   infoT = 0,
   infoWall = 0;
 function chime(dest) {
@@ -315,18 +329,8 @@ $('#sndT1').onclick = () => {
 $('#sndT2').onclick = () => {
   resetAudio();
   if (!AC) return (sndMsg = 'No sound engine available');
-  try {
-    const dest = AC.createMediaStreamDestination();
-    if (sndEl) sndEl.pause();
-    sndEl = new Audio();
-    sndEl.srcObject = dest.stream;
-    const p = sndEl.play();
-    if (p && p.catch) p.catch(e => (sndMsg = 'Test 2 blocked: ' + e.name));
-    chime(dest);
-    sndMsg = 'Test 2 played';
-  } catch (e) {
-    sndMsg = 'Test 2 failed: ' + e.name;
-  }
+  chime(OUT);
+  sndMsg = outEl ? 'Test 2 played' : 'Test 2 played (no audio element route)';
 };
 setInterval(() => {
   if ($('#setPop').hidden) return;
