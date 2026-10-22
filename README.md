@@ -772,8 +772,9 @@ The look is a scientific **field notebook / survey map**.
   - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
     legs. Land creatures' legs splay out to the sides; water creatures' legs are a little shorter and broader at
     the base, and swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
-    edge, and turns back over its first half. The more aquatic the creature, the more its front legs start out
-    sideways rather than forwards, and in water the inner third of a leg stays out of the swing, so legs never arch
+    edge, and turns back over its first half. The more aquatic the creature, the further back along its sides its
+    legs join the body (a water creature's front legs sit about level with its middle, not at the front corners), the
+    more its front legs start out sideways rather than forwards, and in water the inner third of a leg stays out of the swing, so legs never arch
     up towards the head before hanging back. Each leg grows from a short stem hidden inside the body, so its
     base always stays attached however far it bends.
   - Leg movement: the base stays still while the outer half swings, the tip flipping from pointing towards the

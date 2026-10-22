@@ -99,13 +99,39 @@ function edgeAt(P, a) {
   }
   return best;
 }
+// where a ray from the body's centre at angle a crosses its outline
+function rayEdge(P, a) {
+  const dx = Math.cos(a),
+    dy = Math.sin(a),
+    cr = (ax, ay, bx, by) => ax * by - ay * bx;
+  let best = null,
+    bt = Infinity;
+  for (let i = 0; i < P.length; i++) {
+    const [px, py] = P[i],
+      [qx, qy] = P[(i + 1) % P.length],
+      ex = qx - px,
+      ey = qy - py,
+      d = cr(dx, dy, ex, ey);
+    if (Math.abs(d) < 1e-9) continue;
+    const t = cr(px, py, ex, ey) / d,
+      u = cr(px, py, dx, dy) / d;
+    if (t > 0 && u >= 0 && u <= 1 && t < bt) [bt, best] = [t, [t * dx, t * dy]];
+  }
+  return best;
+}
+// where legs join the body, spread round its sides; the more aquatic, the further back the front legs sit, so
+// they leave the body from its side rather than its rounded front corners
 function anchors(c) {
   const n = Math.round(c.legs),
+    f = 0.6 + 0.55 * c.hab,
     A = [];
   for (let k = 0; k < n; k++) {
-    const a = 0.6 + ((k + 0.5) / n) * (TAU - 1.2),
-      e = edgeAt(c.poly, a);
-    A.push([e[0], e[1], a]);
+    // land legs keep to the outline's corner points (edgeAt); the more aquatic, the closer to the true edge at
+    // that angle (rayEdge), which lets the front legs move back along the side
+    const a = f + ((k + 0.5) / n) * (TAU - 2 * f),
+      e = edgeAt(c.poly, a),
+      r = rayEdge(c.poly, a) || e;
+    A.push([e[0] + (r[0] - e[0]) * c.hab, e[1] + (r[1] - e[1]) * c.hab, a]);
   }
   return A;
 }
