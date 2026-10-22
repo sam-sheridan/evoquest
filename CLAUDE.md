@@ -51,6 +51,8 @@ In a Claude Code cloud session, Chromium is preinstalled but Playwright isn't. I
 the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't run `playwright install`.
 
 1. Run `python3 tests/smoke.py`. It must print PASS with no page errors.
+   When a push depends on a test, don't pipe the test through `tail` without `set -o pipefail`, or a failing
+   test won't stop the push.
 2. If you changed balance (anything in `js/config.js`, or energy, breeding, food, events or speciation logic), run
    `python3 tests/scenarios.py 6 15` and compare against the targets below. Report the numbers to Sam briefly.
 3. If you changed a mechanic, a number, a control or a design decision, **update `README.md` to match** in the
