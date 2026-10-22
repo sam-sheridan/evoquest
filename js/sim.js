@@ -529,11 +529,13 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
+// land creatures get more from berries, water creatures more from algae
+const foodEnergy = (c, f) => FOOD * (1 + (f.kind === 'l' ? 1 : -1) * HAB.food * (1 - 2 * c.hab));
 function eat(c, f) {
   f.active = false;
   f.t = regrow(f);
   f.t0 = f.t;
-  c.E = Math.min(c.cap, c.E + FOOD);
+  c.E = Math.min(c.cap, c.E + foodEnergy(c, f));
   c.eaten++;
   setTarget(c, null);
   c.path = null;

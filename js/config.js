@@ -118,6 +118,10 @@ const REGIONS = { strength: 1.3 };
 const SEA = { shelf: 0.3, deepCost: 0.8 };
 const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.35, heatCost: 0.3 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
+// habitat: range = how far (px) a 50% creature goes from shore into water, and from water onto land; the limit
+// grows quickly towards either end. food = how much habitat changes the energy from food: berries give FOOD x
+// (1 + food x (1 - 2 x habitat)) and algae the opposite, so 0% gets 10 from a berry and 6 from algae
+const HAB = { range: 200, food: 0.25 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

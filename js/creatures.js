@@ -26,8 +26,10 @@ function compute(c) {
     base = c.spd * 6 * sm;
   c.vL = base * (1 - 0.85 * c.hab);
   c.vW = base * (0.15 + 0.85 * c.hab);
-  c.dW = c.hab >= 0.5 ? 1e9 : 300 * (c.hab / 0.5) ** 3; // how far it will swim from shore
-  c.dL = c.hab <= 0.5 ? 1e9 : 300 * ((1 - c.hab) / 0.5) ** 3; // how far it will walk from water
+  // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
+  // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
+  c.dW = c.hab >= 1 ? 1e9 : HAB.range * (c.hab / (1 - c.hab)) ** 2;
+  c.dL = c.hab <= 0 ? 1e9 : HAB.range * ((1 - c.hab) / c.hab) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
   c.cap = 30 + 25 * c.size;
   c.poly = shapePoly(c);
