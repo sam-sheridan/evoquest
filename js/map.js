@@ -195,26 +195,6 @@ function renderTerrain() {
     ).fill,
     c,
   ]);
-  // temperature wash: land at or below each cold level (frosty) and at or above each warm level (warm); the
-  // season decides how many layers show, so the cold creeps down the hills in winter
-  V.coldW = [0.05, 0.15, 0.25, 0.35, 0.45].map(L => [
-    L,
-    march(
-      sm(i => (isLand(T[i]) ? 1 - w.temp[i] : 0)),
-      1 - L,
-      true,
-      false
-    ).fill,
-  ]);
-  V.warmW = [0.95, 0.85, 0.75, 0.65, 0.55].map(L => [
-    L,
-    march(
-      sm(i => (isLand(T[i]) ? w.temp[i] : 0)),
-      L,
-      true,
-      false
-    ).fill,
-  ]);
   const rf0 = i =>
     T[i] === 3
       ? Math.max(w.rck[i], w.rThr + 0.002)
@@ -273,6 +253,36 @@ function renderTerrain() {
   detail.ok = false;
   if (typeof S !== 'undefined' && S) for (const c of S.creatures) c.rt = 0;
 }
+// temperature wash: one pixel per cell, scaled up smoothly, so it shades gradually without adding detailed shapes
+// to the map (Safari drops the land's colours when a map holds too many). Five frosty layers fade in below the
+// cold level and five warm ones above the hot level, and the season decides how far each reaches.
+const washCan = document.createElement('canvas'),
+  wash = { temp: null, se: -1 };
+washCan.width = GW;
+washCan.height = GH;
+function tempWash(se) {
+  const w = world;
+  if (wash.temp === w.temp && wash.se === se) return washCan;
+  wash.temp = w.temp;
+  wash.se = se;
+  const g = washCan.getContext('2d'),
+    img = g.createImageData(GW, GH),
+    d = img.data,
+    sh = w.tOff + TEMP.season[se];
+  for (let i = 0; i < GW * GH; i++) {
+    if (!isLand(w.type[i])) continue;
+    const t = w.temp[i];
+    let nc = 0,
+      nw = 0;
+    for (const L of [0.05, 0.15, 0.25, 0.35, 0.45]) if (t <= L && L + sh <= TEMP.cold + 0.05) nc++;
+    for (const L of [0.55, 0.65, 0.75, 0.85, 0.95]) if (t >= L && L + sh >= TEMP.hot - 0.05) nw++;
+    const k = i * 4;
+    if (nc) [d[k], d[k + 1], d[k + 2], d[k + 3]] = [222, 235, 246, 255 * (1 - 0.8 ** nc)];
+    else if (nw) [d[k], d[k + 1], d[k + 2], d[k + 3]] = [236, 204, 135, 255 * (1 - 0.93 ** nw)];
+  }
+  g.putImageData(img, 0, 0);
+  return washCan;
+}
 function paintTerrain(g) {
   const V = world.vec;
   g.fillStyle = BAND[3];
@@ -320,11 +330,8 @@ function paintTerrain(g) {
   g.strokeStyle = '#47643a';
   g.lineWidth = 1;
   g.stroke(V.thickL);
-  const sh = world.tOff + TEMP.season[se];
-  g.fillStyle = 'rgba(222,235,246,.2)';
-  for (const [L, p] of V.coldW) if (L + sh <= TEMP.cold + 0.05) g.fill(p);
-  g.fillStyle = 'rgba(236,204,135,.07)';
-  for (const [L, p] of V.warmW) if (L + sh >= TEMP.hot - 0.05) g.fill(p);
+  g.imageSmoothingEnabled = true;
+  g.drawImage(tempWash(se), 0, 0, W, H);
   g.restore();
   const RF =
     se === 3 ? ['#cfc8bb', '#bfb7a8', '#e9eeef', '#fbfcfc'] : ['#cfc8bb', '#bfb7a8', '#aea595', '#9d9483']; // winter: snow on the peaks

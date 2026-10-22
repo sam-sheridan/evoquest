@@ -728,8 +728,10 @@ The look is a scientific **field notebook / survey map**.
     land that remains.
   - **Contours** are drawn every ninth of the land's height range, and every third one is an **index contour**,
     drawn bold, as on an Ordnance Survey map.
-  - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, in five
-    layers each, so it shades gradually. The season decides how many layers show.
+  - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, five
+    steps each, so it shades gradually. The season decides how far each reaches. It is drawn as a small image (one
+    pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
+    holds too many detailed shapes.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
   out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old

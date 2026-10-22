@@ -82,3 +82,6 @@ the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't ru
   - The release design must carry `sat` (saturation), or colours go dull.
   - Land colour bands use the world's original heights (`refH`), so events don't recolour remaining land.
   - Changing season must not re-roll the upcoming event (`nextKind`).
+  - Safari silently drops the land's colour layers if they hold too many drawing points (summer went blue at about
+    110,000; about 70,000 is fine). Draw heavy shading as a small smoothed image, not as more vector shapes.
+  - Safari won't play Web Audio straight to the speakers on some Macs; sound goes through an `<audio>` element.
