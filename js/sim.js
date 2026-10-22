@@ -88,8 +88,8 @@ function newGame(design, seed) {
       if (!inside(x, y)) continue;
       const i = cellI(x, y);
       if (!allowed(probe, i, world.type[i]) || world.type[i] === 2) continue;
-      if (probe.hab < 0.5 && world.comp[i] !== comp) continue;
-      if (probe.hab >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
+      if (probe.tail < 0.5 && world.comp[i] !== comp) continue;
+      if (probe.tail >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
       let s = 0;
       for (const f of world.sites) {
         const dx = f.x - x,
@@ -486,7 +486,7 @@ function update(c, dt) {
     // aquatic)
     const hx = c.home[0] - c.x,
       hy = c.home[1] - c.y;
-    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.hab < 1)) {
+    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.tail < 1)) {
       const toHome = Math.atan2(hy, hx),
         off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
       c.wander -= off * Math.min(1, dt * 1.5);
@@ -548,13 +548,11 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
-// land creatures get more from berries and nuts, water creatures more from algae; a nut is richer than a berry, and
-// a straw-like mouth gets more from algae than a claw does
+// a nut is richer than a berry, and a straw-like mouth gets more from algae than a claw does
 function foodEnergy(c, f) {
-  const hab = 1 + (f.kind === 'w' ? -1 : 1) * HAB.food * (1 - 2 * c.hab);
-  if (f.kind === 'n') return FOOD * MOUTH.nut * hab;
-  if (f.kind === 'w') return FOOD * hab * (1 + MOUTH.algae * (2 * c.mth - 1));
-  return FOOD * hab;
+  if (f.kind === 'n') return FOOD * MOUTH.nut;
+  if (f.kind === 'w') return FOOD * (1 + MOUTH.algae * (2 * c.mth - 1));
+  return FOOD;
 }
 // seconds spent cracking a nut: quick with a claw, slow with a straw
 const crackTime = c => MOUTH.crack[0] + (MOUTH.crack[1] - MOUTH.crack[0]) * c.mth;
@@ -900,32 +898,8 @@ function logEv(m) {
 
 /* stats */
 const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
-const vec = c => [
-  c.w / 10,
-  c.h / 10,
-  c.spd / 10,
-  c.hab,
-  c.mth * MOUTH_SPLIT,
-  dHue(c) / 60,
-  c.round * 0.5,
-  c.taper * 0.5,
-];
-const KEYS = [
-  'w',
-  'h',
-  'spd',
-  'hab',
-  'mth',
-  'thick',
-  'river',
-  'size',
-  'round',
-  'taper',
-  'dhue',
-  'lt',
-  'vL',
-  'vW',
-];
+const vec = c => [c.w / 10, c.h / 10, c.spd / 10, c.hab, c.mth * MOUTH_SPLIT, dHue(c) / 60, c.round * 0.5];
+const KEYS = ['w', 'h', 'spd', 'hab', 'mth', 'thick', 'river', 'size', 'round', 'dhue', 'lt', 'vL', 'vW'];
 function summ(C) {
   const n = C.length,
     m = { n };
@@ -1090,14 +1064,12 @@ const EPI = [
   ['size', -1, 'minimus'],
   ['round', 1, 'rotundus'],
   ['round', -1, 'acutus'],
-  ['taper', 1, 'conicus'],
-  ['taper', -1, 'quadratus'],
 ];
 function split(sp, small, rest, reason, island) {
   const a = summ(small),
     b = summ(rest);
   const used = new Set(S.species.map(s => s.epithet));
-  const scale = { hab: 0.15, mth: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25, taper: 0.25 };
+  const scale = { hab: 0.15, mth: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25 };
   const cand = EPI.map(([k, s, name]) => ({ name, v: (s * (a[k] - b[k])) / scale[k] }))
     .filter(x => x.v > 0)
     .sort((x, y) => y.v - x.v)
@@ -1127,7 +1099,7 @@ function split(sp, small, rest, reason, island) {
   // the biggest change, always put as a strength: [when the trait went up, when it went down]
   const top = diffs(a, b, 1)[0],
     TRAIT = {
-      hab: ['more at home in water', 'more at home on land'],
+      hab: ['longer-tailed and more at home in water', 'shorter-tailed and more at home on land'],
       mth: ['better at sipping algae through its straw-like mouth', 'better at cracking nuts with its claw'],
       spd: ['faster', 'slower but thriftier with energy'],
       w: ['wider and sturdier', 'narrower, fitting through tighter gaps'],
@@ -1135,8 +1107,7 @@ function split(sp, small, rest, reason, island) {
       thick: ['broader and sturdier', 'slimmer, slipping through tighter thickets'],
       river: ['better at crossing rivers', 'more settled on dry land'],
       dhue: ['a striking new colour', 'a striking new colour'],
-      round: ['rounder', 'sleeker and more angular'],
-      taper: ['more streamlined', 'squarer and sturdier'],
+      round: ['rounder and a better swimmer', 'blockier and a better walker'],
     };
   const how = top ? (TRAIT[top.k] || [top.l, top.l])[top.va > top.vb ? 0 : 1] : 'a little different';
   const m = `Welcome the first ${S.genus} ${ep}, who is ${how}.`;
@@ -1174,13 +1145,13 @@ const BADGES = [
   {
     id: 'fins',
     name: 'Taking to the Water',
-    d: 'A species shifts 40 points towards water',
+    d: "A species' tail grows by 40 points",
     f: () => live().some(m => m.hab - S.orig.hab >= 0.4),
   },
   {
     id: 'ashore',
     name: 'Coming Ashore',
-    d: 'A species shifts 40 points towards land',
+    d: "A species' tail shrinks by 40 points",
     f: () => live().some(m => S.orig.hab - m.hab >= 0.4),
   },
   {

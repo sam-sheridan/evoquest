@@ -24,12 +24,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS = int(sys.argv[1]) if len(sys.argv) > 1 else 4
 MINUTES = float(sys.argv[2]) if len(sys.argv) > 2 else 12
 
+# tails count from 33% (TAIL.min), so these are the old habitat values moved onto that scale: 0.33 + 0.67 x old
 DESIGNS = [
     ('default', {}),
-    ('aquatic', {'hab': 0.6}),
+    ('aquatic', {'hab': 0.73}),
     ('small and fast', {'spd': 8, 'w': 2, 'h': 2.5}),
     ('big and slow', {'spd': 3, 'w': 6, 'h': 6}),
-    ('long and thin', {'hab': 0.35, 'w': 2.5, 'h': 5}),
+    ('long and thin', {'hab': 0.56, 'w': 2.5, 'h': 5}),
     ('quick', {'spd': 6.5}),
 ]
 
@@ -67,6 +68,8 @@ MEASURE = """(steps) => {
            explored10, pop10, lateAvg: late.length ? Math.round(late.reduce((x, y) => x + y, 0) / late.length) : null,
            lateMax: late.length ? Math.max(...late) : null,
            mouthEnd: S.hist.length ? +S.hist.at(-1).all.mth.toFixed(2) : null,
+           roundEnd: S.hist.length ? +S.hist.at(-1).all.round.toFixed(2) : null,
+           tailEnd: S.hist.length ? +S.hist.at(-1).all.hab.toFixed(2) : null,
            msPerStep: +((performance.now() - t0) / steps).toFixed(2) };
 }"""
 
@@ -80,7 +83,7 @@ with sync_playwright() as p:
         name, design = DESIGNS[r % len(DESIGNS)]
         seed = 1000 + r * 37
         pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true }")
-        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, spd: 5, hab: 0.2, mth: 0.5, ...{json.dumps(design)} }})")
+        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, spd: 5, hab: 0.46, mth: 0.5, round: 0.5, ...{json.dumps(design)} }})")
         pg.evaluate(f"""() => {{ const sel = document.querySelector('#fWorld');
             sel.innerHTML += `<option value="{seed}">test</option>`; sel.value = '{seed}'; }}""")
         pg.click('#go')
@@ -103,4 +106,6 @@ if alive:
     print(f"  population at 10 minutes: {[r['pop10'] for r in results]}")
     print(f"  average population after 20 minutes: {[r['lateAvg'] for r in results]}")
     print(f"  average mouth at the end (0 claw, 1 straw; released at 0.5): {[r['mouthEnd'] for r in results]}")
+    print(f"  average roundness at the end (released at 0.5): {[r['roundEnd'] for r in results]}")
+    print(f"  average tail at the end: {[(r['design'], r['tailEnd']) for r in results]}")
     print(f"  ms per simulation step: {[r['msPerStep'] for r in results]}")

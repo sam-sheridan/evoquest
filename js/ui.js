@@ -118,11 +118,10 @@ let tab = 'pop',
 const METRICS = [
   ['n', 'Population'],
   ['spd', 'Speed'],
-  ['hab', 'Habitat'],
+  ['hab', 'Tail'],
   ['mth', 'Mouth'],
   ['thick', 'Narrowest'],
   ['round', 'Roundness'],
-  ['taper', 'Taper'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
 $('#cmode').onclick = e => {
@@ -352,7 +351,7 @@ function cell(v, o, d = 1, suf = '') {
 }
 // rank the traits that separate two groups, biggest difference first (scaled so traits are comparable)
 const DIFF = [
-  ['hab', 'Habitat', 0.12, v => Math.round(v * 100) + '% water'],
+  ['hab', 'Tail', 0.12, v => Math.round(v * 100) + '%'],
   ['mth', 'Mouth', 0.12, v => `${mouthTxt(v)} (${Math.round(v * 100)}% straw)`],
   ['spd', 'Speed', 1.2, v => v.toFixed(1)],
   ['w', 'Width', 1.2, v => v.toFixed(1)],
@@ -361,7 +360,6 @@ const DIFF = [
   ['river', 'Crosses rivers', 0.25, v => Math.round(v * 100) + '%'],
   ['dhue', 'Colour', 20, v => (v >= 0 ? '+' : '') + Math.round(v) + '°'],
   ['round', 'Roundness', 0.2, v => v.toFixed(2)],
-  ['taper', 'Taper', 0.2, v => v.toFixed(2)],
 ];
 function diffs(a, b, n = 4) {
   return DIFF.map(([k, l, s, f]) => ({ l, k, va: a[k], vb: b[k], f, sc: Math.abs(a[k] - b[k]) / s }))
@@ -515,19 +513,16 @@ function syncUI() {
       ['Length', 'h'],
       ['Narrowest side', 'thick', 1, ' px'],
       ['Speed', 'spd'],
-      ['Habitat (water)', 'hab', 0, '%'],
+      ['Tail', 'hab', 0, '%'],
       ['Mouth (straw)', 'mth', 0, '%'],
-      ['Crosses rivers', 'river', 0, '%'],
-    ];
-    const R2 = [
       ['Roundness', 'round', 2],
-      ['Taper', 'taper', 2],
+      ['Crosses rivers', 'river', 0, '%'],
     ];
     const row = ([l, k, d = 1, suf = '']) =>
       `<tr><td>${l}</td><td>${suf === '%' ? Math.round(o[k] * 100) + '%' : o[k].toFixed(d) + suf}</td>${ms.map(m => cell(m[k], o[k], d, suf)).join('')}</tr>`;
     $('#ttab').innerHTML =
       `<tr class="grp"><td colspan="${cols}">Body · shaped by the world</td></tr>${R1.map(row).join('')}
-      <tr class="grp"><td colspan="${cols}">Look · drifts by chance</td></tr>${R2.map(row).join('')}
+      <tr class="grp"><td colspan="${cols}">Look · drifts by chance</td></tr>
       <tr><td>Colour</td><td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:${col(S.design)}"></span></td>${ms.map(m => `<td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:hsl(${m.hue} ${S.design.sat}% ${m.lt}%)"></span></td>`).join('')}</tr>`;
   } else if (tab === 'one') {
     const c = S.sel;
@@ -569,9 +564,9 @@ function syncUI() {
             .join(' ') || 'none'
         }</b></div>
         <div><span>Speed</span><b>${c.spd.toFixed(1)} · land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
-        <div><span>Habitat</span><b>${habTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
+        <div><span>Tail</span><b>${tailTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
         <div><span>Mouth</span><b>${mouthTxt(c.mth)} · ${Math.round(c.mth * 100)}% straw</b></div><div><span>Feeding</span><b>${mouthFeed(c)}</b></div>
-        <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)} · taper ${c.taper.toFixed(2)}</b></div>
+        <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)}</b></div>
       </div>`;
   } else {
     const sw = (f, s, ex = '') =>
@@ -600,8 +595,8 @@ function syncUI() {
 const mouthFeed = c =>
   `cracks a nut in ${crackTime(c).toFixed(1)} s · algae ×${(1 + MOUTH.algae * (2 * c.mth - 1)).toFixed(2)}`;
 function rangeTxt(c) {
-  if (c.hab <= 0.0) return 'Never enters water';
-  if (c.hab >= 1) return 'Never leaves water';
+  if (c.tail <= 0) return 'Never enters water';
+  if (c.tail >= 1) return 'Never leaves water';
   // past 2000 px the limit no longer matters on this map
   const sw = c.dW > 2000 ? 'Swims anywhere' : `Swims up to ${Math.round(c.dW)} px from shore`,
     wk = c.dL > 2000 ? 'walks anywhere' : `walks up to ${Math.round(c.dL)} px from water`;

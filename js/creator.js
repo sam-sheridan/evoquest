@@ -1,12 +1,7 @@
-/* The species creator: sliders, presets, randomise, the live preview and starting a run.
+/* The species creator: sliders, randomise, the live preview and starting a run.
    D holds the design being edited. */
 
 /* ---------- creator ---------- */
-const PRESETS = {
-  round: { round: 1, taper: 0 },
-  block: { round: 0.22, taper: 0 },
-  peak: { round: 0.25, taper: 0.9 },
-};
 let D = {
   name: 'Blorbs',
   w: 4,
@@ -18,8 +13,6 @@ let D = {
   sat: 100,
   lt: 45,
   round: 1,
-  taper: 0,
-  preset: 'round',
 };
 $('#fHue').innerHTML = OKABE.map(
   ([n, hex], k) => `<button data-v="${k}" aria-label="${n}" title="${n}" style="background:${hex}"></button>`
@@ -34,13 +27,6 @@ $('#fHue').onclick = e => {
   D.lt = o[4];
   syncCreator();
 };
-$('#fPreset').onclick = e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  D.preset = b.dataset.v;
-  Object.assign(D, PRESETS[D.preset]);
-  syncCreator();
-};
 for (const [id, key, k] of [
   ['#fW', 'w', 1],
   ['#fH', 'h', 1],
@@ -48,11 +34,9 @@ for (const [id, key, k] of [
   ['#fHab', 'hab', 0.01],
   ['#fMth', 'mth', 0.01],
   ['#fR', 'round', 1],
-  ['#fT', 'taper', 1],
 ])
   $(id).oninput = e => {
     D[key] = +e.target.value * k;
-    if (key === 'round' || key === 'taper') D.preset = null;
     syncCreator();
   };
 const SYL = [
@@ -101,8 +85,7 @@ const SYL = [
 function randomDesign() {
   const r = (a, b) => a + rand() * (b - a),
     pick = a => a[(rand() * a.length) | 0],
-    o = pick(OKABE),
-    pre = pick(Object.keys(PRESETS));
+    o = pick(OKABE);
   let nm = pick(SYL) + pick(SYL);
   if (rand() < 0.5) nm += 's';
   nm = nm[0].toUpperCase() + nm.slice(1);
@@ -111,19 +94,14 @@ function randomDesign() {
     w: +r(1.5, 6.5).toFixed(1),
     h: +r(1.5, 6.5).toFixed(1),
     spd: +r(2, 9).toFixed(1),
-    hab: +r(0, 0.85).toFixed(2),
+    // about a third are land creatures with no tail; the rest have a clearly visible tail
+    hab: +(rand() < 0.35 ? r(0, 0.3) : r(0.4, 0.9)).toFixed(2),
     mth: +r(0, 1).toFixed(2),
     hue: o[2],
     sat: o[3],
     lt: o[4],
-    preset: pre,
-    ...PRESETS[pre],
+    round: +r(0, 1).toFixed(2),
   });
-  if (rand() < 0.5) {
-    D.round = +r(0, 1).toFixed(2);
-    D.taper = +r(0, 1).toFixed(2);
-    D.preset = null;
-  }
 }
 $('#rnd').onclick = () => {
   randomDesign();
@@ -141,9 +119,6 @@ function updP() {
   });
 }
 function syncCreator() {
-  $('#fPreset')
-    .querySelectorAll('button')
-    .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === D.preset)));
   $('#fHue')
     .querySelectorAll('button')
     .forEach(b => {
@@ -156,20 +131,18 @@ function syncCreator() {
   $('#fHab').value = Math.round(D.hab * 100);
   $('#fMth').value = Math.round(D.mth * 100);
   $('#fR').value = D.round;
-  $('#fT').value = D.taper;
   $('#oW').textContent = D.w.toFixed(1);
   $('#oH').textContent = D.h.toFixed(1);
   $('#oS').textContent = D.spd.toFixed(1);
-  $('#oHab').textContent = habTxt(D.hab);
+  $('#oHab').textContent = tailTxt(D.hab);
   $('#oMth').textContent = mouthTxt(D.mth);
   $('#oR').textContent = D.round.toFixed(2);
-  $('#oT').textContent = D.taper.toFixed(2);
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
   const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
-    `<b>${rangeTxt(c)}.</b> Habitat splits speed between land and water and sets how far from home ground it will go.
+    `<b>${rangeTxt(c)}.</b> A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
     <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw cracks nuts quickly; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
     `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
@@ -229,7 +202,7 @@ function drawPreview(t) {
 }
 function openCreator(seed, design, canCancel) {
   if (design && design.spd !== undefined && design.sat !== undefined)
-    D = { ...D, mth: 0.5, ...design, preset: null, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+    D = { ...D, mth: 0.5, ...design, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
   else randomDesign();
   const opts = [`<option value="">New random world</option>`];
   const seen = new Set();
@@ -283,7 +256,6 @@ $('#go').onclick = () => {
     sat: D.sat,
     lt: D.lt,
     round: D.round,
-    taper: D.taper,
   };
   ensureAudio();
   newGame(d, seed);

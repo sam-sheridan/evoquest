@@ -1,11 +1,12 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
-   Body traits (affect survival): w width, h length, spd speed, hab habitat (0 = land, 1 = water),
-   mth mouth (0 = claw, 1 = straw).
-   Look traits (drift by chance): hue, lt (lightness), round, taper. Legs come from body length. */
+   Body traits (affect survival): w width, h length, spd speed, hab tail (0 = none, a land creature; 1 = full,
+   a water creature; called hab because it began as "habitat"), mth mouth (0 = claw, 1 = straw), round roundness
+   (round swims a little faster, blocky walks a little faster).
+   Look traits (drift by chance): hue, lt (lightness). Legs come from body length. */
 
 /* ---------- creatures ---------- */
-// Body (functional): w width, h height, spd speed, hab habitat 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw.  Look (neutral): hue, lt, round, taper, legs.
+// Body (functional): w width, h height, spd speed, hab tail 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw, round 0 = blocky … 1 = round.  Look (neutral): hue, lt.
 let nextId = 1;
 function enforce(c) {
   c.w = clamp(c.w, 1, 7);
@@ -14,7 +15,6 @@ function enforce(c) {
   c.hab = clamp(c.hab, 0, 1);
   c.mth = clamp(c.mth ?? 0.5, 0, 1);
   c.round = clamp(c.round, 0, 1);
-  c.taper = clamp(c.taper, 0, 1);
   c.lt = clamp(c.lt, 22, 82);
   c.hue = ((c.hue % 360) + 360) % 360;
 }
@@ -22,30 +22,30 @@ function compute(c) {
   c.bw = 6 + c.w * 2.2;
   c.bh = 6 + c.h * 2.2;
   c.thick = Math.min(c.bw, c.bh);
-  c.legs = c.h >= LEG6 ? 6 : 4;
   c.size = Math.sqrt(c.bw * c.bh) / 17;
   const sm = 1.6 / (0.6 + c.size),
     base = c.spd * 6 * sm;
-  c.vL = base * (1 - 0.85 * c.hab);
-  c.vW = base * (0.15 + 0.85 * c.hab);
+  // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
+  c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
+  const rk = 2 * c.round - 1; // -1 blocky … 1 round
+  c.vL = base * (1 - 0.85 * c.tail) * (1 - ROUND.walk * rk);
+  c.vW = base * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
-  c.dW = c.hab >= 1 ? 1e9 : HAB.range * (c.hab / (1 - c.hab)) ** 2;
-  c.dL = c.hab <= 0 ? 1e9 : HAB.range * ((1 - c.hab) / c.hab) ** 2;
+  c.dW = c.tail >= 1 ? 1e9 : HAB.range * (c.tail / (1 - c.tail)) ** 2;
+  c.dL = c.tail <= 0 ? 1e9 : HAB.range * ((1 - c.tail) / c.tail) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
   c.cap = 30 + 25 * c.size;
-  c.poly = shapePoly(c);
+  c.poly = shapePoly(c); // the body without its tail (legs are placed on this)
   c.anch = anchors(c);
-  c.p2 = new Path2D();
-  c.poly.forEach((p, i) => (i ? c.p2.lineTo(p[0], p[1]) : c.p2.moveTo(p[0], p[1])));
-  c.p2.closePath();
+  c.p2 = pathOf(outline(c, 0, 0)); // the body with its tail, still (see drawCreature for the swaying one)
 }
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added
 const moveBurn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
 // deep water costs more for creatures that aren't fully aquatic
 function burn(c, v) {
   const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
-  return (moveBurn(c, v) + climate(c, i)) * (world.deep[i] ? 1 + SEA.deepCost * (1 - c.hab) : 1);
+  return (moveBurn(c, v) + climate(c, i)) * (world.deep[i] ? 1 + SEA.deepCost * (1 - c.tail) : 1);
 }
 // extra energy per second for the temperature in cell i: keeping warm costs small bodies most, cooling down
 // costs big bodies most
@@ -56,15 +56,14 @@ function climate(c, i) {
   if (t > TEMP.hot) return TEMP.heatCost * Math.min(1, (t - TEMP.hot) / (1 - TEMP.hot)) * c.size * c.size;
   return 0;
 }
-// bird's-eye body: length runs along the heading (+x), width across it; taper narrows the front
+// bird's-eye body: length runs along the heading (+x), width across it; roundness rounds the corners
 function shapePoly(c) {
   const L = c.bh,
-    Wd = c.bw,
-    tw = Math.max(0.6, Wd * (1 - c.taper * 0.97));
+    Wd = c.bw;
   const V = [
       [-L / 2, -Wd / 2],
-      [L / 2, -tw / 2],
-      [L / 2, tw / 2],
+      [L / 2, -Wd / 2],
+      [L / 2, Wd / 2],
       [-L / 2, Wd / 2],
     ],
     R = c.round * Math.min(L, Wd) * 0.5 + 0.8,
@@ -101,22 +100,63 @@ function sideAt(P, x) {
   return best;
 }
 // legs in pairs along the sides only (none at the front or back), the front pair splayed forwards and the back
-// pair backwards; on a pointed body the front pair moves back so it stays clear of the mouth
+// pair backwards. They stay on the full-width part of the body (not where it curves into the tail) and clear of the
+// mouth. A long body (length from LEG6) has 6 legs if there is room for them there, otherwise 4.
 function anchors(c) {
-  const m = c.legs / 2,
-    L = c.bh / 2,
+  const L = c.bh / 2,
+    P = outline(c, 0, 0),
     r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
-    xb = -0.55 * L,
+    wd = 2 + c.tail * 1.6, // leg bar width (see drawCreature)
     A = [];
-  let xf = 0.4 * L;
-  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(c.poly, xf)) < r) xf -= 0.2;
+  let xb = -0.55 * L,
+    xf = 0.4 * L;
+  while (xb < 0 && sideAt(P, xb) < 0.6 * (c.bw / 2)) xb += 0.2;
+  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(P, xf)) < r) xf -= 0.2;
+  c.legs = c.h >= LEG6 && xf - xb >= 3.2 * wd ? 6 : 4;
+  const m = c.legs / 2;
   for (let k = 0; k < m; k++) {
     const x = xf + ((xb - xf) * k) / (m - 1),
-      y = sideAt(c.poly, x),
+      y = sideAt(P, x),
       splay = 0.5 * (x / L);
     for (const s of [1, -1]) A.push([x, s * y, s * (Math.PI / 2 - splay)]);
   }
   return A;
+}
+// the outline with its tail: the front of the body as usual, then the straight sides curve smoothly in to a slim
+// tail that tapers to a point. A bigger tail is longer and a little broader; the smallest is already a short, proper
+// tail (TAIL.first of the full length). amp sways it (0 = still), t is time; only the slim part sways, starting
+// gently where the curve-in ends.
+function outline(c, t, amp) {
+  if (c.tail <= 0) return c.poly;
+  const L = c.bh / 2,
+    Wd = c.bw / 2,
+    r = Math.min(c.round * Math.min(c.bh, c.bw) * 0.5 + 0.8, L, Wd), // the corner radius used by shapePoly
+    x0 = -L + r, // the tail begins where the straight sides end
+    tl = r + c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail), // from there to the tip
+    k0 = Math.min(0.6, (r + c.bh * 0.12) / tl), // share of that over which the sides curve in
+    slim = Wd * (0.22 + 0.12 * c.tail), // the slim tail's half-width where the curve-in ends
+    n = 36,
+    P = c.poly.filter(p => p[0] > x0 - 1e-6),
+    T = [];
+  for (let k = 1; k <= n; k++) {
+    const s = k / n,
+      dx = s * tl,
+      thin = slim * (1 - s), // the slim tail, tapering straight to the tip
+      // the body's width fades smoothly into it (no slope at the body, so no corner where the tail starts)
+      tail = thin + (Wd - thin) * Math.exp(-2.5 * (s / k0) ** 2),
+      q = Math.max(0, (s - k0) / (1 - k0)),
+      y = amp * Math.sin(t * 4 + c.id - q * 2.6) * q * q * tl * 0.16;
+    T.push([x0 - dx, y, tail]);
+  }
+  for (const [x, y, w] of T) P.push([x, y + w]);
+  for (let k = T.length - 2; k >= 0; k--) P.push([T[k][0], T[k][1] - T[k][2]]);
+  return P;
+}
+function pathOf(P) {
+  const p2 = new Path2D();
+  P.forEach((p, i) => (i ? p2.lineTo(p[0], p[1]) : p2.moveTo(p[0], p[1])));
+  p2.closePath();
+  return p2;
 }
 function trace(g, P) {
   g.beginPath();
@@ -138,8 +178,7 @@ function makeChild(p, x, y, spread = 1) {
     hue: jit(p.hue, 6 * spread),
     sat: p.sat,
     lt: jit(p.lt, 2.5 * spread),
-    round: jit(p.round, 0.05 * spread),
-    taper: jit(p.taper, 0.05 * spread),
+    round: jit(p.round, 0.05 * VAR * spread),
     x,
     y,
     home: [x, y], // where it prefers to look for food (see HOME)
@@ -175,7 +214,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   g.scale(sc, sc);
   g.lineJoin = 'round';
   if (swim && detail) {
-    // wake: shallow arcs close behind, drifting outwards and fading
+    // wake: shallow arcs close behind (behind the tail tip), drifting outwards and fading
     const s = Math.max(0.7, c.bw / 15),
       ph = (t * 1.1 + c.id * 0.37) % 1;
     g.lineWidth = lw;
@@ -183,7 +222,11 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     for (let k = 0; k < 3; k++) {
       const kk = k + ph,
         r = (11 + kk * 3.5) * s,
-        apex = -L - 1.5 * s - kk * 2.4 * s,
+        apex =
+          -L -
+          (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0) -
+          1.5 * s -
+          kk * 2.4 * s,
         span = 0.38 + kk * 0.11, // each arc spans wider the further it is behind, so the wake spreads out
         a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
       g.strokeStyle = `rgba(77,115,133,${a.toFixed(3)})`;
@@ -195,8 +238,8 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   if (detail) drawMouth(g, c, L, t);
   g.strokeStyle = INK;
   if (detail) {
-    const Lg = (2.2 + c.spd * 0.25) * (1 - c.hab * 0.4) * (swim ? 0.7 : 1),
-      wd = 2 + c.hab * 1.6;
+    const Lg = (2.2 + c.spd * 0.25) * (1 - c.tail * 0.4) * (swim ? 0.7 : 1),
+      wd = 2 + c.tail * 1.6;
     g.lineCap = 'butt';
     g.lineWidth = wd;
     g.beginPath();
@@ -209,17 +252,19 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     });
     g.stroke();
   }
+  // zoomed in, the tail sways: strongly when swimming, a little when walking
+  const body = detail && c.tail > 0 ? pathOf(outline(c, t, swim ? 1 : 0.3)) : c.p2;
   g.fillStyle = fill;
-  g.fill(c.p2);
+  g.fill(body);
   if (swim) {
     // back half below the surface
     g.save();
-    g.clip(c.p2);
+    g.clip(body);
     g.beginPath();
     g.moveTo(1, -Wd - 3);
     g.quadraticCurveTo(-2, 0, 1, Wd + 3);
-    g.lineTo(-L - 6, Wd + 3);
-    g.lineTo(-L - 6, -Wd - 3);
+    g.lineTo(-L - c.bh * 2 - 6, Wd + 3);
+    g.lineTo(-L - c.bh * 2 - 6, -Wd - 3);
     g.closePath();
     g.fillStyle = '#a9c5cf';
     g.fill();
@@ -240,15 +285,15 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     g.clip();
     g.lineWidth = lw * 1.3;
     g.strokeStyle = INK;
-    g.stroke(c.p2);
+    g.stroke(body);
     g.restore();
   } else {
     g.lineWidth = lw * 1.3;
-    g.stroke(c.p2);
+    g.stroke(body);
   }
   if (detail) {
-    const ex = L * 0.52 - c.taper * L * 0.24,
-      half = Math.max(1.4, Math.min(c.bw * (1 - c.taper * 0.6) * 0.22, 3.2));
+    const ex = L * 0.52,
+      half = Math.max(1.4, Math.min(c.bw * 0.22, 3.2));
     g.fillStyle = INK;
     if (c.lt < 40 && fill === col(c)) g.fillStyle = '#fcfcfb';
     for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
