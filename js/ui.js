@@ -595,8 +595,8 @@ function syncUI() {
 const mouthFeed = c =>
   `cracks a nut in ${crackTime(c).toFixed(1)} s · algae ×${(1 + MOUTH.algae * (2 * c.mth - 1)).toFixed(2)}`;
 function rangeTxt(c) {
-  if (c.hab <= 0.0) return 'Never enters water';
-  if (c.hab >= 1) return 'Never leaves water';
+  if (c.tail <= 0) return 'Never enters water';
+  if (c.tail >= 1) return 'Never leaves water';
   // past 2000 px the limit no longer matters on this map
   const sw = c.dW > 2000 ? 'Swims anywhere' : `Swims up to ${Math.round(c.dW)} px from shore`,
     wk = c.dL > 2000 ? 'walks anywhere' : `walks up to ${Math.round(c.dL)} px from water`;

@@ -94,7 +94,8 @@ function randomDesign() {
     w: +r(1.5, 6.5).toFixed(1),
     h: +r(1.5, 6.5).toFixed(1),
     spd: +r(2, 9).toFixed(1),
-    hab: +r(0, 0.85).toFixed(2),
+    // about a third are land creatures with no tail; the rest have a clearly visible tail
+    hab: +(rand() < 0.35 ? r(0, 0.3) : r(0.4, 0.9)).toFixed(2),
     mth: +r(0, 1).toFixed(2),
     hue: o[2],
     sat: o[3],

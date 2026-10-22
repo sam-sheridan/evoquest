@@ -88,8 +88,8 @@ function newGame(design, seed) {
       if (!inside(x, y)) continue;
       const i = cellI(x, y);
       if (!allowed(probe, i, world.type[i]) || world.type[i] === 2) continue;
-      if (probe.hab < 0.5 && world.comp[i] !== comp) continue;
-      if (probe.hab >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
+      if (probe.tail < 0.5 && world.comp[i] !== comp) continue;
+      if (probe.tail >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
       let s = 0;
       for (const f of world.sites) {
         const dx = f.x - x,
@@ -486,7 +486,7 @@ function update(c, dt) {
     // aquatic)
     const hx = c.home[0] - c.x,
       hy = c.home[1] - c.y;
-    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.hab < 1)) {
+    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.tail < 1)) {
       const toHome = Math.atan2(hy, hx),
         off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
       c.wander -= off * Math.min(1, dt * 1.5);

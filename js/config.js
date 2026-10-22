@@ -129,7 +129,10 @@ const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth 
 // tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
 // the limit grows quickly towards either end
 const HAB = { range: 200 };
-const TAIL = { len: 1.1 }; // length of a full tail, as a share of body length (drawing only)
+// tail: min = the tail trait (hab) from which a tail shows and counts; below it the creature has no tail. From min
+// to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
+// len = length of a full tail, as a share of body length (drawing only)
+const TAIL = { min: 0.33, len: 1.1 };
 // mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
 //   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut (x FOOD)
 //   crack: seconds a creature spends cracking a nut [claw, straw], on top of the usual pause after eating
