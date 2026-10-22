@@ -531,13 +531,15 @@ function syncUI() {
   } else if (tab === 'one') {
     const c = S.sel;
     if (!c) {
-      $('#p-one').innerHTML = '<p class="hint">Tap any creature on the map to inspect and follow it.</p>';
+      $('#p-one').innerHTML =
+        '<p class="hint">Tap any creature on the map to inspect and follow it, and to take control of it.</p>';
       return;
     }
     const sp = S.species[c.sp];
     $('#p-one').innerHTML =
       `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div><span class="lbl">Specimen ${c.id}</span><h3 class="latin" style="font-size:17px;font-weight:500">${esc(S.genus)} ${sp.epithet}</h3></div>
-      <button class="btn" id="fol">${S.follow ? 'Stop following' : 'Follow'}</button></div>
+      ${c.dead ? '' : `<button class="btn${S.ctrl === c ? ' on' : ''}" id="ctl">${S.ctrl === c ? 'Stop controlling' : 'Control'}</button>`}</div>
+      ${S.ctrl === c ? '<p class="hint" style="margin:-4px 0 10px">Steer with the arrow keys. Press Esc to let go.</p>' : ''}
       ${c.dead ? `<p class="hint">Died of ${c.dead} at ${fmtT(c.diedAt)}, aged ${Math.round(c.age)} s.</p>` : ''}
       <div class="kv">
         <div><span>Generation</span><b>${c.gen}</b></div><div><span>Parent</span><b>${c.parent ? '#' + c.parent : 'Founder'}</b></div>
@@ -556,10 +558,12 @@ function syncUI() {
         <div><span>Habitat</span><b>${habTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
         <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)} · taper ${c.taper.toFixed(2)}</b></div>
       </div>`;
-    $('#fol').onclick = () => {
-      S.follow = !S.follow;
-      syncUI(true);
-    };
+    if ($('#ctl'))
+      $('#ctl').onclick = () => {
+        S.ctrl = S.ctrl === c ? null : c;
+        S.follow = true;
+        syncUI(true);
+      };
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;

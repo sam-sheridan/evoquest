@@ -462,6 +462,7 @@ function update(c, dt) {
     if (c.E <= 0) return kill(c, 'starvation');
     return;
   }
+  if (S.ctrl === c) return steer(c, dt);
   c.rt -= dt;
   if (c.rt <= 0 || (c.target && !edible(c.target))) plan(c);
   const hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
@@ -590,7 +591,51 @@ function birth(p) {
   parts.push({ x, y, t: 0, k: 'pop', col: col(c) });
   if (audible(p)) SND.birth();
 }
+// a creature the player controls moves only while an arrow key is held, by the usual rules (speed, terrain,
+// energy, ageing); it eats any food it reaches and then rests as usual. Pressing into ground it can't enter makes
+// its corner brackets bump.
+function steer(c, dt) {
+  const hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
+    here = world.type[hi],
+    ok = allowed(c, hi, here),
+    kx = keys.right - keys.left,
+    ky = keys.down - keys.up,
+    sp = speedIn(c, here, hi, ok);
+  setTarget(c, null);
+  c.path = null;
+  c.bump = Math.max(0, (c.bump || 0) - dt);
+  let moved = false;
+  if (kx || ky) {
+    const d = Math.atan2(ky, kx);
+    c.dir = d;
+    for (const off of [0, 0.5, -0.5]) {
+      const nx = c.x + Math.cos(d + off) * sp * dt,
+        ny = c.y + Math.sin(d + off) * sp * dt;
+      if (canEnter(c, ok, nx, ny)) {
+        [c.x, c.y, moved] = [nx, ny, true];
+        break;
+      }
+    }
+    if (moved) c.walk += dt * sp * 0.2;
+    else c.bump = 0.25;
+  }
+  c.burnNow = burn(c, moved ? sp : 0);
+  c.E -= c.burnNow * dt;
+  if (c.E <= 0) return kill(c, 'starvation');
+  const idx = cellIndex(),
+    x0 = hi % GW,
+    y0 = (hi / GW) | 0;
+  for (let y = y0 - 1; y <= y0 + 1; y++)
+    for (let x = x0 - 1; x <= x0 + 1; x++)
+      for (const f of idx.get(y * GW + x) || [])
+        if (edible(f) && allowed(c, f.i, world.type[f.i]) && Math.hypot(f.x - c.x, f.y - c.y) < c.reach) {
+          setTarget(c, f);
+          S.claims.push(c);
+          return;
+        }
+}
 function kill(c, why) {
+  if (S.ctrl === c) S.ctrl = null;
   setTarget(c, null);
   c.dead = why;
   c.diedAt = S.t;

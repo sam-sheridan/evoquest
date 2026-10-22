@@ -665,15 +665,22 @@ Collapse or expand it with the arrow. It has three tabs.
     through earlier time, and right to the end to follow the present again.
   - **Table**: compares the released design with the three biggest living species. Values noticeably up or
     down from the release are highlighted. Body traits and look traits are grouped separately.
-- **Specimen**: tap any creature on the map to see its:
+- **Specimen**: tap any creature on the map to select it. The camera follows it automatically (dragging the map
+  stops following). The tab shows its:
   - generation, parent, offspring and meals
   - energy and burn rate, and age
   - size and which thicket gaps it fits
   - land and water speed, habitat and range
   - look
 
-  The **Follow** button keeps the camera on it. The selected creature has orange corner brackets and a dashed
-  line to its food target.
+  The selected creature has orange corner brackets and a dashed line to its food target.
+
+  **Control** lets you steer it with the **arrow keys** (keyboard only). Everything else stays the same: its
+  speed, the ground it can and can't enter, energy, ageing, its 90-second lifespan and breeding. It moves only
+  while a key is held and stands still otherwise (burning just its resting energy). It eats any food it reaches,
+  then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
+  bump. The dashed food line is hidden while you control it. Control ends when you press **Esc** or *Stop
+  controlling*, select another creature, or it dies.
 - **World**: world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
   crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
@@ -798,7 +805,9 @@ accident.
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
 - **Meteors are rare (about 1 in 20 events)** and dramatic.
-- **There are no player tools during a run.** You design, then watch.
+- **Almost no player tools during a run.** You design, then watch. The one exception is controlling a single
+  creature's movement: it follows every normal rule, so it lets you feel the world's pressures without steering
+  evolution.
 - **Max 3 creatures per food.** This stops crowds piling onto one berry.
 - **Colours come from the Okabe–Ito palette** for colour-blind accessibility.
 - **The music is original.** The ambient note set and the zoom beat were written for the game.
