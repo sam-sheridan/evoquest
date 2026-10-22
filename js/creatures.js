@@ -2,7 +2,7 @@
    changes, and how a creature is drawn.
    Body traits (affect survival): w width, h length, spd speed, hab habitat (0 = land, 1 = water),
    mth mouth (0 = claw, 1 = straw).
-   Look traits (drift by chance): hue, lt (lightness), round, taper, legs. */
+   Look traits (drift by chance): hue, lt (lightness), round, taper. Legs come from body length. */
 
 /* ---------- creatures ---------- */
 // Body (functional): w width, h height, spd speed, hab habitat 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw.  Look (neutral): hue, lt, round, taper, legs.
@@ -15,7 +15,6 @@ function enforce(c) {
   c.mth = clamp(c.mth ?? 0.5, 0, 1);
   c.round = clamp(c.round, 0, 1);
   c.taper = clamp(c.taper, 0, 1);
-  c.legs = clamp(c.legs, 4, 8);
   c.lt = clamp(c.lt, 22, 82);
   c.hue = ((c.hue % 360) + 360) % 360;
 }
@@ -23,6 +22,7 @@ function compute(c) {
   c.bw = 6 + c.w * 2.2;
   c.bh = 6 + c.h * 2.2;
   c.thick = Math.min(c.bw, c.bh);
+  c.legs = c.h >= LEG6 ? 6 : 4;
   c.size = Math.sqrt(c.bw * c.bh) / 17;
   const sm = 1.6 / (0.6 + c.size),
     base = c.spd * 6 * sm;
@@ -89,40 +89,32 @@ function shapePoly(c) {
   }
   return P;
 }
-// where a ray from the body's centre at angle a meets its outline
-function edgeAt(P, a) {
-  const dx = Math.cos(a),
-    dy = Math.sin(a);
+// the outline's half-width at distance x along the body
+function sideAt(P, x) {
   let best = 0;
   for (let k = 0; k < P.length; k++) {
     const [x1, y1] = P[k],
-      [x2, y2] = P[(k + 1) % P.length],
-      ex = x2 - x1,
-      ey = y2 - y1,
-      den = dx * ey - dy * ex;
-    if (Math.abs(den) < 1e-9) continue;
-    const t = (x1 * ey - y1 * ex) / den,
-      u = (x1 * dy - y1 * dx) / den;
-    if (t > best && u >= 0 && u <= 1) best = t;
+      [x2, y2] = P[(k + 1) % P.length];
+    if (x1 === x2 || (x1 - x) * (x2 - x) > 0) continue;
+    best = Math.max(best, y1 + ((y2 - y1) * (x - x1)) / (x2 - x1));
   }
-  return [dx * best, dy * best];
+  return best;
 }
-// legs spread evenly round the body, leaving a gap at the front that is wide enough to keep them clear of the
-// mouth
+// legs in pairs along the sides only (none at the front or back), the front pair splayed forwards and the back
+// pair backwards; on a pointed body the front pair moves back so it stays clear of the mouth
 function anchors(c) {
-  const n = Math.round(c.legs),
+  const m = c.legs / 2,
+    L = c.bh / 2,
     r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
+    xb = -0.55 * L,
     A = [];
-  let a0 = 0.6;
-  while (a0 < 1.5) {
-    const e = edgeAt(c.poly, a0);
-    if (Math.hypot(e[0] - c.bh / 2, e[1]) >= r) break;
-    a0 += 0.02;
-  }
-  for (let k = 0; k < n; k++) {
-    const a = a0 + ((k + 0.5) / n) * (TAU - 2 * a0),
-      e = edgeAt(c.poly, a);
-    A.push([e[0], e[1], a]);
+  let xf = 0.4 * L;
+  while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(c.poly, xf)) < r) xf -= 0.2;
+  for (let k = 0; k < m; k++) {
+    const x = xf + ((xb - xf) * k) / (m - 1),
+      y = sideAt(c.poly, x),
+      splay = 0.5 * (x / L);
+    for (const s of [1, -1]) A.push([x, s * y, s * (Math.PI / 2 - splay)]);
   }
   return A;
 }
@@ -148,7 +140,6 @@ function makeChild(p, x, y, spread = 1) {
     lt: jit(p.lt, 2.5 * spread),
     round: jit(p.round, 0.05 * spread),
     taper: jit(p.taper, 0.05 * spread),
-    legs: p.legs,
     x,
     y,
     home: [x, y], // where it prefers to look for food (see HOME)

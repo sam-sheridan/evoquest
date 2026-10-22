@@ -137,6 +137,7 @@ const HAB = { range: 200, food: 0.25 };
 //   1 - algae; berries suit any mouth
 const MOUTH = { share: 0.5, nut: 1.5, crack: [0.5, 8], algae: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (habitat counts 1)
+const LEG6 = 4; // body length (h) from which a creature has 6 legs rather than 4
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

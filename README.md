@@ -74,10 +74,9 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Mouth** | Body trait, from claw to straw. A claw cracks nuts quickly; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives the nut-cracking time and algae bonus. |
 | **Starting shape** | Presets: **Round** (roundness 1, taper 0), **Block** (roundness 0.22, taper 0), **Peak** (roundness 0.25, taper 0.9). |
 | **Roundness, Taper** | Look traits, 0 to 1. Roundness softens corners. Taper narrows the front of the body. |
-| **Legs** | 4, 6 or 8. Fixed: never changes through evolution. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (mouth included), colour, shape and legs. |
+| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (mouth included), colour and shape. |
 | **Release 25 specimens** | Starts the run. |
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
@@ -198,7 +197,6 @@ split.
 | Lightness | 22–82% | |
 | Roundness | 0–1 | |
 | Taper | 0–1 | |
-| Legs | 4, 6, 8 | Never changes. |
 
 ### Inheritance
 
@@ -809,10 +807,11 @@ The look is a scientific **field notebook / survey map**.
   map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
   mid-zoom included.
 - **Creatures** are seen from above.
-  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars all round.
-  - Legs: longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
-    They are spread evenly round the outline, leaving a gap at the front that widens on pointed bodies so no leg
-    sits beside the mouth.
+  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
+  - Legs: 4, or 6 once the body's length trait is 4 or more (`LEG6`), so they follow body length and change as it
+    evolves; there is no leg control. They sit in pairs along the sides only, never at the front or back: the front
+    pair splays forwards, the back pair backwards. On a pointed body the front pair moves back to stay clear of the
+    mouth. Longer bars mean more land speed, and wider, shorter bars mean a creature that leans towards water.
   - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
     [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
@@ -837,7 +836,8 @@ accident.
   an oval, and regions differ in thicket, rock and wetland.
 - **Body traits are selected; look traits drift.** Colour, roundness and taper do nothing for survival, so
   their change shows pure chance and how long groups have been apart.
-- **Legs are fixed.** They are a choice you make, not something that evolves.
+- **Legs follow body length.** Short bodies have 4 and long ones 6, on the sides only, which keeps the front for
+  the mouth and the back clear (for a possible tail one day).
 - **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
   forest) and a shape. They are never shown, so the player has no say in the world, and no single design is
   best everywhere.

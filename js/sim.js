@@ -921,7 +921,6 @@ const KEYS = [
   'size',
   'round',
   'taper',
-  'legs',
   'dhue',
   'lt',
   'vL',
@@ -1098,7 +1097,7 @@ function split(sp, small, rest, reason, island) {
   const a = summ(small),
     b = summ(rest);
   const used = new Set(S.species.map(s => s.epithet));
-  const scale = { hab: 0.15, mth: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25, taper: 0.25, legs: 1 };
+  const scale = { hab: 0.15, mth: 0.15, spd: 2, thick: 4, size: 0.25, round: 0.25, taper: 0.25 };
   const cand = EPI.map(([k, s, name]) => ({ name, v: (s * (a[k] - b[k])) / scale[k] }))
     .filter(x => x.v > 0)
     .sort((x, y) => y.v - x.v)

@@ -19,7 +19,6 @@ let D = {
   lt: 45,
   round: 1,
   taper: 0,
-  legs: 6,
   preset: 'round',
 };
 $('#fHue').innerHTML = OKABE.map(
@@ -50,7 +49,6 @@ for (const [id, key, k] of [
   ['#fMth', 'mth', 0.01],
   ['#fR', 'round', 1],
   ['#fT', 'taper', 1],
-  ['#fLeg', 'legs', 1],
 ])
   $(id).oninput = e => {
     D[key] = +e.target.value * k;
@@ -120,7 +118,6 @@ function randomDesign() {
     lt: o[4],
     preset: pre,
     ...PRESETS[pre],
-    legs: pick([4, 6, 8]),
   });
   if (rand() < 0.5) {
     D.round = +r(0, 1).toFixed(2);
@@ -160,7 +157,6 @@ function syncCreator() {
   $('#fMth').value = Math.round(D.mth * 100);
   $('#fR').value = D.round;
   $('#fT').value = D.taper;
-  $('#fLeg').value = D.legs;
   $('#oW').textContent = D.w.toFixed(1);
   $('#oH').textContent = D.h.toFixed(1);
   $('#oS').textContent = D.spd.toFixed(1);
@@ -168,7 +164,6 @@ function syncCreator() {
   $('#oMth').textContent = mouthTxt(D.mth);
   $('#oR').textContent = D.round.toFixed(2);
   $('#oT').textContent = D.taper.toFixed(2);
-  $('#oLeg').textContent = D.legs;
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
@@ -289,7 +284,6 @@ $('#go').onclick = () => {
     lt: D.lt,
     round: D.round,
     taper: D.taper,
-    legs: D.legs,
   };
   ensureAudio();
   newGame(d, seed);
