@@ -28,14 +28,13 @@ const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval 
 // of it (all four are offsets from the world's starting share)
 // strait: how deep the strait between the two starting landmasses is; 1.0 keeps it open at the start but lets a
 // big drought close it in about a third of worlds
-const LAND = { min: -0.13, max: 0.13, noFlood: -0.08, noDrought: 0.09, strait: 1.0 };
+const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1.0 };
 // world types: each world secretly rolls one, never shown to the player, so the same traits don't win everywhere
 //   w: how often it is picked (relative weight); land: starting land share [minimum, random extra]
 //   split: chance of a strait splitting it into two landmasses at the start; seas: [fewest, most] extra sea
 //   channels cutting it up; isles: 0 = solid landmasses, 1 = broken into many islands
 //   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
-//   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); lakes: how deep the hollows in
-//   wetlands are (1 normal, more gives more and bigger lakes); food: [berry sites, algae sites]
+//   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); food: [berry sites, algae sites]
 const WORLD_TYPES = {
   classic: {
     w: 3,
@@ -47,7 +46,6 @@ const WORLD_TYPES = {
     thicket: 0.2,
     rock: 0.1,
     wet: 0,
-    lakes: 1,
     food: [375, 125],
   },
   archipelago: {
@@ -60,7 +58,6 @@ const WORLD_TYPES = {
     thicket: 0.2,
     rock: 0.06,
     wet: 0,
-    lakes: 1,
     food: [250, 250],
   },
   supercontinent: {
@@ -73,7 +70,6 @@ const WORLD_TYPES = {
     thicket: 0.18,
     rock: 0.08,
     wet: -0.05,
-    lakes: 1,
     food: [440, 60],
   },
   highlands: {
@@ -86,21 +82,7 @@ const WORLD_TYPES = {
     thicket: 0.08,
     rock: 0.28,
     wet: -0.12,
-    lakes: 1,
     food: [375, 125],
-  },
-  wetlands: {
-    w: 1.5,
-    land: [0.29, 0.04],
-    split: 1,
-    seas: [0, 1],
-    isles: 0.3,
-    rivers: [1, 0.8],
-    thicket: 0.16,
-    rock: 0.03,
-    wet: 0.25,
-    lakes: 2.2,
-    food: [300, 200],
   },
   forest: {
     w: 1.5,
@@ -112,7 +94,6 @@ const WORLD_TYPES = {
     thicket: 0.45,
     rock: 0.05,
     wet: -0.04,
-    lakes: 1,
     food: [400, 100],
   },
 };

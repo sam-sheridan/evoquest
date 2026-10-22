@@ -182,7 +182,7 @@ function genWorld(seed, att = 0) {
         v = (y + 0.5) / GH,
         wet = clamp((rW(u, v) - 0.5 + T.wet) * 4.5 * REGIONS.strength, 0, 1);
       if (!wet || hgt[i] < lvl0) continue;
-      const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9 * T.lakes;
+      const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9;
       hgt[i] += (flat - hgt[i]) * wet;
     }
   // thicket and rock are shares of the starting land, so each world type gets the amount it asks for
