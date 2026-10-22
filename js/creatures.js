@@ -225,7 +225,8 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
       if (swim && Math.cos(a) < 0) return;
       const a0 = ((a % TAU) + TAU) % TAU,
         side = a0 < Math.PI ? 1 : -1, // bending towards the tail is +side
-        dir = a0 + (Math.PI - a0) * (0.1 + 0.55 * h), // splayed on land, swept back in water
+        // how far the leg turns back towards the tail: a little on land, a lot in water
+        sweep = Math.abs(Math.PI - a0) * (0.1 + 0.55 * h),
         ph = (swim ? t * 5 : c.walk * 2.2) + k * Math.PI; // neighbouring legs swing in opposite phase
       // one swing whose wave spreads further along the leg the more aquatic it is: a hinge flip on land, a ripple
       // travelling out to the tip in water, and every creature keeps the full swing
@@ -233,10 +234,18 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
         g,
         ex,
         ey,
-        dir,
+        a0,
         len,
         w0,
-        s => side * ((1.25 + 0.05 * h) * Math.sin(ph - s * 4.2 * h) * s * s + 0.22 * s)
+        // the leg leaves the body straight out (its thick base square to the edge), turns back over its first
+        // half, and its outer part swings
+        s => {
+          const u = clamp((s - 0.08) / 0.45, 0, 1);
+          return (
+            side *
+            (sweep * u * u * (3 - 2 * u) + (1.25 + 0.05 * h) * Math.sin(ph - s * 4.2 * h) * s * s + 0.22 * s)
+          );
+        }
       );
     });
     g.fill();

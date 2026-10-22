@@ -771,7 +771,8 @@ The look is a scientific **field notebook / survey map**.
   - Body: a pale body with an ink outline, an eye pair at the front, and hair-like legs round its sides.
   - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
     legs. Land creatures' legs splay out to the sides; water creatures' legs are a little shorter and broader at
-    the base, and swept back towards the tail. Each leg grows from a short stem hidden inside the body, so its
+    the base, and swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
+    edge, and turns back over its first half. Each leg grows from a short stem hidden inside the body, so its
     base always stays attached however far it bends.
   - Leg movement: the base stays still while the outer half swings, the tip flipping from pointing towards the
     head to pointing towards the tail and back, with neighbouring legs in opposite phase. On land the leg bends
