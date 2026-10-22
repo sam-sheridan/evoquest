@@ -142,7 +142,7 @@ function syncCreator() {
   pvC = c;
   const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
-    `<b>${rangeTxt(c)}.</b> A bigger tail swims faster but walks slower, and goes further from shore but less far from water.
+    `<b>${rangeTxt(c)}.</b> A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
     <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw cracks nuts quickly; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
     `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>

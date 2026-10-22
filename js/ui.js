@@ -515,14 +515,14 @@ function syncUI() {
       ['Speed', 'spd'],
       ['Tail', 'hab', 0, '%'],
       ['Mouth (straw)', 'mth', 0, '%'],
+      ['Roundness', 'round', 2],
       ['Crosses rivers', 'river', 0, '%'],
     ];
-    const R2 = [['Roundness', 'round', 2]];
     const row = ([l, k, d = 1, suf = '']) =>
       `<tr><td>${l}</td><td>${suf === '%' ? Math.round(o[k] * 100) + '%' : o[k].toFixed(d) + suf}</td>${ms.map(m => cell(m[k], o[k], d, suf)).join('')}</tr>`;
     $('#ttab').innerHTML =
       `<tr class="grp"><td colspan="${cols}">Body · shaped by the world</td></tr>${R1.map(row).join('')}
-      <tr class="grp"><td colspan="${cols}">Look · drifts by chance</td></tr>${R2.map(row).join('')}
+      <tr class="grp"><td colspan="${cols}">Look · drifts by chance</td></tr>
       <tr><td>Colour</td><td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:${col(S.design)}"></span></td>${ms.map(m => `<td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:hsl(${m.hue} ${S.design.sat}% ${m.lt}%)"></span></td>`).join('')}</tr>`;
   } else if (tab === 'one') {
     const c = S.sel;

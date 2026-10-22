@@ -1,11 +1,12 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
    Body traits (affect survival): w width, h length, spd speed, hab tail (0 = none, a land creature; 1 = full,
-   a water creature; called hab because it began as "habitat"), mth mouth (0 = claw, 1 = straw).
-   Look traits (drift by chance): hue, lt (lightness), round. Legs come from body length. */
+   a water creature; called hab because it began as "habitat"), mth mouth (0 = claw, 1 = straw), round roundness
+   (round swims a little faster, blocky walks a little faster).
+   Look traits (drift by chance): hue, lt (lightness). Legs come from body length. */
 
 /* ---------- creatures ---------- */
-// Body (functional): w width, h height, spd speed, hab tail 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw.  Look (neutral): hue, lt, round.
+// Body (functional): w width, h height, spd speed, hab tail 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw, round 0 = blocky … 1 = round.  Look (neutral): hue, lt.
 let nextId = 1;
 function enforce(c) {
   c.w = clamp(c.w, 1, 7);
@@ -26,8 +27,9 @@ function compute(c) {
     base = c.spd * 6 * sm;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
-  c.vL = base * (1 - 0.85 * c.tail);
-  c.vW = base * (0.15 + 0.85 * c.tail);
+  const rk = 2 * c.round - 1; // -1 blocky … 1 round
+  c.vL = base * (1 - 0.85 * c.tail) * (1 - ROUND.walk * rk);
+  c.vW = base * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
   c.dW = c.tail >= 1 ? 1e9 : HAB.range * (c.tail / (1 - c.tail)) ** 2;
@@ -176,7 +178,7 @@ function makeChild(p, x, y, spread = 1) {
     hue: jit(p.hue, 6 * spread),
     sat: p.sat,
     lt: jit(p.lt, 2.5 * spread),
-    round: jit(p.round, 0.05 * spread),
+    round: jit(p.round, 0.05 * VAR * spread),
     x,
     y,
     home: [x, y], // where it prefers to look for food (see HOME)

@@ -61,9 +61,9 @@ function showEnd(run) {
    <tr><td>Speed</td><td>${f(m0.spd)}</td><td>${f(mL.spd)}</td><td>${sg(f(mL.spd - m0.spd))}</td></tr>
    <tr><td>Tail</td><td>${Math.round(m0.hab * 100)}%</td><td>${Math.round(mL.hab * 100)}%</td><td>${sg(Math.round((mL.hab - m0.hab) * 100))} pts</td></tr>
    <tr><td>Mouth (% straw)</td><td>${Math.round(m0.mth * 100)}%</td><td>${Math.round(mL.mth * 100)}%</td><td>${sg(Math.round((mL.mth - m0.mth) * 100))} pts</td></tr>
+   <tr><td>Roundness</td><td>${f(m0.round, 2)}</td><td>${f(mL.round, 2)}</td><td>${sg(f(mL.round - m0.round, 2))}</td></tr>
    <tr class="grp"><td colspan="4">Drifted by chance</td></tr>
    <tr><td>Colour</td><td><span class="tag" style="background:hsl(${m0.hue} ${S.design.sat}% ${m0.lt}%)"></span></td><td><span class="tag" style="background:hsl(${mL.hue} ${S.design.sat}% ${mL.lt}%)"></span></td><td>${Math.round(Math.abs(mL.dhue))}°</td></tr>
-   <tr><td>Roundness</td><td>${f(m0.round, 2)}</td><td>${f(mL.round, 2)}</td><td>${sg(f(mL.round - m0.round, 2))}</td></tr>
   </tbody></table></div>
   <p class="hint">Body traits change because the world rewards some values over others. Look traits change only through random variation between parent and offspring, which is why related groups slowly end up looking different.</p>
   <span class="lbl">Family tree</span><div class="treewrap" style="margin-top:6px">${treeSVG(Math.min(780, innerWidth - 70))}</div>

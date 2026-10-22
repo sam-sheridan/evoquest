@@ -72,7 +72,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Speed** | Body trait, 1 to 10. Faster creatures reach food sooner but burn much more energy moving. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 33% there is no tail ("None · land only"); a tail shows and counts from 33%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from claw to straw. A claw cracks nuts quickly; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives the nut-cracking time and algae bonus. |
-| **Roundness** | Look trait, 0 to 1. Softens the body's corners, from boxy to round. |
+| **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (mouth included), colour and shape. |
@@ -112,6 +112,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Speed (`spd`) | 1–10 | Base speed before size and tail are applied. |
 | Tail (`hab`) | 0–1 | Below 0.33 (`TAIL.min`): no tail, fully land. From 0.33 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
 | Mouth (`mth`) | 0–1 | 0 = claw, 1 = straw (see [mouths](#mouths)). |
+| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes land and water speed by up to 10% (see below). |
 
 From these, the game works out:
 
@@ -121,8 +122,12 @@ From these, the game works out:
 - **Base speed** = speed × 6 × 1.6 ÷ (0.6 + size). Big bodies are slower.
 - **Effective tail** = (tail − 0.33) ÷ 0.67, and 0 below 0.33. Everything below uses this, so 33% and below
   behave exactly alike, as a creature with no tail.
-- **Land speed** = base × (1 − 0.85 × tail).
-- **Water speed** = base × (0.15 + 0.85 × tail).
+- **Land speed** = base × (1 − 0.85 × tail) × (1 − 0.1 × (2 × roundness − 1)).
+- **Water speed** = base × (0.15 + 0.85 × tail) × (1 + 0.1 × (2 × roundness − 1)).
+  The roundness part (`ROUND`) is ±10% at the extremes and nothing at 0.5: a fully round body swims 10% faster
+  and walks 10% slower, a fully blocky one the reverse. Creatures that never swim only feel the walking side, so
+  they drift blocky; creatures that never walk drift round. Together with the tail, that makes smooth, round,
+  tailed water creatures (rather like tadpoles) and blocky, tailless land ones.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
   anywhere in water. Everything in between has two limits (`HAB.range` = 200):
@@ -188,7 +193,7 @@ freely and has to reach 33% before a tail starts to help it, so tails evolve fro
 **Randomise** gives about a third of designs no tail (0–30%) and the rest a clearly visible one (40–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The default design (width 4, length 4.5, speed 5, no tail) walks at about 32 px/s, swims at about 5 px/s,
+The default design (width 4, length 4.5, speed 5, no tail, roundness 0.5) walks at about 32 px/s, swims at about 5 px/s,
 can't cross rivers, and holds about 53 energy.
 
 ### Look traits: drift by chance
@@ -201,7 +206,6 @@ split.
 |---|---|---|
 | Hue | 0–360° | Starts at your chosen colour. Saturation never changes. |
 | Lightness | 22–82% | |
-| Roundness | 0–1 | |
 
 ### Inheritance
 
@@ -214,7 +218,7 @@ moves by a random amount up to:
 | Tail, mouth | ±8 percentage points (0.05 × `VAR`) |
 | Hue | ±6° |
 | Lightness | ±2.5 |
-| Roundness | ±0.05 |
+| Roundness | ±0.08 (0.05 × `VAR`) |
 
 Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only.
 
@@ -616,8 +620,8 @@ Species never merge back together.
 | *gracilis* | slimmer |
 | *magnus* | bigger |
 | *minimus* | smaller |
-| *rotundus* | rounder |
-| *acutus* | more angular |
+| *rotundus* | rounder ("a better swimmer") |
+| *acutus* | blockier ("a better walker") |
 
 - *insularis* is used first if the new group was cut off on an island (not the main landmass).
 - If those names are all taken, the fallbacks are *novus*, *alter*, *tertius* and *remotus*.
@@ -837,7 +841,7 @@ accident.
   quarter of the land in the first 10 minutes) and groups in different areas stay apart.
 - **A bigger, oval, regional world.** The map is 1.5 times larger each way than it first was, land stays inside
   an oval, and regions differ in thicket, rock and wetland.
-- **Body traits are selected; look traits drift.** Colour and roundness do nothing for survival, so
+- **Body traits are selected; look traits drift.** Colour does nothing for survival, so
   their change shows pure chance and how long groups have been apart.
 - **Legs follow body length.** Short bodies have 4 and long ones 6, on the sides only, which keeps the front for
   the mouth and the back clear (for a possible tail one day).
@@ -851,10 +855,11 @@ accident.
   cold-adapted groups end up stranded apart ("sky islands"), which encourages new species.
 - **Being in between costs something.** Only no tail or a full tail goes anywhere in its element, so a 50% tail
   is a jack of all trades, master of none.
-- **Every survival trait can be seen.** Width, length, mouth and tail all show on the creature, and leg length
+- **Every survival trait can be seen.** Width, length, mouth, tail and roundness all show on the creature, and leg length
   shows speed, so you can read a way of life from the body. The tail replaced an invisible habitat setting, and the
   mouth took over which food suits which creature. Taper was removed: it did nothing for survival and, with a tail
-  at the back, looked like roundness again.
+  at the back, looked like roundness again. Roundness then became a body trait too (round swims, blocky walks), so
+  water and land creatures look different, and colour is the one trait left to drift purely by chance.
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
 - **Meteors are rare (about 1 in 20 events)** and dramatic.
@@ -893,6 +898,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Shallow shelf size and deep-water cost | `SEA` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
+| How much roundness helps swimming and blockiness walking | `ROUND` |
 | Nuts in thickets, nut energy and cracking time, algae bonus for straw mouths | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |

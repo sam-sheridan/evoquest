@@ -1107,7 +1107,7 @@ function split(sp, small, rest, reason, island) {
       thick: ['broader and sturdier', 'slimmer, slipping through tighter thickets'],
       river: ['better at crossing rivers', 'more settled on dry land'],
       dhue: ['a striking new colour', 'a striking new colour'],
-      round: ['rounder', 'sleeker and more angular'],
+      round: ['rounder and a better swimmer', 'blockier and a better walker'],
     };
   const how = top ? (TRAIT[top.k] || [top.l, top.l])[top.va > top.vb ? 0 : 1] : 'a little different';
   const m = `Welcome the first ${S.genus} ${ep}, who is ${how}.`;

@@ -134,6 +134,9 @@ const HAB = { range: 200 };
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
 // full one, so a tail appears as a short proper tail rather than a spike (both drawing only)
 const TAIL = { min: 0.33, len: 1.1, first: 0.3 };
+// roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
+// blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
+const ROUND = { swim: 0.1, walk: 0.1 };
 // mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
 //   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut (x FOOD)
 //   crack: seconds a creature spends cracking a nut [claw, straw], on top of the usual pause after eating
