@@ -618,7 +618,13 @@ back into view, and on the next tap or key press if the browser insists on one.
 Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
 after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
 moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
-Turning sound off and on with the speaker button always starts a fresh engine, as a sure cure for silence.
+Turning sound off and on with the speaker button always starts a fresh engine, as a sure cure for silence. A new engine plays one silent sample
+straight away, inside the click that starts it, because Safari may otherwise keep it quiet.
+
+**Temporary sound check** (Settings, under the test events), while the Safari silence bug is being tracked down:
+**Test 1** plays a clear three-note chime the normal way; **Test 2** plays the same chime through an audio
+element instead. Each starts a fresh sound engine. The line underneath shows what the engine reports: its state,
+sample rate, whether its clock is moving, its output delay, and whether sound is on.
 
 ---
 

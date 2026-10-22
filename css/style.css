@@ -568,15 +568,27 @@ h3.sec {
 .setrow .seg2 #sMajor[aria-pressed='false']::after {
   content: none;
 }
-.testev {
+.testev,
+.sndtest {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding-top: 2px;
 }
-.testev .btn {
+.testev .btn,
+.sndtest .btn {
   padding: 6px 8px;
   font-size: 12px;
+}
+/* temporary sound check for the Safari silence bug */
+.sndrow {
+  margin-top: 10px;
+}
+#sndInfo {
+  padding-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
 }
 .testev .btn:disabled {
   color: var(--muted);

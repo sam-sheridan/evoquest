@@ -14,11 +14,23 @@ function ensureAudio() {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {}
+    unlockAudio();
     clockT = AC ? AC.currentTime : 0;
     clockWall = performance.now();
     stale = false;
   }
   if (AC && AC.state === 'suspended') AC.resume();
+}
+// Safari may keep a new engine silent until something has played during a click or key press, so play one
+// silent sample straight away (this runs inside the click that starts a run or turns sound on)
+function unlockAudio() {
+  if (!AC) return;
+  try {
+    const s = AC.createBufferSource();
+    s.buffer = AC.createBuffer(1, 1, AC.sampleRate);
+    s.connect(AC.destination);
+    s.start(0);
+  } catch (e) {}
 }
 // throw the sound engine away and start a fresh one; Safari can leave an engine "playing" (the tab shows the
 // speaker) while nothing reaches the speakers, often after the Mac sleeps or the audio device changes
@@ -272,3 +284,71 @@ $('#sBeat').onclick = () => {
   beatOn = !beatOn;
   syncSettings();
 };
+
+/* ---------- temporary sound check for the Safari silence bug ---------- */
+// Test 1 plays a clear chime the normal way; Test 2 plays it through an <audio> element instead, a known way
+// round Safari quirks. The line under the buttons shows what the sound engine reports.
+let sndMsg = '',
+  sndEl = null,
+  infoT = 0,
+  infoWall = 0;
+function chime(dest) {
+  const t = AC.currentTime + 0.05;
+  [523, 659, 784].forEach((f, i) => {
+    const o = AC.createOscillator(),
+      g = AC.createGain();
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + i * 0.15);
+    g.gain.linearRampToValueAtTime(0.25, t + i * 0.15 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.15 + 0.6);
+    o.connect(g).connect(dest);
+    o.start(t + i * 0.15);
+    o.stop(t + i * 0.15 + 0.65);
+  });
+}
+$('#sndT1').onclick = () => {
+  resetAudio();
+  if (!AC) return (sndMsg = 'No sound engine available');
+  chime(AC.destination);
+  sndMsg = 'Test 1 played';
+};
+$('#sndT2').onclick = () => {
+  resetAudio();
+  if (!AC) return (sndMsg = 'No sound engine available');
+  try {
+    const dest = AC.createMediaStreamDestination();
+    if (sndEl) sndEl.pause();
+    sndEl = new Audio();
+    sndEl.srcObject = dest.stream;
+    const p = sndEl.play();
+    if (p && p.catch) p.catch(e => (sndMsg = 'Test 2 blocked: ' + e.name));
+    chime(dest);
+    sndMsg = 'Test 2 played';
+  } catch (e) {
+    sndMsg = 'Test 2 failed: ' + e.name;
+  }
+};
+setInterval(() => {
+  if ($('#setPop').hidden) return;
+  const now = performance.now();
+  let txt = 'Sound engine: not started yet';
+  if (AC) {
+    const moved = AC.currentTime - infoT,
+      wall = (now - infoWall) / 1000,
+      lat = Math.round(((AC.baseLatency || 0) + (AC.outputLatency || 0)) * 1000);
+    txt =
+      'Sound engine: ' +
+      AC.state +
+      ' · ' +
+      AC.sampleRate +
+      ' Hz · clock ' +
+      (moved > wall * 0.5 ? 'moving' : 'stopped') +
+      ' · delay ' +
+      lat +
+      ' ms · sound ' +
+      (sound ? 'on' : 'off');
+    infoT = AC.currentTime;
+  }
+  infoWall = now;
+  $('#sndInfo').textContent = txt + (sndMsg ? ' · ' + sndMsg : '');
+}, 500);
