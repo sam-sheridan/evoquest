@@ -40,7 +40,6 @@ be changed, its name in `js/config.js` is shown like `this`.
 17. [Changing the balance](#17-changing-the-balance)
 18. [Code layout](#18-code-layout)
 19. [Tests and building](#19-tests-and-building)
-20. [Ideas for later](#20-ideas-for-later)
 
 ---
 
@@ -919,11 +918,3 @@ it out.
 
 `python3 tools/build.py` writes `dist/evoquest.html`: the whole game in one file you can share or host
 anywhere. `dist/` isn't stored in the repo, so run the build again whenever you need a fresh copy.
-
----
-
-## 20. Ideas for later
-
-Ideas live in the repository's **[Issues](https://github.com/sam-sheridan/evoquest/issues)** tab: one issue per idea,
-labelled by area (*map*, *speciation*, *creature design*, *inspector*, *big feature*). An idea's issue is closed
-when it is built.
