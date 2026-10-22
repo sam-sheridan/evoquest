@@ -935,21 +935,11 @@ Things Sam wants to try one day, grouped by area. Nothing here is built yet.
 - Mouth shape or type as a big feature for evolution.
 - Fur or warmth as a feature.
 
-**Small UI changes**
-
-- Speed up the cooldown.
-- A season clock with symbols, bottom left.
-- A temperature symbol.
-
 **Creature redesign**
 
 - Squiggly legs that change between water and land.
 - An outline pattern.
 - A mouth.
-
-**Creator improvements**
-
-- The creator starts with a randomised design.
 
 **Redo the inspector**
 
