@@ -195,6 +195,26 @@ function renderTerrain() {
     ).fill,
     c,
   ]);
+  // temperature wash: land at or below each cold level (frosty) and at or above each warm level (warm); the
+  // season decides how many layers show, so the cold creeps down the hills in winter
+  V.coldW = [0.05, 0.15, 0.25, 0.35, 0.45].map(L => [
+    L,
+    march(
+      sm(i => (isLand(T[i]) ? 1 - w.temp[i] : 0)),
+      1 - L,
+      true,
+      false
+    ).fill,
+  ]);
+  V.warmW = [0.95, 0.85, 0.75, 0.65, 0.55].map(L => [
+    L,
+    march(
+      sm(i => (isLand(T[i]) ? w.temp[i] : 0)),
+      L,
+      true,
+      false
+    ).fill,
+  ]);
   const rf0 = i =>
     T[i] === 3
       ? Math.max(w.rck[i], w.rThr + 0.002)
@@ -209,9 +229,11 @@ function renderTerrain() {
     return rf0(i);
   };
   V.rings = [0, 1, 2, 3].map(k => march(sm(rf), w.rThr + k * rs, true, true));
+  // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
+  V.contB = new Path2D();
   for (let k = 1; k <= 24; k++)
-    V.cont.addPath(
+    (k % 3 ? V.cont : V.contB).addPath(
       march(
         sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
         k / 9,
@@ -298,6 +320,11 @@ function paintTerrain(g) {
   g.strokeStyle = '#47643a';
   g.lineWidth = 1;
   g.stroke(V.thickL);
+  const sh = world.tOff + TEMP.season[se];
+  g.fillStyle = 'rgba(222,235,246,.2)';
+  for (const [L, p] of V.coldW) if (L + sh <= TEMP.cold + 0.05) g.fill(p);
+  g.fillStyle = 'rgba(236,204,135,.07)';
+  for (const [L, p] of V.warmW) if (L + sh >= TEMP.hot - 0.05) g.fill(p);
   g.restore();
   const RF =
     se === 3 ? ['#cfc8bb', '#bfb7a8', '#e9eeef', '#fbfcfc'] : ['#cfc8bb', '#bfb7a8', '#aea595', '#9d9483']; // winter: snow on the peaks
@@ -306,13 +333,17 @@ function paintTerrain(g) {
     g.fill(r.fill);
   });
   g.save();
-  g.strokeStyle = 'rgba(21,25,24,.14)';
-  g.lineWidth = 0.8;
+  g.strokeStyle = 'rgba(70,62,50,.32)';
+  g.lineWidth = 0.9;
   g.stroke(V.cont);
+  g.strokeStyle = 'rgba(70,62,50,.5)';
+  g.lineWidth = 1.6;
+  g.stroke(V.contB);
   g.clip(V.rings[0].fill);
   g.strokeStyle = 'rgba(60,55,48,.45)';
   g.lineWidth = 0.9;
   g.stroke(V.cont);
+  g.stroke(V.contB);
   g.restore();
   g.strokeStyle = INK;
   g.lineWidth = 1.2;

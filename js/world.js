@@ -68,6 +68,11 @@ function genWorld(seed, att = 0) {
       [17, 0.3],
       [29, 0.2],
     ]),
+    // relief: ridges, hills and valleys on land
+    fR = field(rx, [
+      [10, 0.6],
+      [21, 0.4],
+    ]),
     bay = rx() * TAU, // which side a crescent's bay opens towards
     split = rx() < T.split,
     nSeas = T.seas[0] + Math.floor(rx() * (T.seas[1] - T.seas[0] + 1));
@@ -171,8 +176,9 @@ function genWorld(seed, att = 0) {
       fert[i] = ff(u, v);
       gapN[i] = fg(u, v) - bt * 0.8; // thicket country also has the narrowest gaps
     }
-  // wetlands: in wet regions the land is flattened down to just above the starting sea level, with hollows that
-  // hold lakes, so floods drown these areas first and droughts drain them first
+  // relief: ridged hills are added to the land, growing with height above the starting sea level so coasts stay
+  // where they are; wetlands: in wet regions the land is then flattened down to just above that sea level, with
+  // hollows that hold lakes, so floods drown these areas first and droughts drain them first
   const landFrac = T.land[0] + rng() * T.land[1],
     lvl0 = quant(hgt, 1 - landFrac);
   for (let y = 0; y < GH; y++)
@@ -181,7 +187,10 @@ function genWorld(seed, att = 0) {
         u = (x + 0.5) / GW,
         v = (y + 0.5) / GH,
         wet = clamp((rW(u, v) - 0.5 + T.wet) * 4.5 * REGIONS.strength, 0, 1);
-      if (!wet || hgt[i] < lvl0) continue;
+      if (hgt[i] < lvl0) continue;
+      const rd = 1 - Math.abs(2 * fR(u, v) - 1);
+      hgt[i] += rd * rd * RELIEF * clamp((hgt[i] - lvl0) / 0.1, 0, 1);
+      if (!wet) continue;
       const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9;
       hgt[i] += (flat - hgt[i]) * wet;
     }
@@ -204,6 +213,7 @@ function genWorld(seed, att = 0) {
     dWater: null,
     landFrac,
     land0: landFrac,
+    tOff: T.temp,
     channels: [],
     craters: [],
     level: 0,
@@ -427,6 +437,29 @@ function buildTerrain() {
   };
   w.main = ord.length ? ord[0][1] : 0;
   w.second = ord.length > 1 ? ord[1][1] : w.main;
+  // temperature: land by its height among the world's original land (high is cold), water mild
+  if (!w.refH) {
+    const a = [];
+    for (let i = 0; i < N; i++) if (isLand(w.type[i])) a.push(w.hgt[i]);
+    w.refH = Float32Array.from(a).sort();
+  }
+  w.temp = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!isLand(w.type[i])) {
+      w.temp[i] = TEMP.water;
+      continue;
+    }
+    const R = w.refH,
+      v = w.hgt[i];
+    let lo = 0,
+      hi = R.length;
+    while (lo < hi) {
+      const m = (lo + hi) >> 1;
+      if (R[m] < v) lo = m + 1;
+      else hi = m;
+    }
+    w.temp[i] = 1 - lo / R.length;
+  }
   w.dLand = distField(i => isLand(w.type[i]));
   w.dWater = distField(i => isWater(w.type[i]));
   for (let i = 0; i < N; i++) {

@@ -36,7 +36,19 @@ function compute(c) {
   c.poly.forEach((p, i) => (i ? c.p2.lineTo(p[0], p[1]) : c.p2.moveTo(p[0], p[1])));
   c.p2.closePath();
 }
-const burn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
+// energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added
+const moveBurn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
+const burn = (c, v) => moveBurn(c, v) + climate(c);
+// extra energy per second for the temperature where the creature stands: keeping warm costs small bodies most,
+// cooling down costs big bodies most
+function climate(c) {
+  const t =
+    world.temp[cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1))] + world.tOff + TEMP.season[S.season];
+  if (t < TEMP.cold)
+    return TEMP.coldCost * Math.min(1, (TEMP.cold - t) / TEMP.cold) * clamp(1.4 - 0.6 * c.size, 0.4, 1.2);
+  if (t > TEMP.hot) return TEMP.heatCost * Math.min(1, (t - TEMP.hot) / (1 - TEMP.hot)) * c.size * c.size;
+  return 0;
+}
 // bird's-eye body: length runs along the heading (+x), width across it; taper narrows the front
 function shapePoly(c) {
   const L = c.bh,

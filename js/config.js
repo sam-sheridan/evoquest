@@ -35,6 +35,7 @@ const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1
 //   channels cutting it up; isles: 0 = solid landmasses, 1 = broken into many islands
 //   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
 //   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); food: [berry sites, algae sites]
+//   temp: added to the whole world's temperature (0 normal, - colder, + warmer)
 const WORLD_TYPES = {
   classic: {
     w: 3,
@@ -46,6 +47,7 @@ const WORLD_TYPES = {
     thicket: 0.2,
     rock: 0.1,
     wet: 0,
+    temp: 0,
     food: [375, 125],
   },
   archipelago: {
@@ -58,6 +60,7 @@ const WORLD_TYPES = {
     thicket: 0.2,
     rock: 0.06,
     wet: 0,
+    temp: 0.05,
     food: [250, 250],
   },
   supercontinent: {
@@ -70,6 +73,7 @@ const WORLD_TYPES = {
     thicket: 0.18,
     rock: 0.08,
     wet: -0.05,
+    temp: 0,
     food: [440, 60],
   },
   highlands: {
@@ -82,6 +86,7 @@ const WORLD_TYPES = {
     thicket: 0.08,
     rock: 0.28,
     wet: -0.12,
+    temp: -0.08,
     food: [375, 125],
   },
   forest: {
@@ -94,6 +99,7 @@ const WORLD_TYPES = {
     thicket: 0.45,
     rock: 0.05,
     wet: -0.04,
+    temp: 0,
     food: [400, 100],
   },
 };
@@ -103,6 +109,12 @@ const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
 const REGIONS = { strength: 1.3 };
+// temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
+// each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
+// which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
+//   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
+const TEMP = { cold: 0.3, hot: 0.8, water: 0.55, season: [0, 0.12, 0, -0.15], coldCost: 0.35, heatCost: 0.3 };
+const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
