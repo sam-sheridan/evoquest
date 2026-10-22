@@ -125,6 +125,9 @@ function anchors(c) {
   const n = Math.round(c.legs),
     f = 0.6 + 0.55 * c.hab,
     A = [];
+  // two legs sit exactly at the middle of each side
+  if (n === 2)
+    return [Math.PI / 2, 1.5 * Math.PI].map(a => [...(rayEdge(c.poly, a) || edgeAt(c.poly, a)), a]);
   for (let k = 0; k < n; k++) {
     // land legs keep to the outline's corner points (edgeAt); the more aquatic, the closer to the true edge at
     // that angle (rayEdge), which lets the front legs move back along the side

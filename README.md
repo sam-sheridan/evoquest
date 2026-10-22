@@ -73,7 +73,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Habitat** | Body trait, 0% (land) to 100% (water). Splits speed between land and water and limits how far from home ground the creature goes. |
 | **Starting shape** | Presets: **Round** (roundness 1, taper 0), **Block** (roundness 0.22, taper 0), **Peak** (roundness 0.25, taper 0.9). |
 | **Roundness, Taper** | Look traits, 0 to 1. Roundness softens corners. Taper narrows the front of the body. |
-| **Legs** | 2, 4 or 6. Fixed: never changes through evolution. Past designs saved with 8 come back with 6. |
+| **Legs** | 2, 4 or 6. Fixed: never changes through evolution. Two legs sit at the middle of each side. Past designs saved with 8 come back with 6. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body, colour, shape and legs. |
