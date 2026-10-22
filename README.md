@@ -783,9 +783,49 @@ accident.
 
 ### Ideas for later
 
+**World events**
+
+- Floods widen rivers and straits.
+
+**Water**
+
 - **Kelp beds**: the water's version of thickets. Dense patches in the shallows with the richest algae, where only
   slim swimmers fit through the gaps. Drafted in three styles (dotted, wavy strands, frond marks) and parked for
   now.
+
+**Speciation**
+
+- Better features and world variation, so that traits don't all converge on the same ideal. (World types,
+  temperature and the new habitat rules were a first step.)
+- Mouth shape or type as a big feature for evolution.
+- Fur or warmth as a feature.
+
+**Small UI changes**
+
+- Speed up the cooldown.
+- A season clock with symbols, bottom left.
+- A temperature symbol.
+
+**Creature redesign**
+
+- Squiggly legs that change between water and land.
+- An outline pattern.
+- A mouth.
+
+**Creator improvements**
+
+- The creator starts with a randomised design.
+
+**Redo the inspector**
+
+- A size measure instead of length and width.
+- Drop "narrowest side", which isn't very meaningful to players.
+
+**Bigger features**
+
+- An intro or tutorial screen.
+- Redo the achievements.
+- Control a specimen: click a creature and choose to steer it with the arrow keys.
 
 ---
 
