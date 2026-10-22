@@ -199,7 +199,7 @@ setInterval(() => {
   if (!AC || !sound) return;
   beatInit();
   const on = beatOn && S && !S.paused && !S.over && !S.replay,
-    lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * 0.16 : 0;
+    lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * BEAT_VOL : 0;
   beatBus.gain.setTargetAtTime(lvl, AC.currentTime, 0.4);
   if (lvl <= 0.001 && beatBus.gain.value < 0.002) {
     beatNext = 0;
