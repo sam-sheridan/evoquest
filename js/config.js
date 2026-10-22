@@ -128,8 +128,7 @@ const VAR = 1.6; // how much offspring traits vary from their parent (1 = base a
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
 const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
-// sea: the shallow shelf, deep water, the dashed drop-off line between them, and rivers
-const SEA_COL = { shelf: '#d6e6e4', deep: '#a9c1cc', edge: 'rgba(60,95,110,.6)', river: '#d2e0e5' };
+const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
 
 /* ---- colours ---- */
 // Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers
@@ -181,7 +180,7 @@ const SEASONS = [
 ];
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
 // regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
-const GROW = { f: [15, 5], n: [17.5, 7], s: [22, 7], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests
+const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds

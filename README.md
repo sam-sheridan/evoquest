@@ -417,9 +417,9 @@ There are two kinds of food, at fixed sites that regrow after being eaten.
 
 | Speed | Regrowth time |
 |---|---|
-| Fast | 15–20 s |
-| Normal | 17.5–24.5 s |
-| Slow | 22–29 s |
+| Fast | 16–21.5 s |
+| Normal | 19–26.5 s |
+| Slow | 23.5–31 s |
 
 In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 
@@ -718,8 +718,8 @@ species. Browsers that can't do this send sound straight to the speakers instead
 The look is a scientific **field notebook / survey map**.
 
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
-  - The sea is a pale **shallow shelf** with a dashed **drop-off line**, and darker **deep water** beyond
-    (`SEA_COL`). Land is pale with darker fertile meadows. Thickets are green with
+  - The sea is shown in four depth bands by distance from shore (`BAND`). The shallow shelf isn't drawn
+    separately, but the paler bands near coasts roughly follow it. Land is pale with darker fertile meadows. Thickets are green with
     dots, and denser dots mean narrower gaps. Rock is grey contoured plates. Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
