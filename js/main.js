@@ -225,7 +225,7 @@ function renderScene(nowT) {
     const c = S.sel;
     ctx.strokeStyle = c.dead ? '#636d69' : '#ff4f1a';
     ctx.lineWidth = 1.4 / z;
-    const r = Math.max(c.bw, c.bh) / 2 + 10;
+    const r = Math.max(c.bw, c.bh) / 2 + 10 + (c.bump || 0) * 12;
     ctx.beginPath();
     for (const [sx, sy] of [
       [-1, -1],
@@ -238,7 +238,7 @@ function renderScene(nowT) {
       ctx.lineTo(c.x + sx * (r - 4), c.y + sy * r);
     }
     ctx.stroke();
-    if (!c.dead && c.target) {
+    if (!c.dead && c.target && S.ctrl !== c) {
       ctx.setLineDash([3 / z, 3 / z]);
       ctx.strokeStyle = 'rgba(21,25,24,.5)';
       ctx.beginPath();
@@ -324,6 +324,20 @@ cv.addEventListener(
   },
   { passive: false }
 );
+// arrow keys steer a controlled creature
+const keys = { left: 0, right: 0, up: 0, down: 0 },
+  ARROWS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+addEventListener('keydown', e => {
+  if (!S || !S.ctrl || e.target.closest('input, textarea, select')) return;
+  if (!ARROWS[e.key]) return;
+  e.preventDefault();
+  keys[ARROWS[e.key]] = 1;
+  S.follow = true;
+});
+addEventListener('keyup', e => {
+  if (ARROWS[e.key]) keys[ARROWS[e.key]] = 0;
+});
+addEventListener('blur', () => Object.keys(keys).forEach(k => (keys[k] = 0)));
 function tap(sx, sy) {
   if (!S || S.replay || S.over) return;
   const p = toWorld(sx, sy);
@@ -336,7 +350,10 @@ function tap(sx, sy) {
       best = c;
     }
   }
+  // clicking a creature selects and follows it; selecting another (or none) lets go of a controlled one
+  if (S.ctrl && S.ctrl !== best) S.ctrl = null;
   S.sel = best;
+  S.follow = !!best;
   if (best) {
     selectTab('one');
     openSheet(true);

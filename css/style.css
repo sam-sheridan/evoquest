@@ -191,6 +191,12 @@ h3 {
   -webkit-mask: radial-gradient(circle, transparent 10px, #000 10.5px);
   mask: radial-gradient(circle, transparent 10px, #000 10.5px);
 }
+/* the Control button turns black while you control the creature, like the toolbar buttons */
+#ctl[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--panel);
+}
 .spdset {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

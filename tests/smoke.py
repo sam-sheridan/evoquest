@@ -79,6 +79,20 @@ with sync_playwright() as p:
     pg.click('#grab')
     pg.click('#grab')
 
+    # select a creature directly (the youngest, so it won't die of old age mid-test), take control, steer it with
+    # the arrow keys, then let go
+    sx, sy = pg.evaluate("""() => { const c = window.EvoQuestDebug.state.creatures.reduce((a, b) => (b.age < a.age ? b : a));
+        return [(c.x - cam.x) * cam.z + innerWidth / 2, (c.y - cam.y) * cam.z + innerHeight / 2]; }""")
+    pg.mouse.click(sx, sy)
+    if pg.query_selector('#ctl'):
+        pg.click('#ctl')
+        for key in ['ArrowRight', 'ArrowUp', 'ArrowLeft', 'ArrowDown']:
+            pg.keyboard.down(key)
+            time.sleep(0.2)
+            pg.keyboard.up(key)
+        if pg.query_selector('#ctl'):
+            pg.click('#ctl')
+
     # extinction -> summary -> replay -> new run on the same world -> creator from settings
     pg.evaluate("""() => { const q = window.EvoQuestDebug;
         for (const c of q.state.creatures) c.dead = 'old age'; q.step(0.05); }""")
