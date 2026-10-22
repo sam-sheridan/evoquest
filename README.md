@@ -770,7 +770,9 @@ The look is a scientific **field notebook / survey map**.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and hair-like legs round its sides.
   - Legs: tapering ink strokes, broad where they join the body and fine at the tip. Faster creatures have longer
-    legs. Land creatures' legs splay out to the sides; water creatures' legs are a little shorter and broader at
+    legs. Length barely changes with habitat: at speed 5 a leg is 7.2 units long on land, 7.0 at 50% and 6.8 in
+    water (a body is about 15 units across). Land creatures' legs splay out to the sides; water creatures' legs are
+    broader at
     the base, and swept back towards the tail. Every leg leaves the body straight out, its thick base square to the
     edge, and turns back over its first half. The more aquatic the creature, the further back along its sides its
     legs join the body (a water creature's front legs sit about level with its middle, not at the front corners), the

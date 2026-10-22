@@ -243,7 +243,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   g.strokeStyle = INK;
   if (detail) {
     const h = c.hab,
-      len = (6.5 + c.spd * 0.3) * (1 - 0.15 * h) * (swim ? 0.85 : 1),
+      len = (6.5 + c.spd * 0.3) * (0.9 - 0.05 * h) * (swim ? 0.85 : 1),
       w0 = 2.1 + 0.9 * h;
     g.fillStyle = INK;
     g.beginPath();
