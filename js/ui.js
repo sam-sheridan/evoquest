@@ -200,6 +200,8 @@ document.querySelectorAll('#sSpeed button').forEach(
     (b.onclick = () => {
       if (!S || !testUnlocked) return;
       S.speed = +b.dataset.spd;
+      // controlling only works in real time: a testing speed above 1× lets go of a controlled creature
+      if (S.speed > 1) S.ctrl = null;
       if (S.speed > 1) fast.on = false;
       syncUI(true);
     })
@@ -635,13 +637,14 @@ function syncUI() {
       el = $('#p-one'),
       // the heading and Control button are rebuilt only when they change, so the button doesn't flicker under the
       // mouse as the figures below refresh
-      key = c.id + '|' + (S.ctrl === c) + '|' + !!c.dead;
+      key = c.id + '|' + (S.ctrl === c) + '|' + !!c.dead + '|' + (S.speed > 1);
     if (el.dataset.k !== key) {
       el.dataset.k = key;
       el.innerHTML = `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div><span class="lbl">Specimen ${c.id}</span><h3 class="latin" style="font-size:17px;font-weight:500">${esc(S.genus)} ${sp.epithet}</h3></div>
-      ${c.dead ? '' : `<button class="btn" id="ctl" aria-pressed="${S.ctrl === c}">Control</button>`}</div><div id="oneBody"></div>`;
+      ${c.dead ? '' : `<button class="btn" id="ctl" aria-pressed="${S.ctrl === c}"${S.speed > 1 ? ' disabled' : ''}>Control</button>`}</div>${S.speed > 1 && !c.dead ? '<p class="hint" style="margin-top:-4px">Set the testing speed back to 1× to take control.</p>' : ''}<div id="oneBody"></div>`;
       if ($('#ctl'))
         $('#ctl').onclick = () => {
+          if (S.speed > 1) return;
           S.ctrl = S.ctrl === c ? null : c;
           S.follow = true;
           syncUI(true);
