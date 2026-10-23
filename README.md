@@ -428,9 +428,9 @@ re-plan at once.
 
 | Type | How it is made |
 |---|---|
-| **Sea** | Everything below sea level: a shallow shelf along some coasts, over offshore banks and in bays, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
+| **Sea** | Everything below sea level: a shallow shelf round every coast, wider along some stretches and over offshore banks, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
-| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees further in. |
+| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees towards the middle. |
 | **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
@@ -499,14 +499,22 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
 ### Sea depth
 
-The sea has a **shallow shelf** and **deep water** beyond it. Depth blends distance from shore (a third) with the
-sea floor's depth (two thirds, `SEA.floor`), each measured as a rank among the open sea's cells, then softened so
-it forms rounded shapes (`SEA.smooth`). So some coasts drop off steeply while others have wide shallows, and the
-shallows reach out into bays and over banks out at sea, rather than ringing every coast evenly. The shallowest
-30% of the open sea is shelf (`SEA.shelf`). Then the sea deepens over the last 24 cells before the map's oval edge
-(`SEA.margin`), so the open ocean round the map is always deep and the shelf ends up a little under 30%. Lakes
-(water not joined to the open sea) are always shallow. Depth is worked out again after every flood, drought or
-earthquake.
+The sea has a **shallow shelf** and **deep water** beyond it. Depth is measured as how far from land (px) the water
+would be on a plain coast, and the shelf ends at 110 px (`SEA.shelf`).
+
+- **Every coast** has at least the plain taper: shallowest within 30 px of land, then 64 px, then the shelf's edge
+  at 110 px.
+- **Along some stretches** the shallows reach further out, up to three times as far (`SEA.widen`, `SEA.wide`).
+- **Shallow banks** rise as separate patches out at sea, where there is room (`SEA.bank`).
+- **Each wider stretch and bank has its own shallowest depth** (`SEA.top`, `SEA.topAt`): usually only the outer
+  band, sometimes the middle band, and now and then all three. Next to the coast the plain taper stays, so a wide
+  stretch is a broad shelf beyond the normal bands.
+- **Near the map's edge**, wider stretches and banks fade away over the 14 cells inside the sea margin
+  (`SEA.edgeFade`), so the open ocean round the map is always deep.
+- **Lakes** (water not joined to the open sea) are always shallow.
+
+The shelf is roughly 18–33% of the open sea, depending on the world, about the same as before this was redesigned.
+Depth is worked out again after every flood, drought or earthquake.
 
 - **Algae** grows only on the shelf, most thickly close to shore (`SEA.algaeFade`).
 - **Deep water** costs extra energy for anything that isn't fully aquatic (see [energy](#energy)), so it is a real
@@ -576,7 +584,7 @@ in deep water when the shelf moves are wiped out: they vanish and can't be eaten
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
 waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
 take it from walkers. Likewise, 40% more of the world type's algae waits in the deep water just beyond the shelf
-(`SEA.drought`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
+(`SEA.drought`, up to 60 px past its edge, `SEA.beyond`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
 waits. Without it, a drought could take two thirds of an archipelago's algae at once.
 
 ---
@@ -912,13 +920,14 @@ species. Browsers that can't do this send sound straight to the speakers instead
 The look is a scientific **field notebook / survey map**.
 
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
-  - The sea is shown in five depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
+  - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
     line, as on a sea chart. The shelf's edge, where deep water starts, is a dashed line. The deepest colour is
     also the background beyond the map, so the map has no visible border.
   - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a small shading stroke and a faint shadow. At the edge they are small
-    scattered bushes; over the first 48 px in they grow bigger and closer together (`TREES`), until the middle is
-    packed with trees bigger than the creatures. That is where the thicket gets too tight for bigger creatures.
+    scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
+    thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
+    112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
     Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock is grey
     contoured plates. Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
