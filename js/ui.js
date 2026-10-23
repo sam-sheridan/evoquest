@@ -215,37 +215,22 @@ $('#bDoom').onclick = () => {
   $('#setPop').hidden = true;
   $('#bSet').classList.remove('on');
   S.paused = false;
-  S.doom = true;
-  S.doomT = 0;
+  S.doom = { t: 0 };
   logEv('Extinction. A shower of meteors is wiping out every species.');
   syncSettings();
   syncUI(true);
 };
-// the testing tools are locked until the password is entered (TEST_PASSWORD, or one changed here, kept in this
-// browser); once unlocked, the same box changes the password. They stay unlocked until the page is reloaded.
+// the testing tools are locked until the password (TEST_PASSWORD) is entered: a tick when it's right, and the tools
+// unlock until the page is reloaded; a cross when it's wrong
 let testUnlocked = false;
-const testPassword = () => {
-  try {
-    return localStorage.getItem('evoquest.testpw') || TEST_PASSWORD;
-  } catch (e) {
-    return TEST_PASSWORD;
-  }
-};
 $('#pwForm').onsubmit = e => {
   e.preventDefault();
-  const v = $('#sPw').value;
+  testUnlocked = $('#sPw').value === TEST_PASSWORD;
   $('#sPw').value = '';
-  if (!testUnlocked) {
-    testUnlocked = v === testPassword();
-    $('#pwMsg').textContent = testUnlocked ? 'Unlocked' : 'Wrong password';
-  } else if (v) {
-    try {
-      localStorage.setItem('evoquest.testpw', v);
-      $('#pwMsg').textContent = 'Password changed';
-    } catch (e) {
-      $('#pwMsg').textContent = "Couldn't save it in this browser";
-    }
-  }
+  $('#pwMark').className = 'pwmark ' + (testUnlocked ? 'ok' : 'no');
+  $('#pwMark').innerHTML = testUnlocked
+    ? '<svg viewBox="0 0 16 16" width="16" height="16" aria-label="Unlocked"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg viewBox="0 0 16 16" width="16" height="16" aria-label="Wrong password"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   syncSettings();
 };
 $('#bSet').onclick = e => {

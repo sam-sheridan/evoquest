@@ -243,6 +243,11 @@ function sweep(t, dur, type, f0, f1, vol) {
   o.stop(t + dur + 0.05);
 }
 const SFX = {
+  // one of Extinction's small meteors: a short low thud
+  thud: () => {
+    if (!AC || !sound) return;
+    sweep(AC.currentTime, 0.45, 'sine', 110, 32, 0.22);
+  },
   flood: m => {
     if (!AC || !sound) return;
     const t = AC.currentTime,
@@ -291,34 +296,17 @@ setInterval(() => {
   if (now - warnFrom >= warnBeeps * 1000) {
     warnBeeps++;
     // only in the run-up: no beep in the moment the event itself happens
-    if (S.nextEvent - S.t > 0.5) beep();
+    if (S.nextEvent - S.t > 0.5) tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
   }
 }, 50);
-// a held beep: quick to start, steady for WARN_BEEP.hold seconds, then a short fade
-function beep() {
-  if (!AC || !sound) return;
-  const t = AC.currentTime,
-    o = AC.createOscillator(),
-    g = AC.createGain(),
-    { f, hold, vol } = WARN_BEEP;
-  o.type = 'triangle';
-  o.frequency.setValueAtTime(f, t);
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vol, t + 0.015);
-  g.gain.setValueAtTime(vol, t + hold);
-  g.gain.linearRampToValueAtTime(0, t + hold + 0.08);
-  o.connect(g).connect(OUT);
-  o.start(t);
-  o.stop(t + hold + 0.1);
-}
+
 function syncSettings() {
   $('#sSound').setAttribute('aria-pressed', String(sound));
   // testing tools greyed out until unlocked; events also need a live run
   const live = S && !S.over && !S.replay;
   for (const b of document.querySelectorAll('#sSpeed button, #sMajor')) b.disabled = !testUnlocked;
   for (const b of document.querySelectorAll('.testev button')) b.disabled = !testUnlocked || !live;
-  $('#sPw').placeholder = testUnlocked ? 'New password' : 'Password';
-  $('#sPwGo').textContent = testUnlocked ? 'Change' : 'Unlock';
+  $('#sPw').disabled = $('#sPwGo').disabled = testUnlocked;
   if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction';
   $('#bDoom').disabled = !live || !!S.doom;
 }
