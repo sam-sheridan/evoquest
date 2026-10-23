@@ -193,8 +193,8 @@ function stone(R, x, y, r, rnd) {
 }
 // rock, drawn as angular crags: straightened outlines, the slopes split into flat faces (plain where lit from the
 // north-west, hatched in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
-// just inside the edge pointing uphill. Rock bits too small for that become clusters of stones, and a few loose
-// stones sit along the bigger rocks' edges. rf is the rock pattern (rock where it is at least w.rThr).
+// just inside the edge pointing uphill. Rock bits too small for that become clusters of stones. rf is the rock
+// pattern (rock where it is at least w.rThr).
 function rocks(w, rf) {
   const N = GW * GH,
     T = w.type,
@@ -381,7 +381,7 @@ function rocks(w, rf) {
       carry = (((carry - seg) % ROCKS.tick) + ROCKS.tick) % ROCKS.tick;
     }
   }
-  // stones: a cluster where each tiny rock bit is, and a few loose ones along the bigger rocks' edges
+  // stones: a cluster where each tiny rock bit is
   for (const list of pieces)
     if (list.length < ROCKS.minCells) {
       let sx = 0,
@@ -395,28 +395,6 @@ function rocks(w, rf) {
       for (let k = 2 + Math.min(3, list.length) + ((rnd() * 2) | 0); k > 0; k--)
         stone(R, sx + (rnd() - 0.5) * 20, sy + (rnd() - 0.5) * 16, 3 + rnd() * 3.5, rnd);
     }
-  for (const l of loops) {
-    if (Math.abs(loopArea(l)) < 4000) continue;
-    for (let k = 0; k < l.length; k++) {
-      if (rnd() > ROCKS.loose) continue;
-      const [ax, ay] = l[k],
-        [bx, by] = l[(k + 1) % l.length],
-        t = rnd(),
-        seg = Math.hypot(bx - ax, by - ay) || 1,
-        x = ax + (bx - ax) * t,
-        y = ay + (by - ay) * t;
-      let ox = -(by - ay) / seg,
-        oy = (bx - ax) / seg;
-      if (inRock(x + ox * 4, y + oy * 4)) [ox, oy] = [-ox, -oy];
-      for (let q = 2 + ((rnd() * 3) | 0); q > 0; q--) {
-        const d = 7 + rnd() * 9,
-          cx = x + ox * d + (rnd() - 0.5) * 10,
-          cy = y + oy * d + (rnd() - 0.5) * 10;
-        if (inRock(cx, cy) || !isLand(cellT(cx, cy)) || cellT(cx, cy) === 3) continue;
-        stone(R, cx, cy, 2.2 + rnd() * 2.6, rnd);
-      }
-    }
-  }
   return R;
 }
 // a scalloped tree crown: n bumps round the edge, as one closed outline
@@ -812,12 +790,14 @@ function paintRock(g, se) {
     g.fill(p);
   });
   R.tiers.forEach(p => {
-    g.fillStyle = se === 3 ? 'rgba(250,252,252,.55)' : 'rgba(255,253,248,.22)';
+    g.fillStyle = se === 3 ? 'rgba(250,252,252,.6)' : ROCKS.tier;
     g.fill(p, 'evenodd');
   });
   g.lineCap = 'round';
   g.lineJoin = 'round';
-  g.fillStyle = hatchPattern();
+  // zoomed out, the hatching's lines would be finer than the screen's pixels and show as a check pattern, so the
+  // shaded faces get a plain fill of the same overall tone instead
+  g.fillStyle = g.getTransform().a >= ROCKS.hatchFrom ? hatchPattern() : ROCKS.hatchFlat;
   g.fill(R.face[2]);
   g.strokeStyle = 'rgba(40,36,30,.55)';
   g.lineWidth = 0.9;

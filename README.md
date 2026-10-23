@@ -942,8 +942,10 @@ The look is a scientific **field notebook / survey map**.
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights, and a ring of short strokes
     just inside each edge points uphill, longer where the rock rises higher and darker on the shaded side (along the
     coast they read as sea cliffs). In winter the tiers are snow. Pieces of rock under 6 cells are drawn as a
-    cluster of small stones instead (they still block movement), and a few loose stones sit along the edges of the
-    bigger rocks. The hatching is a repeating image rather than drawn lines, so it adds nothing to Safari's limit.
+    cluster of small stones instead (they still block movement). The rock's base is a darker stone colour than the
+    plains, and the tiers lighten towards the top. The hatching is a repeating image rather than drawn lines, so it
+    adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
+    get a plain fill of the same tone instead, as the fine lines would show as a check pattern.
   - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
