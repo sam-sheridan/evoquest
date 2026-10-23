@@ -152,26 +152,55 @@
       <div class="sheet">
         <div class="brand">
           <h1>Evo<span>Quest</span></h1>
-          <p>Design a species. Release 20. The world decides the rest.</p>
-        </div>
-        <div class="cgrid">
-          <div>
-            <canvas id="pv" width="520" height="390"></canvas>
-            <div class="chips" id="pvChips"></div>
-            <p class="explain">
+          <button class="btn qbtn" id="crHelpBtn" aria-label="How it works" aria-expanded="false">?</button>
+          <div id="crHelp" class="panelx" hidden>
+            <b>How it works</b>
+            <p>
               Each creature has an energy bar. Food fills it; moving fast drains it quicker, and small bodies
               burn more than big ones. Once a creature is 15 seconds old, eating with a nearly full bar gives
               it one offspring with slightly varied traits. The more neighbours it has, the less likely it is
               to breed. Everyone lives at most 90 seconds.
             </p>
+            <p id="pvWhy"></p>
+          </div>
+        </div>
+        <div class="cgrid">
+          <div>
+            <div class="pvwrap">
+              <canvas id="pv" width="520" height="390"></canvas>
+              <button class="btn dice" id="rnd" aria-label="Randomise" title="Randomise">
+                <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+                  <path
+                    d="M16 10a6 6 0 1 1-1.8-4.3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M15.6 2.6v3.6H12"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="chips" id="pvStats"></div>
           </div>
           <div>
             <div class="field">
               <label for="fName">Species name</label
               ><input type="text" id="fName" maxlength="20" value="Blorbs" />
             </div>
+            <div class="field">
+              <span class="flabel">Colour</span>
+              <div class="hues" id="fHue"></div>
+            </div>
             <div class="group">
-              <div class="gh"><b>Body</b><small>affects survival</small></div>
+              <div class="gh"><b>Body</b></div>
               <div class="two">
                 <div class="field">
                   <label for="fW">Width<output id="oW"></output></label
@@ -202,16 +231,6 @@
                   ><input type="range" id="fR" min="0" max="1" step="0.01" />
                 </div>
               </div>
-              <p class="budget" id="budget"></p>
-            </div>
-            <div class="group">
-              <div class="gh">
-                <b>Look</b><small>no effect on survival; each new species gets its own colour</small>
-              </div>
-              <div class="field">
-                <span class="flabel">Colour</span>
-                <div class="hues" id="fHue"></div>
-              </div>
             </div>
             <div class="group">
               <div class="field">
@@ -220,8 +239,7 @@
               </div>
             </div>
             <div class="row">
-              <button class="btn primary" id="go">Release 20 specimens</button
-              ><button class="btn" id="rnd">Randomise</button>
+              <button class="btn primary" id="go">Release into the world</button>
             </div>
           </div>
         </div>

@@ -14,9 +14,6 @@ let D = {
   lt: 45,
   round: 1,
 };
-// the number released comes from START
-$('#go').textContent = `Release ${START} specimens`;
-$('.brand p').textContent = `Design a species. Release ${START}. The world decides the rest.`;
 $('#fHue').innerHTML = OKABE.map(
   ([n, hex], k) => `<button data-v="${k}" aria-label="${n}" title="${n}" style="background:${hex}"></button>`
 ).join('');
@@ -115,11 +112,66 @@ $('#fName').oninput = e => {
   D.name = e.target.value;
 };
 let pvC = null;
+// the help popup (top right): how energy, breeding and each slider work
+$('#crHelpBtn').onclick = e => {
+  e.stopPropagation();
+  const p = $('#crHelp');
+  p.hidden = !p.hidden;
+  e.currentTarget.setAttribute('aria-expanded', String(!p.hidden));
+};
+document.addEventListener('click', e => {
+  if (!$('#crHelp').hidden && !e.target.closest('#crHelp')) {
+    $('#crHelp').hidden = true;
+    $('#crHelpBtn').setAttribute('aria-expanded', 'false');
+  }
+});
 function updP() {
   document.querySelectorAll('#creator input[type=range]').forEach(r => {
     const p = (r.value - r.min) / (r.max - r.min);
     r.style.setProperty('--p', `calc(${p * 100}% - ${p * 12 - 6}px)`);
   });
+}
+// the values the creator's tags show: distances run from 0 to RANGE_CAP px (past that the limit no longer matters
+// on this map), thickets from 0 to 200 px (past that it reaches every thicket's middle)
+const RANGE_CAP = 2000;
+function tagVals(c) {
+  const cap = (d, other) => (d < CS ? 0 : other < CS ? RANGE_CAP : Math.min(RANGE_CAP, Math.round(d)));
+  return {
+    size: c.size,
+    vL: c.vL,
+    vW: c.vW,
+    dW: cap(c.dW, c.dL),
+    dL: cap(c.dL, c.dW),
+    cap: c.cap,
+    burn: moveBurn(c, c.vL),
+    nut: mouthGain(c, 'n'),
+    alg: mouthGain(c, 'w'),
+    dT: Math.min(200, Math.round(c.dT)),
+  };
+}
+// the lowest and highest value of each tag over the whole range of designs, worked out once
+let ranges = null;
+function statRanges() {
+  if (ranges) return ranges;
+  ranges = {};
+  const ends = [0, 0.5, 1],
+    sizes = [1, 2.5, 4, 5.5, 7];
+  for (const w of sizes)
+    for (const h of sizes)
+      for (const leg of ends)
+        for (const hab of [0, 0.15, 0.5, 0.85, 1])
+          for (const mth of [0, 1])
+            for (const round of ends) {
+              const c = { w, h, leg, hab, mth, round, hue: 0, sat: 100, lt: 50 };
+              enforce(c);
+              compute(c);
+              for (const [k, x] of Object.entries(tagVals(c))) {
+                const r = (ranges[k] ||= [x, x]);
+                r[0] = Math.min(r[0], x);
+                r[1] = Math.max(r[1], x);
+              }
+            }
+  return ranges;
 }
 function syncCreator() {
   $('#fHue')
@@ -143,15 +195,51 @@ function syncCreator() {
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
-  const b = moveBurn(c, c.vL);
-  $('#budget').innerHTML =
-    `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, goes ${thickTxt(c)}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
-    <br /><b>${rangeTxt(c)}.</b> Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
-    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A beak gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
-  $('#pvChips').innerHTML =
-    `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
-    <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>
-    <span class="chip">Energy ${Math.round(c.cap)} · burns ${b.toFixed(2)}/s</span><span class="chip">Reach ${c.reach.toFixed(0)} px</span>`;
+  const v = tagVals(c),
+    R = statRanges(),
+    // each tag is filled like a bar: how far its value sits between the lowest and highest any design can have.
+    // It is as wide as its longest possible text (fmt at either end of the range, or every alternative), so tags
+    // don't change size as values gain or lose digits
+    tag = (k, fmt, alts) => {
+      const r = R[k],
+        // energy burnt spans a few extreme designs far above the rest, so it is measured on a log scale
+        f = !r
+          ? 0
+          : k === 'burn'
+            ? clamp(Math.log(v[k] / r[0]) / Math.log(r[1] / r[0]), 0, 1)
+            : clamp((v[k] - r[0]) / (r[1] - r[0] || 1), 0, 1),
+        t = r ? fmt(v[k]) : fmt,
+        w = Math.max(...(r ? [fmt(r[0]), fmt(r[1]), t] : alts).map(x => x.length));
+      return `<span class="chip" style="--f:${(f * 100).toFixed(1)}%;width:calc(${w}ch + 16px)">${t}</span>`;
+    };
+  const px = x => Math.round(x);
+  // in four rows: body, getting about, energy and food, then thickets and rivers
+  $('#pvStats').innerHTML = [
+    [
+      tag('size', x => `Size ${x.toFixed(2)}`),
+      tag(null, `${c.legs} legs`, ['4 legs', '6 legs']),
+      tag('vL', x => `Land ${px(x)} px/s`),
+      tag('vW', x => `Water ${px(x)} px/s`),
+    ],
+    [tag('dW', x => `Swims out ${x} px`), tag('dL', x => `Walks inland ${x} px`)],
+    [
+      tag('cap', x => `Energy ${px(x)}`),
+      tag('burn', x => `Burns ${x.toFixed(2)}/s`),
+      tag('nut', x => `Nuts ×${x.toFixed(2)}`),
+      tag('alg', x => `Algae ×${x.toFixed(2)}`),
+    ],
+    [
+      tag('dT', x => `${x} px into thickets`),
+      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers', [
+        'Crosses rivers',
+        'Blocked by rivers',
+      ]),
+    ],
+  ]
+    .map(r => `<div class="chiprow">${r.join('')}</div>`)
+    .join('');
+  $('#pvWhy').innerHTML =
+    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();
 }
 function drawPreview(t) {
@@ -183,21 +271,16 @@ function drawPreview(t) {
   g.strokeStyle = INK;
   g.lineWidth = 1;
   g.beginPath();
-  g.moveTo(40, 340);
-  g.lineTo(40 + 10 * k, 340);
-  g.moveTo(40, 335);
-  g.lineTo(40, 345);
-  g.moveTo(40 + 10 * k, 335);
-  g.lineTo(40 + 10 * k, 345);
+  g.moveTo(40, 358);
+  g.lineTo(40 + 10 * k, 358);
+  g.moveTo(40, 353);
+  g.lineTo(40, 363);
+  g.moveTo(40 + 10 * k, 353);
+  g.lineTo(40 + 10 * k, 363);
   g.stroke();
   g.fillStyle = INK;
   g.font = '12px "IBM Plex Mono", monospace';
-  g.fillText('10 px', 40, 360);
-  g.fillText(
-    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · size ${pvC.size.toFixed(2)} · goes ${thickTxt(pvC)}`,
-    40,
-    378
-  );
+  g.fillText('10 px', 40, 378);
 }
 function openCreator(seed, design) {
   if (design && design.w !== undefined && design.sat !== undefined)

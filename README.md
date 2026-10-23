@@ -77,25 +77,36 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
 | **Legs** | Body trait, short to long (0–100%). Longer legs walk faster but swim slower. Moving fast burns much more energy, so long legs aren't free. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
-| **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the line under the sliders gives how much it gets from each. |
+| **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the stats under the preview give how much it gets from each. |
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
-| **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
+| **Colour** | Under the name. One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
-| **Release 20 specimens** | Starts the run. |
+| **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
+| **Release into the world** | Starts the run, releasing 20 creatures (`START`). |
 
-The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few seconds it acts out eating, so
-you can see its mouth snap. It also shows the body in pixels, its size and how far into thickets it can go. The line
-under the sliders gives its size, number of legs, range and what its mouth gets from each food. The **chips** under
-the preview show:
+The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few
+seconds it acts out eating, so you can see its mouth snap. There is no text beside the headings or under the
+sliders. Under the preview, **tags** list every stat the sliders change, in four rows:
 
-- land speed and water speed in px/s
-- whether it can cross rivers
-- energy capacity and how fast it burns energy while walking
-- reach (how close it must get to food to eat it)
+1. Size, number of legs, land speed and water speed (px/s).
+2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
+   2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
+3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
+   worth).
+4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it crosses rivers.
+
+Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
+design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
+scale, since a few extreme designs burn far more than the rest. Legs and rivers are either/or, so their tags have
+no fill. Each tag is as wide as its longest possible text, so tags don't change size as values gain or lose
+digits.
+
+The round **?** button at the top right opens *How it works*: energy, breeding and lifespan, then how each slider trades
+one thing against another. Click anywhere else to close it.
 
 The creator **starts randomised**: every time it opens, it is as if *Randomise* had been pressed, including a new
-name. The only exception is **Revisit world** on a past lineage, which brings back that run's design.
+name. The exceptions are **Retry world** and **New world** on the end screen, which bring back the design that
+just died, and **Revisit world** on a past lineage, which brings back that run's design.
 
 **Past lineages** appear under the creator once you have finished a run, with a "Revisit world" button for
 each.
