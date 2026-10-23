@@ -100,10 +100,52 @@
     }
     g.putImageData(img, 0, 0);
     C.shadeImg = can;
+    // fertility, softened, for the blended meadow / dry-ground wash
+    let f = new Float32Array(N);
+    for (let i = 0; i < N; i++) f[i] = fz(i);
+    for (let k = 0; k < 2; k++) f = soften(f);
+    C.fert = f;
+    C.washes = {};
+  }
+  // meadows (fertile) and dry ground (poor) as one image, one pixel per cell, scaled up smoothly so they fade into
+  // each other; middling ground stays the plain land colour
+  const SEAWASH = [
+    [[150, 190, 110, 0.36], [222, 200, 140, 0.32]],
+    [[160, 190, 110, 0.26], [228, 196, 110, 0.36]],
+    [[185, 175, 110, 0.3], [220, 190, 130, 0.32]],
+    [[160, 180, 150, 0.22], [215, 210, 195, 0.28]],
+  ];
+  function wash(se) {
+    if (C.washes[se]) return C.washes[se];
+    const can = document.createElement('canvas');
+    can.width = GW;
+    can.height = GH;
+    const g = can.getContext('2d'),
+      img = g.createImageData(GW, GH),
+      d = img.data,
+      [gr, dr] = SEAWASH[se];
+    for (let i = 0; i < GW * GH; i++) {
+      const v = C.fert[i],
+        m = clamp((v - 0.5) / 0.3, 0, 1),
+        p = clamp((0.45 - v) / 0.3, 0, 1),
+        c = m > 0 ? gr : dr,
+        a = (m > 0 ? m : p) * c[3],
+        k = i * 4;
+      [d[k], d[k + 1], d[k + 2], d[k + 3]] = [c[0], c[1], c[2], 255 * a];
+    }
+    g.putImageData(img, 0, 0);
+    return (C.washes[se] = can);
   }
   const orig = paintTerrain;
   window.paintTerrain = function (g) {
-    orig(g);
+    const V0 = world.vec,
+      keep = [V0.mead, V0.dry];
+    V0.mead = V0.dry = new Path2D();
+    try {
+      orig(g);
+    } finally {
+      [V0.mead, V0.dry] = keep;
+    }
     prep();
     const V = world.vec,
       se = typeof S !== 'undefined' && S ? S.season : 0,
@@ -125,10 +167,8 @@
     }
     out(V.thick);
     // 1: stronger meadows and dry ground (dry shows in every season, strongest in summer)
-    g.fillStyle = ['rgba(150,190,110,.32)', 'rgba(160,190,110,.22)', 'rgba(185,175,110,.28)', 'rgba(160,180,150,.2)'][se];
-    g.fill(V.mead);
-    g.fillStyle = ['rgba(222,200,140,.28)', 'rgba(228,196,110,.3)', 'rgba(220,190,130,.3)', 'rgba(215,210,195,.25)'][se];
-    g.fill(V.dry);
+    g.imageSmoothingEnabled = true;
+    g.drawImage(wash(se), 0, 0, W, H);
     // 3: tufts
     g.lineCap = 'round';
     g.strokeStyle = 'rgba(60,90,45,.7)';
