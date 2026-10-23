@@ -937,7 +937,9 @@ The look is a scientific **field notebook / survey map**.
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
     thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
     112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
-    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind.
+    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock blocks
+    thickets: no tree stands where its crown would reach onto rock, and any crown edge that still overlaps is cut
+    off where the rock begins. (When the world is built, ground that is both thicket and rock becomes thicket.)
   - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
     slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least

@@ -429,7 +429,8 @@ function patchMiddles(w) {
 }
 // thicket trees: small bushes scattered at the edge, big trees packed in the middle, where only smaller creatures
 // can go. They are grouped into rows 8 px tall, drawn from the top down, so nearer crowns hide the ones behind
-function trees(w) {
+function trees(w, rock) {
+  const onRock = document.createElement('canvas').getContext('2d');
   const r = mulberry32(w.seed ^ 0x7ee5),
     T = w.type,
     list = [],
@@ -447,7 +448,15 @@ function trees(w) {
       const x = x0 + r() * CS,
         y = y0 + r() * CS;
       if (T[cellI(x, y)] !== 2) continue;
-      list.push({ x, y, r: TREES.r[0] + (TREES.r[1] - TREES.r[0]) * k + r() * TREES.jitter, a: r() * TAU });
+      const rr = TREES.r[0] + (TREES.r[1] - TREES.r[0]) * k + r() * TREES.jitter;
+      // rock blocks thickets: no tree whose crown would reach onto rock
+      if (
+        [0, 1, 2, 3, 4, 5].some(q =>
+          onRock.isPointInPath(rock, x + Math.cos(q) * rr, y + Math.sin(q) * rr, 'evenodd')
+        )
+      )
+        continue;
+      list.push({ x, y, r: rr, a: r() * TAU });
     }
   }
   list.sort((a, b) => a.y - b.y);
@@ -520,7 +529,6 @@ function renderTerrain() {
     true,
     false
   ).fill;
-  V.trees = trees(w);
   let rMax = w.rThr;
   for (let i = 0; i < N; i++) if (T[i] === 3 && w.rck[i] > rMax) rMax = w.rck[i];
   // elevation used for contours: in 'steep' mode rocks rise sharply out of the land, so contour lines bunch around them
@@ -590,6 +598,7 @@ function renderTerrain() {
     return rf0(i);
   };
   V.rock = rocks(w, sm(rf));
+  V.trees = trees(w, V.rock.outline);
   // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
   V.contB = new Path2D();
@@ -802,8 +811,13 @@ function paintRock(g, se) {
 }
 // thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {
-  const se = typeof S !== 'undefined' && S ? S.season : 0;
+  const se = typeof S !== 'undefined' && S ? S.season : 0,
+    keepOut = new Path2D();
+  // anything still overlapping rock is cut off where the rock begins
+  keepOut.rect(-W, -H, 3 * W, 3 * H);
+  keepOut.addPath(world.vec.rock.outline);
   g.save();
+  g.clip(keepOut, 'evenodd');
   g.lineJoin = 'round';
   g.strokeStyle = '#34502b';
   g.lineWidth = 0.75;
