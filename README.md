@@ -500,7 +500,7 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 ### Sea depth
 
 The sea has a **shallow shelf** and **deep water** beyond it, and the map draws exactly what the game uses: the
-three pale bands round the coasts are the shelf, and its edge, where deep water starts, is the dashed line.
+three pale bands round the coasts are the shelf, and the edge of the outer band is where deep water starts.
 (Before the map redesign the shelf was worked out separately and never drawn, and the bands were a fixed width.)
 
 - **Every coast** has a tapering shelf as wide as the nearest 30% of the world's open sea at the start
@@ -511,7 +511,10 @@ three pale bands round the coasts are the shelf, and its edge, where deep water 
 - **Shallow banks** rise as separate patches out at sea, where there is room (`SEA.bank`).
 - **Each wider stretch and bank has its own shallowest depth** (`SEA.top`, `SEA.topAt`): usually only the outer
   band, sometimes the middle band, and now and then all three. Next to the coast the plain taper stays, so a wide
-  stretch is a broad shelf beyond the normal bands.
+  stretch is a broad shelf beyond the normal bands. They settle in the middle of a band, never on its edge, which
+  would give ragged outlines.
+- **Smooth shapes.** The whole depth pattern is softened 5 times (`SEA.smooth`), so every band has smooth curves
+  and the stretches and banks join the coastal shelf naturally.
 - **Near the map's edge**, wider stretches and banks fade away over the 14 cells inside the sea margin
   (`SEA.edgeFade`), and within the margin itself even a plain shelf runs out, so the open ocean round the map is
   always deep.
@@ -925,10 +928,10 @@ The look is a scientific **field notebook / survey map**.
 
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
-    line, as on a sea chart. The shelf's edge, where deep water starts, is a dashed line. The deepest colour is
+    line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
     also the background beyond the map, so the map has no visible border.
   - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
-    top, each a bumpy crown outline with a small shading stroke and a faint shadow. At the edge they are small
+    top, each a bumpy crown outline with a faint shadow. Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
     thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
     112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
@@ -946,10 +949,10 @@ The look is a scientific **field notebook / survey map**.
     pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
     holds too many detailed shapes.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
-  out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
+  out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). From a mid zoom inwards (`DETAIL`: 0.65 screen pixels per world px), the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
-  map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the trees (which
-  are slightly see-through), mid-zoom included.
+  map at full sharpness, so the map doesn't go blurry. From that zoom inwards, creatures stay under the trees,
+  which are partly see-through (`TREES.alpha`), so creatures and food show through them.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so

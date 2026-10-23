@@ -162,9 +162,15 @@ function trees(w) {
     const y8 = Math.floor(t.y / 8);
     if (!row || row.y8 !== y8) rows.push((row = { y8, crowns: new Path2D(), shade: new Path2D() }));
     crown(row.crowns, t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
-    // a shading stroke inside the crown's lower right, and a soft shadow on the ground
-    row.shade.moveTo(t.x + Math.cos(0.1) * t.r * 0.62, t.y + Math.sin(0.1) * t.r * 0.62);
-    row.shade.arc(t.x, t.y, t.r * 0.62, 0.1, 1.5);
+    // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
+    // the ground
+    if (r() > TREES.plain) {
+      const a = r() * TAU,
+        len = 0.7 + r() * 1.1,
+        rr = t.r * (0.5 + r() * 0.2);
+      row.shade.moveTo(t.x + Math.cos(a) * rr, t.y + Math.sin(a) * rr);
+      row.shade.arc(t.x, t.y, rr, a, a + len);
+    }
     shadow.moveTo(t.x + t.r * 1.45, t.y + t.r * 0.4);
     shadow.arc(t.x + t.r * 0.35, t.y + t.r * 0.4, t.r * 1.1, 0, TAU);
   }
@@ -362,13 +368,7 @@ function paintTerrain(g) {
   g.fill(V.river);
   g.strokeStyle = 'rgba(77,115,133,.35)';
   g.lineWidth = 0.7;
-  V.bands.forEach((b, k) => k < V.bands.length - 1 && g.stroke(b.line));
-  g.save();
-  g.setLineDash([5, 3.5]);
-  g.strokeStyle = 'rgba(60,98,118,.65)';
-  g.lineWidth = 0.9;
-  g.stroke(V.bands[V.bands.length - 1].line);
-  g.restore();
+  for (const b of V.bands) g.stroke(b.line);
   g.fillStyle = '#e9ecde';
   g.fill(V.land);
   const se = typeof S !== 'undefined' && S ? S.season : 0;
@@ -451,7 +451,7 @@ function paintStipple(g) {
   g.lineWidth = 0.75;
   g.fillStyle = ['#cfe0b8', '#c9dcae', '#d6d4a0', '#cfd8c6'][se];
   for (const row of world.vec.trees.rows) {
-    g.globalAlpha = 0.82;
+    g.globalAlpha = TREES.alpha;
     g.fill(row.crowns);
     g.globalAlpha = 1;
     g.stroke(row.crowns);

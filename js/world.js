@@ -448,6 +448,25 @@ function openSea(T) {
   }
   return sea;
 }
+// each cell becomes the average of itself and its neighbours, which softens a field's shapes
+function soften(a) {
+  const b = new Float32Array(a.length);
+  for (let y = 0; y < GH; y++)
+    for (let x = 0; x < GW; x++) {
+      let s = 0,
+        n = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx,
+            yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;
+          s += a[yy * GW + xx];
+          n++;
+        }
+      b[y * GW + x] = s / n;
+    }
+  return b;
+}
 function distPoly(px, py, pts) {
   let m = 1e9;
   for (let k = 0; k < pts.length - 1; k++) {
@@ -677,22 +696,29 @@ function buildTerrain(skipDraw) {
       w.seaN[2][i] = top(u, v);
     }
   }
+  let raw = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!open[i]) continue;
+    const fade = clamp((edgeDist(i % GW, (i / GW) | 0) - EDGE) / SEA.edgeFade, 0, 1),
+      n = clamp((w.seaN[0][i] - SEA.wide[0]) / (SEA.wide[1] - SEA.wide[0]), 0, 1),
+      // how shallow the wider stretches and banks get here: the middle of the outer band usually, of the middle band
+      // sometimes, and of the shallowest band now and then (never on a band's edge, which would make ragged outlines)
+      p = w.seaN[2][i],
+      top = SEA.top[p < SEA.topAt[0] ? 0 : p < SEA.topAt[1] ? 1 : 2],
+      plain = w.dLand[i] / w.shelfPx,
+      coast = Math.max(plain / (1 + SEA.widen * n * n * (3 - 2 * n) * fade), Math.min(plain, top)),
+      bank = Math.max(top, Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1]);
+    raw[i] = Math.min(coast, bank, 3);
+  }
+  // softened, so the shapes have smooth curves and join naturally (land counts as depth 0, so coasts stay shallow)
+  for (let k = 0; k < SEA.smooth; k++) raw = soften(raw);
   w.depth = new Float32Array(N);
   w.deep = new Uint8Array(N);
   for (let i = 0; i < N; i++) {
     if (w.type[i] !== 0) continue;
-    const e = edgeDist(i % GW, (i / GW) | 0),
-      fade = clamp((e - EDGE) / SEA.edgeFade, 0, 1),
-      n = clamp((w.seaN[0][i] - SEA.wide[0]) / (SEA.wide[1] - SEA.wide[0]), 0, 1),
-      // how shallow the wider stretches and banks get here: usually only the outer band, sometimes shallower
-      t = clamp((w.seaN[2][i] - SEA.topAt[0]) / (SEA.topAt[1] - SEA.topAt[0]), 0, 1),
-      top = SEA.top[0] + (SEA.top[1] - SEA.top[0]) * t,
-      plain = w.dLand[i] / w.shelfPx,
-      coast = Math.max(plain / (1 + SEA.widen * n * n * (3 - 2 * n) * fade), Math.min(plain, top)),
-      bank = Math.max(top, Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1]),
-      // within the map's sea margin, even a plain shelf runs out into deep water
-      edge = 2 * clamp(1 - e / EDGE, 0, 1);
-    w.depth[i] = open[i] ? Math.max(Math.min(coast, bank), edge) : Math.min(plain, 0.99);
+    // within the map's sea margin, even a plain shelf runs out into deep water
+    const edge = 2 * clamp(1 - edgeDist(i % GW, (i / GW) | 0) / EDGE, 0, 1);
+    w.depth[i] = open[i] ? Math.max(raw[i], edge) : Math.min(w.dLand[i] / w.shelfPx, 0.99);
     w.deep[i] = w.depth[i] > 1 ? 1 : 0;
   }
   for (let i = 0; i < N; i++) {

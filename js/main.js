@@ -50,7 +50,7 @@ function updScale() {
 }
 function drawDetail() {
   const z = cam.z;
-  if (z * dpr <= TS * 1.05) return false;
+  if (z * dpr <= DETAIL) return false;
   const d = detail,
     now = performance.now();
   const same = d.ok && Math.abs(d.z - z) / z < 0.002,
@@ -132,7 +132,7 @@ function renderScene(nowT) {
   ctx.imageSmoothingEnabled = true;
   const loMode = z * dpr <= LO * 1.08,
     det = loMode ? null : drawDetail(),
-    zoomedIn = z * dpr > TS * 1.05,
+    zoomedIn = z * dpr > DETAIL,
     // while zooming or panning, stretch the last sharp detail image instead of showing only the softer base map
     stale = zoomedIn && !det && detail.ok ? detailRect(detail) : null;
   if (loMode) ctx.drawImage(tlo, 0, 0, W, H);
