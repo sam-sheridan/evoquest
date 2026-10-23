@@ -81,7 +81,7 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
 | **Colour** | Under the name. One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | The dice button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
+| **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
 | **Release into the world** | Starts the run, releasing 20 creatures (`START`). |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar and the body's size in pixels. Every few
@@ -99,9 +99,10 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
 design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
 scale, since a few extreme designs burn far more than the rest. Legs and rivers are either/or, so their tags have
-no fill.
+no fill. Each tag is as wide as its longest possible text, so tags don't change size as values gain or lose
+digits.
 
-The **?** button at the top right opens *How it works*: energy, breeding and lifespan, then how each slider trades
+The round **?** button at the top right opens *How it works*: energy, breeding and lifespan, then how each slider trades
 one thing against another. Click anywhere else to close it.
 
 The creator **starts randomised**: every time it opens, it is as if *Randomise* had been pressed, including a new

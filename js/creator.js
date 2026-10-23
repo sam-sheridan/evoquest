@@ -198,38 +198,47 @@ function syncCreator() {
   pvC = c;
   const v = tagVals(c),
     R = statRanges(),
-    // each tag is filled like a bar: how far its value sits between the lowest and highest any design can have
-    tag = (k, t) => {
-      // energy burnt spans a few extreme designs far above the rest, so it is measured on a log scale
-      const f = !R[k]
-        ? 0
-        : k === 'burn'
-          ? clamp(Math.log(v[k] / R[k][0]) / Math.log(R[k][1] / R[k][0]), 0, 1)
-          : clamp((v[k] - R[k][0]) / (R[k][1] - R[k][0] || 1), 0, 1);
-      return `<span class="chip" style="--f:${(f * 100).toFixed(1)}%">${t}</span>`;
+    // each tag is filled like a bar: how far its value sits between the lowest and highest any design can have.
+    // It is as wide as its longest possible text (fmt at either end of the range, or every alternative), so tags
+    // don't change size as values gain or lose digits
+    tag = (k, fmt, alts) => {
+      const r = R[k],
+        // energy burnt spans a few extreme designs far above the rest, so it is measured on a log scale
+        f = !r
+          ? 0
+          : k === 'burn'
+            ? clamp(Math.log(v[k] / r[0]) / Math.log(r[1] / r[0]), 0, 1)
+            : clamp((v[k] - r[0]) / (r[1] - r[0] || 1), 0, 1),
+        t = r ? fmt(v[k]) : fmt,
+        w = Math.max(...(r ? [fmt(r[0]), fmt(r[1]), t] : alts).map(x => x.length));
+      return `<span class="chip" style="--f:${(f * 100).toFixed(1)}%;width:calc(${w}ch + 16px)">${t}</span>`;
     };
+  const px = x => Math.round(x);
   // in four rows: body, getting about, energy and food, then thickets and rivers
   $('#pvStats').innerHTML = [
     [
-      tag('size', `Size ${c.size.toFixed(2)}`),
-      tag(null, `${c.legs} legs`),
-      tag('vL', `Land ${Math.round(c.vL)} px/s`),
-      tag('vW', `Water ${Math.round(c.vW)} px/s`),
+      tag('size', x => `Size ${x.toFixed(2)}`),
+      tag(null, `${c.legs} legs`, ['4 legs', '6 legs']),
+      tag('vL', x => `Land ${px(x)} px/s`),
+      tag('vW', x => `Water ${px(x)} px/s`),
     ],
     [
-      tag('reach', `Reach ${c.reach.toFixed(0)} px`),
-      tag('dW', `Swims out ${v.dW} px`),
-      tag('dL', `Walks inland ${v.dL} px`),
+      tag('reach', x => `Reach ${px(x)} px`),
+      tag('dW', x => `Swims out ${x} px`),
+      tag('dL', x => `Walks inland ${x} px`),
     ],
     [
-      tag('cap', `Energy ${Math.round(c.cap)}`),
-      tag('burn', `Burns ${v.burn.toFixed(2)}/s`),
-      tag('nut', `Nuts ×${v.nut.toFixed(2)}`),
-      tag('alg', `Algae ×${v.alg.toFixed(2)}`),
+      tag('cap', x => `Energy ${px(x)}`),
+      tag('burn', x => `Burns ${x.toFixed(2)}/s`),
+      tag('nut', x => `Nuts ×${x.toFixed(2)}`),
+      tag('alg', x => `Algae ×${x.toFixed(2)}`),
     ],
     [
-      tag('dT', `${v.dT} px into thickets`),
-      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'),
+      tag('dT', x => `${x} px into thickets`),
+      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers', [
+        'Crosses rivers',
+        'Blocked by rivers',
+      ]),
     ],
   ]
     .map(r => `<div class="chiprow">${r.join('')}</div>`)
