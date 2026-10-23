@@ -454,7 +454,8 @@ noticeably fewer.
 **Lakes** (`lakes` in `WORLD_TYPES`, and `LAKES`): each world carves lake basins into its land, at least 5 cells from
 the coast, 4 to 10 cells across with wobbly shores: 2–4 on classic and forest worlds, 3–6 on supercontinents, 4–7 on
 highlands (a lake district) and 0–1 on archipelagos, which have water enough. Basins that touch become one bigger
-lake. Their floors are only a little below the starting sea level, so a big drought can drain the shallow ones and a
+lake. The land slopes gently down to each lake over its last 6 cells (`LAKES.shore`, `LAKES.slope`), so a lake sits
+in a hollow with a smooth shoreline, not in a steep-sided pit. Their floors are only a little below the starting sea level, so a big drought can drain the shallow ones and a
 flood spreads them. Low wetlands still hold a few small lakes of their own. Lakes are water like the sea, always
 shallow, so the same rules apply: land creatures keep out, and a water creature in a lake that can't leave water is
 cut off there, which can lead to a new species.

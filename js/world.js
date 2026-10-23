@@ -208,13 +208,20 @@ function genWorld(seed, att = 0) {
       p2 = rl() * TAU,
       cx = c % GW,
       cy = (c / GW) | 0;
-    const span = Math.ceil(r * 1.4);
+    // the floor slopes down from the shore to the lake's depth, and the land round it slopes gently down to the
+    // shore, so the lake sits in a hollow with a smooth shoreline rather than in a steep-sided pit
+    const span = Math.ceil(r * 1.4 + LAKES.shore);
     for (let y = Math.max(0, cy - span); y < Math.min(GH, cy + span); y++)
       for (let x = Math.max(0, cx - span); x < Math.min(GW, cx + span); x++) {
         const a = Math.atan2(y - cy, x - cx),
-          d =
-            Math.hypot(x - cx, y - cy) / (r * (1 + 0.22 * Math.sin(3 * a + p1) + 0.1 * Math.sin(5 * a + p2)));
-        if (d < 1) hgt[y * GW + x] = Math.min(hgt[y * GW + x], lvl0 - 0.004 - deep * (1 - d * d));
+          sd =
+            Math.hypot(x - cx, y - cy) - r * (1 + 0.22 * Math.sin(3 * a + p1) + 0.1 * Math.sin(5 * a + p2)),
+          i = y * GW + x;
+        if (sd < 0) hgt[i] = Math.min(hgt[i], lvl0 - Math.min(-sd * LAKES.slope, 0.004 + deep));
+        else if (sd < LAKES.shore) {
+          const f = 1 - sd / LAKES.shore;
+          hgt[i] -= Math.max(0, hgt[i] - lvl0 - sd * LAKES.slope) * f * f * (3 - 2 * f);
+        }
       }
     n++;
   }

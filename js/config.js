@@ -133,8 +133,18 @@ const WORLD_TYPES = {
 // their floors depth below the starting sea level [shallowest, random extra], so a big drought can drain the shallow
 // ones and a flood can spread them. algae: algae sites per lake cell, on top of the world type's algae. flood: share
 // of the world type's algae that waits, dormant, on low land a big flood would drown, growing once it does.
-// crater: algae sites that start in each new crater's lake
-const LAKES = { inland: 5, r: [4, 6], depth: [0.03, 0.08], algae: 0.08, flood: 0.3, crater: 3 };
+// crater: algae sites that start in each new crater's lake. slope: how much the ground falls per cell towards a lake's
+// shore, and the floor per cell below it; shore: how many cells out from the shore the land slopes down to it
+const LAKES = {
+  inland: 5,
+  r: [4, 6],
+  depth: [0.03, 0.08],
+  algae: 0.08,
+  flood: 0.3,
+  crater: 3,
+  slope: 0.015,
+  shore: 6,
+};
 // overall shape of the land, rolled separately from the type (relative weights): oval as before, lagoon (land in a
 // ring around a central sea) or crescent (land curving round a big bay)
 const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };
