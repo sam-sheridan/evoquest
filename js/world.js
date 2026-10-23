@@ -579,6 +579,34 @@ function buildTerrain(skipDraw) {
         else if (ls > 0) w.type[i] = 4;
         else if (d < R && w.type[i] === 3) w.type[i] = 1;
       }
+  // no tiny rock: a piece of rock smaller than ROCKS.minCells becomes open ground (or thicket, where thicket grows)
+  {
+    const seen = new Uint8Array(N);
+    for (let s = 0; s < N; s++) {
+      if (w.type[s] !== 3 || seen[s]) continue;
+      const list = [s];
+      seen[s] = 1;
+      for (let q = 0; q < list.length; q++) {
+        const j = list[q],
+          x = j % GW,
+          y = (j / GW) | 0;
+        for (const [dx, dy] of [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+        ]) {
+          const xx = x + dx,
+            yy = y + dy,
+            k = yy * GW + xx;
+          if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || seen[k] || w.type[k] !== 3) continue;
+          seen[k] = 1;
+          list.push(k);
+        }
+      }
+      if (list.length < ROCKS.minCells) for (const j of list) w.type[j] = w.thk[j] >= w.tThr ? 2 : 1;
+    }
+  }
   w.comp.fill(-1);
   const sizes = [];
   let id = 0;

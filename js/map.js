@@ -176,25 +176,9 @@ function addLoop(path, p) {
   for (const q of p) path.lineTo(...q);
   path.closePath();
 }
-// a small angular stone: its outline, and its shaded south-east part
-function stone(R, x, y, r, rnd) {
-  const n = 5 + ((rnd() * 2) | 0),
-    a0 = rnd() * TAU,
-    pts = [];
-  for (let k = 0; k < n; k++) {
-    const a = a0 + (k / n) * TAU,
-      rr = r * (0.75 + rnd() * 0.4);
-    pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.85]);
-  }
-  addLoop(R.stone, pts);
-  R.stoneD.moveTo(x, y);
-  for (const [px, py] of pts) if (px - x + (py - y) > -r * 0.2) R.stoneD.lineTo(px, py);
-  R.stoneD.closePath();
-}
 // rock, drawn as angular crags: straightened outlines, the slopes split into flat faces (plain where lit from the
 // north-west, hatched in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
-// just inside the edge pointing uphill. Rock bits too small for that become clusters of stones. rf is the rock
-// pattern (rock where it is at least w.rThr).
+// just inside the edge pointing uphill. rf is the rock pattern (rock where it is at least w.rThr).
 function rocks(w, rf) {
   const N = GW * GH,
     T = w.type,
@@ -207,8 +191,6 @@ function rocks(w, rf) {
       tiers: ROCKS.tiers.map(() => new Path2D()),
       tick: new Path2D(),
       tickD: new Path2D(),
-      stone: new Path2D(),
-      stoneD: new Path2D(),
     };
   // separate pieces of rock, and which are too small to draw as crags
   const comp = new Int32Array(N).fill(-1),
@@ -237,8 +219,8 @@ function rocks(w, rf) {
     }
     pieces.push(list);
   }
-  const small = i => T[i] === 3 && pieces[comp[i]].length < ROCKS.minCells,
-    big = i => T[i] === 3 && !small(i),
+  // (pieces too small to draw were already turned into open ground when the world was built)
+  const big = i => T[i] === 3,
     // water next to rock counts as rock, so the outline runs out past the coast and is cut by the smooth coastline
     wet = i => {
       if (!isWater(T[i])) return false;
@@ -252,7 +234,7 @@ function rocks(w, rf) {
         }
       return false;
     },
-    fv = i => (small(i) ? thr - 0.01 : wet(i) ? Math.max(rf(i), thr + 0.002) : rf(i));
+    fv = i => (big(i) ? rf(i) : wet(i) ? Math.max(rf(i), thr + 0.002) : Math.min(rf(i), thr - 0.002));
   for (const l of traceLoops(fv, thr)) {
     const p = straightenLoop(l, ROCKS.straight);
     if (p.length >= 3 && Math.abs(loopArea(p)) > 120) addLoop(R.outline, p);
@@ -269,7 +251,6 @@ function rocks(w, rf) {
   // every rock gets some height: each piece is lifted so its peak reaches at least ROCKS.minPeak, while taller
   // ranges keep their lead
   for (const list of pieces) {
-    if (list.length < ROCKS.minCells) continue;
     let peak = 1e-6;
     for (const i of list) peak = Math.max(peak, h[i]);
     const k = (ROCKS.minPeak + (1 - ROCKS.minPeak) * peak) / peak;
@@ -390,20 +371,6 @@ function rocks(w, rf) {
       carry = (((carry - seg) % ROCKS.tick) + ROCKS.tick) % ROCKS.tick;
     }
   }
-  // stones: a cluster where each tiny rock bit is
-  for (const list of pieces)
-    if (list.length < ROCKS.minCells) {
-      let sx = 0,
-        sy = 0;
-      for (const i of list) {
-        sx += (i % GW) + 0.5;
-        sy += ((i / GW) | 0) + 0.5;
-      }
-      sx = (sx / list.length) * CS;
-      sy = (sy / list.length) * CS;
-      for (let k = 2 + Math.min(3, list.length) + ((rnd() * 2) | 0); k > 0; k--)
-        stone(R, sx + (rnd() - 0.5) * 20, sy + (rnd() - 0.5) * 16, 3 + rnd() * 3.5, rnd);
-    }
   return R;
 }
 // a scalloped tree crown: n bumps round the edge, as one closed outline
@@ -787,7 +754,7 @@ function hatchPattern() {
   return hatchTile;
 }
 // rock: faces, hatching, tiers and ridges inside the straightened outline (cut off at the coast), then the
-// outline, the skirt of strokes and the stones. In winter the upper tiers are snow
+// outline and the skirt of strokes. In winter the upper tiers are snow
 function paintRock(g, se) {
   const R = world.vec.rock;
   g.save();
@@ -825,14 +792,6 @@ function paintRock(g, se) {
   g.lineJoin = 'miter';
   g.stroke(R.outline);
   g.restore();
-  g.fillStyle = '#d9d2c4';
-  g.fill(R.stone);
-  g.fillStyle = '#a79d8b';
-  g.fill(R.stoneD);
-  g.strokeStyle = INK;
-  g.lineWidth = 0.8;
-  g.lineJoin = 'round';
-  g.stroke(R.stone);
 }
 // thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {

@@ -251,8 +251,8 @@ const BAND_AT = [0.27, 0.58, 1];
 // [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
 // 5% almost fully solid
 // colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
-// rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are drawn as a cluster of
-// stones instead. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
+// rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are turned into open
+// ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
 // edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
 // sets how steep its faces are. minPeak: every rock's peak is lifted to at least this height (on the tiers' scale),
 // rising towards 1 for the tallest, so even low rocks get faces and a tier. flat: faces rising less than this

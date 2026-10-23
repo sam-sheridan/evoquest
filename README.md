@@ -431,7 +431,7 @@ re-plan at once.
 | **Sea** | Everything below sea level: a shallow shelf round every coast, wider along some stretches and over offshore banks, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
 | **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees towards the middle. |
-| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as angular crags (see [how things are drawn](#15-how-things-are-drawn)); pieces under 6 cells are drawn as clusters of stones. |
+| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as angular crags (see [how things are drawn](#15-how-things-are-drawn)). There is no tiny rock: a piece under 6 cells becomes open ground (`ROCKS.minCells`), including after events. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### World types and shapes
@@ -492,7 +492,8 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for. No ground is
    left sealed off by rock: a pocket walled in by rock (common on highlands worlds, up to 5% of their open land) gets
    a pass 2 cells wide cut through to the nearest open ground, like a mountain valley, and a tiny one (under 6 cells)
-   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again.
+   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again. The opposite
+   way round, a piece of rock smaller than 6 cells becomes open ground, here and whenever an event reshapes the land.
 7. Rivers (chances above). Each runs coast to coast at a random angle and meanders along its length (two
    overlapping waves plus a little jitter), so splits aren't straight lines.
 8. **Food sites** are placed, in the numbers the world type sets (see [food](#7-food)).
@@ -942,10 +943,9 @@ The look is a scientific **field notebook / survey map**.
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
     to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second. A
     ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
-    shaded side (along the coast they read as sea cliffs). In winter the tiers are snow. Pieces of rock under 6
-    cells are drawn as a cluster of small stones instead (they still block movement). The rock's base is a darker stone colour than the
-    plains, and the tiers lighten towards the top. The hatching is a repeating image rather than drawn lines, so it
-    adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
+    shaded side (along the coast they read as sea cliffs). In winter the tiers are snow. The rock's base is a darker
+    stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather
+    than drawn lines, so it adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
     get a plain fill of the same tone instead, as the fine lines would show as a check pattern.
   - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
