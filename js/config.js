@@ -251,6 +251,25 @@ const BAND_AT = [0.27, 0.58, 1];
 // [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
 // 5% almost fully solid
 // colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
+// rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are drawn as a cluster of
+// stones instead. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
+// edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
+// sets how steep its faces are. flat: faces rising less than this share of relief count as flat and stay plain.
+// hatch: gap (px) between hatching lines on shaded faces, measured across the lines. tiers: heights (0 at the rock's edge, 1 at the highest
+// point on the map) of the paler inner outlines. tick: gap (px) between the strokes round the inside of the edge.
+// loose: chance of a few loose stones by each edge of a big rock. face: colours of lit, half-lit and shaded faces
+const ROCKS = {
+  minCells: 6,
+  straight: 5,
+  mesh: 44,
+  relief: 160,
+  flat: 0.14,
+  hatch: 3.4,
+  tiers: [0.33, 0.62],
+  tick: 5,
+  loose: 0.22,
+  face: ['#e4ded2', '#d6cebf', '#c9c0ae'],
+};
 const TREES = {
   r: [5.5, 10.5],
   jitter: 2.5,

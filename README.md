@@ -431,7 +431,7 @@ re-plan at once.
 | **Sea** | Everything below sea level: a shallow shelf round every coast, wider along some stretches and over offshore banks, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
 | **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees towards the middle. |
-| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
+| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as angular crags (see [how things are drawn](#15-how-things-are-drawn)); pieces under 6 cells are drawn as clusters of stones. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### World types and shapes
@@ -936,8 +936,15 @@ The look is a scientific **field notebook / survey map**.
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
     thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
     112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
-    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock is grey
-    contoured plates. Rivers are pale blue with a
+    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind.
+  - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
+    slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
+    ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights, and a ring of short strokes
+    just inside each edge points uphill, longer where the rock rises higher and darker on the shaded side (along the
+    coast they read as sea cliffs). In winter the tiers are snow. Pieces of rock under 6 cells are drawn as a
+    cluster of small stones instead (they still block movement), and a few loose stones sit along the edges of the
+    bigger rocks. The hatching is a repeating image rather than drawn lines, so it adds nothing to Safari's limit.
+  - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
     keep their stepped edges.
@@ -1037,6 +1044,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Energy burnt standing, moving, and by size | `BURN` |
 | How far into thickets each size goes, and where nuts and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
+| How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |

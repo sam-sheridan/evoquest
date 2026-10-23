@@ -82,6 +82,343 @@ function hatch(g, clip, spacing, colr, lw, ang = 1) {
   g.stroke();
   g.restore();
 }
+// marching squares again, but chained into closed loops (lists of points) rather than loose segments, so outlines
+// can be straightened
+function traceLoops(fv, thr) {
+  const segs = [],
+    px = a => (a + 0.5) * CS;
+  for (let y = 0; y < GH - 1; y++)
+    for (let x = 0; x < GW - 1; x++) {
+      const P = [
+          [x, y],
+          [x + 1, y],
+          [x + 1, y + 1],
+          [x, y + 1],
+        ],
+        V = P.map(([a, b]) => fv(b * GW + a)),
+        ins = V.map(v => v >= thr),
+        cnt = ins.filter(Boolean).length;
+      if (cnt === 0 || cnt === 4) continue;
+      const cross = [];
+      for (let k = 0; k < 4; k++)
+        if (ins[k] !== ins[(k + 1) % 4]) {
+          const a = P[k],
+            b = P[(k + 1) % 4],
+            f = (thr - V[k]) / (V[(k + 1) % 4] - V[k]);
+          cross.push([px(a[0] + (b[0] - a[0]) * f), px(a[1] + (b[1] - a[1]) * f)]);
+        }
+      for (let k = 0; k + 1 < cross.length; k += 2) segs.push([cross[k], cross[k + 1]]);
+    }
+  const key = p => Math.round(p[0] * 8) + ',' + Math.round(p[1] * 8),
+    ends = new Map();
+  segs.forEach((s, i) => {
+    for (const p of s) {
+      const k = key(p);
+      if (!ends.has(k)) ends.set(k, []);
+      ends.get(k).push(i);
+    }
+  });
+  const used = new Uint8Array(segs.length),
+    loops = [];
+  for (let i = 0; i < segs.length; i++) {
+    if (used[i]) continue;
+    used[i] = 1;
+    const loop = [segs[i][0], segs[i][1]];
+    for (let end = segs[i][1]; ; ) {
+      const j = ends.get(key(end)).find(n => !used[n]);
+      if (j === undefined) break;
+      used[j] = 1;
+      end = key(segs[j][0]) === key(end) ? segs[j][1] : segs[j][0];
+      loop.push(end);
+    }
+    loops.push(loop);
+  }
+  return loops;
+}
+// straightens a line: keeps the corners and drops wiggles smaller than tol px (Douglas–Peucker)
+function straighten(pts, tol) {
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length);
+  keep[0] = keep[pts.length - 1] = 1;
+  const st = [[0, pts.length - 1]];
+  while (st.length) {
+    const [a, b] = st.pop(),
+      [ax, ay] = pts[a],
+      [bx, by] = pts[b],
+      L = Math.hypot(bx - ax, by - ay) || 1;
+    let md = 0,
+      mi = -1;
+    for (let i = a + 1; i < b; i++) {
+      const d = Math.abs((bx - ax) * (ay - pts[i][1]) - (ax - pts[i][0]) * (by - ay)) / L;
+      if (d > md) [md, mi] = [d, i];
+    }
+    if (md > tol) {
+      keep[mi] = 1;
+      st.push([a, mi], [mi, b]);
+    }
+  }
+  return pts.filter((_, i) => keep[i]);
+}
+// a closed loop is split at the point farthest from its start, and each half straightened
+function straightenLoop(l, tol) {
+  let m = 0,
+    md = -1;
+  l.forEach((p, k) => {
+    const d = Math.hypot(p[0] - l[0][0], p[1] - l[0][1]);
+    if (d > md) [md, m] = [d, k];
+  });
+  return straighten(l.slice(0, m + 1), tol).concat(straighten(l.slice(m), tol).slice(1, -1));
+}
+const loopArea = p =>
+  p.reduce((s, [x1, y1], i) => s + x1 * p[(i + 1) % p.length][1] - p[(i + 1) % p.length][0] * y1, 0) / 2;
+function addLoop(path, p) {
+  path.moveTo(...p[0]);
+  for (const q of p) path.lineTo(...q);
+  path.closePath();
+}
+// a small angular stone: its outline, and its shaded south-east part
+function stone(R, x, y, r, rnd) {
+  const n = 5 + ((rnd() * 2) | 0),
+    a0 = rnd() * TAU,
+    pts = [];
+  for (let k = 0; k < n; k++) {
+    const a = a0 + (k / n) * TAU,
+      rr = r * (0.75 + rnd() * 0.4);
+    pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.85]);
+  }
+  addLoop(R.stone, pts);
+  R.stoneD.moveTo(x, y);
+  for (const [px, py] of pts) if (px - x + (py - y) > -r * 0.2) R.stoneD.lineTo(px, py);
+  R.stoneD.closePath();
+}
+// rock, drawn as angular crags: straightened outlines, the slopes split into flat faces (plain where lit from the
+// north-west, hatched in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
+// just inside the edge pointing uphill. Rock bits too small for that become clusters of stones, and a few loose
+// stones sit along the bigger rocks' edges. rf is the rock pattern (rock where it is at least w.rThr).
+function rocks(w, rf) {
+  const N = GW * GH,
+    T = w.type,
+    thr = w.rThr,
+    rnd = mulberry32(w.seed ^ 0x40c),
+    R = {
+      outline: new Path2D(),
+      face: [new Path2D(), new Path2D(), new Path2D()],
+      ridge: new Path2D(),
+      tiers: ROCKS.tiers.map(() => new Path2D()),
+      tick: new Path2D(),
+      tickD: new Path2D(),
+      stone: new Path2D(),
+      stoneD: new Path2D(),
+    };
+  // separate pieces of rock, and which are too small to draw as crags
+  const comp = new Int32Array(N).fill(-1),
+    pieces = [];
+  for (let s = 0; s < N; s++) {
+    if (T[s] !== 3 || comp[s] >= 0) continue;
+    const list = [s];
+    comp[s] = pieces.length;
+    for (let q = 0; q < list.length; q++) {
+      const j = list[q],
+        x = j % GW,
+        y = (j / GW) | 0;
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ]) {
+        const xx = x + dx,
+          yy = y + dy,
+          k = yy * GW + xx;
+        if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || comp[k] >= 0 || T[k] !== 3) continue;
+        comp[k] = pieces.length;
+        list.push(k);
+      }
+    }
+    pieces.push(list);
+  }
+  const small = i => T[i] === 3 && pieces[comp[i]].length < ROCKS.minCells,
+    big = i => T[i] === 3 && !small(i),
+    // water next to rock counts as rock, so the outline runs out past the coast and is cut by the smooth coastline
+    wet = i => {
+      if (!isWater(T[i])) return false;
+      const x = i % GW,
+        y = (i / GW) | 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx,
+            yy = y + dy;
+          if (xx >= 0 && yy >= 0 && xx < GW && yy < GH && big(yy * GW + xx)) return true;
+        }
+      return false;
+    },
+    fv = i => (small(i) ? thr - 0.01 : wet(i) ? Math.max(rf(i), thr + 0.002) : rf(i));
+  for (const l of traceLoops(fv, thr)) {
+    const p = straightenLoop(l, ROCKS.straight);
+    if (p.length >= 3 && Math.abs(loopArea(p)) > 120) addLoop(R.outline, p);
+  }
+  const g = document.createElement('canvas').getContext('2d'),
+    inRock = (x, y) => g.isPointInPath(R.outline, x, y, 'evenodd');
+  // height inside the rock, softened: 0 at the edge, 1 at the highest point
+  let h = new Float32Array(N);
+  for (let i = 0; i < N; i++) h[i] = Math.max(0, w.rck[i] - thr + 0.01);
+  for (let k = 0; k < 2; k++) h = soften(h);
+  let top = 1e-6;
+  for (let i = 0; i < N; i++) if (T[i] === 3) top = Math.max(top, h[i]);
+  for (let i = 0; i < N; i++) h[i] /= top;
+  const hAt = (x, y) => {
+    const fx = clamp(x / CS - 0.5, 0, GW - 1.001),
+      fy = clamp(y / CS - 0.5, 0, GH - 1.001),
+      xi = fx | 0,
+      yi = fy | 0,
+      u = fx - xi,
+      v = fy - yi,
+      i = yi * GW + xi;
+    return (h[i] * (1 - u) + h[i + 1] * u) * (1 - v) + (h[i + GW] * (1 - u) + h[i + GW + 1] * u) * v;
+  };
+  // faces: a jittered triangle mesh over the rock, each triangle shaded by which way it faces the light
+  const sp = ROCKS.mesh,
+    nx = Math.ceil(W / sp) + 1,
+    ny = Math.ceil(H / sp) + 1,
+    vx = new Float32Array(nx * ny),
+    vy = new Float32Array(nx * ny),
+    vz = new Float32Array(nx * ny),
+    near = (x, y) => w.rck[cellI(clamp(x, 0, W - 1), clamp(y, 0, H - 1))] > thr - 0.03;
+  for (let k = 0; k < nx * ny; k++) {
+    vx[k] = (k % nx) * sp + (rnd() - 0.5) * sp * 0.7;
+    vy[k] = ((k / nx) | 0) * sp + (rnd() - 0.5) * sp * 0.7;
+    vz[k] = hAt(vx[k], vy[k]) * ROCKS.relief;
+  }
+  const lit = [],
+    edges = new Map(),
+    tri = (a, b, c) => {
+      if (
+        ![a, b, c].some(k => near(vx[k], vy[k])) &&
+        !near((vx[a] + vx[b] + vx[c]) / 3, (vy[a] + vy[b] + vy[c]) / 3)
+      )
+        return;
+      const ux = vx[b] - vx[a],
+        uy = vy[b] - vy[a],
+        uz = vz[b] - vz[a],
+        wx = vx[c] - vx[a],
+        wy = vy[c] - vy[a],
+        wz = vz[c] - vz[a];
+      let n0 = uy * wz - uz * wy,
+        n1 = uz * wx - ux * wz,
+        n2 = ux * wy - uy * wx;
+      if (n2 < 0) [n0, n1, n2] = [-n0, -n1, -n2];
+      // how directly the face meets light from the north-west and above
+      const s = (-0.55 * n0 - 0.62 * n1 + 0.56 * n2) / (Math.hypot(n0, n1, n2) || 1),
+        zs = [vz[a], vz[b], vz[c]],
+        t = Math.max(...zs) - Math.min(...zs) < ROCKS.flat * ROCKS.relief || s > 0.52 ? 0 : s > 0.4 ? 1 : 2,
+        P3 = [a, b, c].map(k => [vx[k], vy[k]]);
+      addLoop(R.face[t], P3);
+      for (const [u, v] of [
+        [a, b],
+        [b, c],
+        [c, a],
+      ]) {
+        const k = u < v ? u * 1e6 + v : v * 1e6 + u;
+        if (!edges.has(k)) edges.set(k, [u, v, []]);
+        edges.get(k)[2].push(t);
+      }
+    };
+  for (let j = 0; j < ny - 1; j++)
+    for (let i = 0; i < nx - 1; i++) {
+      const a = j * nx + i,
+        b = a + 1,
+        c = a + nx,
+        d = c + 1;
+      if (rnd() < 0.5) {
+        tri(a, b, d);
+        tri(a, d, c);
+      } else {
+        tri(a, b, c);
+        tri(b, d, c);
+      }
+    }
+  // ridges: ink where a lit face meets a shaded one
+  for (const [u, v, t] of edges.values())
+    if (t.length === 2 && Math.abs(t[0] - t[1]) === 2 && vz[u] + vz[v] > 0.08 * ROCKS.relief) {
+      R.ridge.moveTo(vx[u], vy[u]);
+      R.ridge.lineTo(vx[v], vy[v]);
+    }
+  // tiers: angular inner outlines at set heights
+  ROCKS.tiers.forEach((lv, k) => {
+    for (const l of traceLoops(i => h[i], lv)) {
+      const p = straightenLoop(l, ROCKS.straight);
+      if (p.length >= 3 && Math.abs(loopArea(p)) > 400) addLoop(R.tiers[k], p);
+    }
+  });
+  // skirt: short strokes just inside the edge, pointing uphill, longer where the rock rises higher and darker on the
+  // shaded side
+  const loops = [];
+  for (const l of traceLoops(fv, thr)) {
+    const p = straightenLoop(l, ROCKS.straight);
+    if (p.length >= 3 && Math.abs(loopArea(p)) > 120) loops.push(p);
+  }
+  for (const l of loops) {
+    let carry = 0;
+    for (let k = 0; k < l.length; k++) {
+      const [ax, ay] = l[k],
+        [bx, by] = l[(k + 1) % l.length],
+        seg = Math.hypot(bx - ax, by - ay);
+      if (seg < 1) continue;
+      let ox = -(by - ay) / seg,
+        oy = (bx - ax) / seg;
+      const mx = (ax + bx) / 2,
+        my = (ay + by) / 2;
+      if (!inRock(mx + ox * 4, my + oy * 4)) [ox, oy] = [-ox, -oy];
+      if (inRock(mx + ox * 4, my + oy * 4))
+        for (let d = carry; d < seg; d += ROCKS.tick) {
+          const x = ax + ((bx - ax) * d) / seg,
+            y = ay + ((by - ay) * d) / seg,
+            len = clamp(4 + hAt(x + ox * 14, y + oy * 14) * 22, 4, 13),
+            p = -ox - oy > 0.3 ? R.tickD : R.tick;
+          p.moveTo(x + ox * 1.5, y + oy * 1.5);
+          p.lineTo(x + ox * len, y + oy * len);
+        }
+      carry = (((carry - seg) % ROCKS.tick) + ROCKS.tick) % ROCKS.tick;
+    }
+  }
+  // stones: a cluster where each tiny rock bit is, and a few loose ones along the bigger rocks' edges
+  for (const list of pieces)
+    if (list.length < ROCKS.minCells) {
+      let sx = 0,
+        sy = 0;
+      for (const i of list) {
+        sx += (i % GW) + 0.5;
+        sy += ((i / GW) | 0) + 0.5;
+      }
+      sx = (sx / list.length) * CS;
+      sy = (sy / list.length) * CS;
+      for (let k = 2 + Math.min(3, list.length) + ((rnd() * 2) | 0); k > 0; k--)
+        stone(R, sx + (rnd() - 0.5) * 20, sy + (rnd() - 0.5) * 16, 3 + rnd() * 3.5, rnd);
+    }
+  for (const l of loops) {
+    if (Math.abs(loopArea(l)) < 4000) continue;
+    for (let k = 0; k < l.length; k++) {
+      if (rnd() > ROCKS.loose) continue;
+      const [ax, ay] = l[k],
+        [bx, by] = l[(k + 1) % l.length],
+        t = rnd(),
+        seg = Math.hypot(bx - ax, by - ay) || 1,
+        x = ax + (bx - ax) * t,
+        y = ay + (by - ay) * t;
+      let ox = -(by - ay) / seg,
+        oy = (bx - ax) / seg;
+      if (inRock(x + ox * 4, y + oy * 4)) [ox, oy] = [-ox, -oy];
+      for (let q = 2 + ((rnd() * 3) | 0); q > 0; q--) {
+        const d = 7 + rnd() * 9,
+          cx = x + ox * d + (rnd() - 0.5) * 10,
+          cy = y + oy * d + (rnd() - 0.5) * 10;
+        if (inRock(cx, cy) || !isLand(cellT(cx, cy)) || cellT(cx, cy) === 3) continue;
+        stone(R, cx, cy, 2.2 + rnd() * 2.6, rnd);
+      }
+    }
+  }
+  return R;
+}
 // a scalloped tree crown: n bumps round the edge, as one closed outline
 function crown(p, x, y, r, n, a0) {
   for (let k = 0; k <= n; k++) {
@@ -227,7 +564,6 @@ function renderTerrain() {
   V.trees = trees(w);
   let rMax = w.rThr;
   for (let i = 0; i < N; i++) if (T[i] === 3 && w.rck[i] > rMax) rMax = w.rck[i];
-  const rs = (rMax - w.rThr) / 4.2;
   // elevation used for contours: in 'steep' mode rocks rise sharply out of the land, so contour lines bunch around them
   let tMax = w.tThr;
   for (let i = 0; i < N; i++) if (T[i] === 2 && w.thk[i] > tMax) tMax = w.thk[i];
@@ -294,7 +630,7 @@ function renderTerrain() {
     }
     return rf0(i);
   };
-  V.rings = [0, 1, 2, 3].map(k => march(sm(rf), w.rThr + k * rs, true, true));
+  V.rock = rocks(w, sm(rf));
   // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
   V.contB = new Path2D();
@@ -425,28 +761,13 @@ function paintTerrain(g) {
   g.fillStyle = 'rgba(60,80,50,.13)';
   g.fill(V.trees.shadow);
   g.restore();
-  const RF =
-    se === 3 ? ['#cfc8bb', '#bfb7a8', '#e9eeef', '#fbfcfc'] : ['#cfc8bb', '#bfb7a8', '#aea595', '#9d9483']; // winter: snow on the peaks
-  V.rings.forEach((r, k) => {
-    g.fillStyle = RF[k];
-    g.fill(r.fill);
-  });
-  g.save();
   g.strokeStyle = 'rgba(70,62,50,.32)';
   g.lineWidth = 0.9;
   g.stroke(V.cont);
   g.strokeStyle = 'rgba(70,62,50,.5)';
   g.lineWidth = 1.6;
   g.stroke(V.contB);
-  g.clip(V.rings[0].fill);
-  g.strokeStyle = 'rgba(60,55,48,.45)';
-  g.lineWidth = 0.9;
-  g.stroke(V.cont);
-  g.stroke(V.contB);
-  g.restore();
-  g.strokeStyle = INK;
-  g.lineWidth = 1.2;
-  g.stroke(V.rings[0].line);
+  paintRock(g, se);
   g.strokeStyle = 'rgba(21,25,24,.75)';
   g.lineWidth = 1.2;
   g.stroke(V.coast);
@@ -454,6 +775,75 @@ function paintTerrain(g) {
   g.lineWidth = 1.2;
   g.lineJoin = 'round';
   g.stroke(V.chev);
+}
+// hatching for shaded rock faces, as a repeating image rather than drawn lines, so it adds no drawing points (Safari
+// stops drawing the land's layers when they hold too many). The tile is drawn at 4 times the size it covers, so the
+// lines stay crisp when zoomed in
+let hatchTile = null;
+function hatchPattern() {
+  if (!hatchTile) {
+    const c = document.createElement('canvas'),
+      s = Math.round(ROCKS.hatch * Math.SQRT2 * 4);
+    c.width = c.height = s;
+    const g = c.getContext('2d');
+    g.strokeStyle = 'rgba(40,36,30,.5)';
+    g.lineWidth = 2.8;
+    g.beginPath();
+    for (const k of [-s, 0, s]) {
+      g.moveTo(k, s);
+      g.lineTo(k + s, 0);
+    }
+    g.stroke();
+    hatchTile = g.createPattern(c, 'repeat');
+    hatchTile.setTransform(new DOMMatrix().scale(0.25));
+  }
+  return hatchTile;
+}
+// rock: faces, hatching, tiers and ridges inside the straightened outline (cut off at the coast), then the
+// outline, the skirt of strokes and the stones. In winter the upper tiers are snow
+function paintRock(g, se) {
+  const R = world.vec.rock;
+  g.save();
+  g.clip(world.vec.land);
+  g.save();
+  g.clip(R.outline, 'evenodd');
+  R.face.forEach((p, k) => {
+    g.fillStyle = ROCKS.face[k];
+    g.fill(p);
+  });
+  R.tiers.forEach(p => {
+    g.fillStyle = se === 3 ? 'rgba(250,252,252,.55)' : 'rgba(255,253,248,.22)';
+    g.fill(p, 'evenodd');
+  });
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  g.fillStyle = hatchPattern();
+  g.fill(R.face[2]);
+  g.strokeStyle = 'rgba(40,36,30,.55)';
+  g.lineWidth = 0.9;
+  for (const p of R.tiers) g.stroke(p);
+  g.strokeStyle = 'rgba(30,26,22,.75)';
+  g.stroke(R.ridge);
+  g.strokeStyle = 'rgba(40,36,30,.6)';
+  g.lineWidth = 0.85;
+  g.stroke(R.tick);
+  g.strokeStyle = 'rgba(30,26,22,.85)';
+  g.lineWidth = 1.1;
+  g.stroke(R.tickD);
+  g.restore();
+  g.strokeStyle = INK;
+  g.lineWidth = 1.2;
+  g.lineJoin = 'miter';
+  g.stroke(R.outline);
+  g.restore();
+  g.fillStyle = '#d9d2c4';
+  g.fill(R.stone);
+  g.fillStyle = '#a79d8b';
+  g.fill(R.stoneD);
+  g.strokeStyle = INK;
+  g.lineWidth = 0.8;
+  g.lineJoin = 'round';
+  g.stroke(R.stone);
 }
 // thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {
