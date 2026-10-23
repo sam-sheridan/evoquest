@@ -253,7 +253,11 @@ const BAND_AT = [0.27, 0.58, 1];
 // colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
 // contour lines: [colour, width px] for ordinary lines and for the bold index lines (every third). halo: a soft
 // band [colour, width px] drawn round each rock before it, so contours fade out just before reaching it (null: none)
-const CONTOURS = { line: ['rgba(70,62,50,.32)', 0.9], bold: ['rgba(70,62,50,.5)', 1.6], halo: null };
+const CONTOURS = {
+  line: ['rgba(70,62,50,.26)', 0.8],
+  bold: ['rgba(70,62,50,.34)', 1.1],
+  halo: ['rgba(233,236,222,.7)', 12],
+};
 // rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are turned into open
 // ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
 // edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which

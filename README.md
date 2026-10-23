@@ -957,7 +957,9 @@ The look is a scientific **field notebook / survey map**.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
   - **Contours** are drawn every ninth of the land's height range, and every third one is an **index contour**,
-    drawn bold, as on an Ordnance Survey map.
+    drawn a little bolder, as on an Ordnance Survey map. They follow the land's own height (thickets sit in slight
+    hollows) and pass under the rocks, which show their own height, and they fade out just before each rock
+    (`CONTOURS`).
   - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, five
     steps each, so it shades gradually. The season decides how far each reaches. It is drawn as a small image (one
     pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
