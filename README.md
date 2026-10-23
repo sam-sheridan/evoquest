@@ -431,7 +431,7 @@ re-plan at once.
 | **Sea** | Everything below sea level: a shallow shelf round every coast, wider along some stretches and over offshore banks, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
 | **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees towards the middle. |
-| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
+| **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as angular crags (see [how things are drawn](#15-how-things-are-drawn)). There is no tiny rock: a piece under 6 cells becomes open ground (`ROCKS.minCells`), including after events. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
 ### World types and shapes
@@ -492,7 +492,8 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for. No ground is
    left sealed off by rock: a pocket walled in by rock (common on highlands worlds, up to 5% of their open land) gets
    a pass 2 cells wide cut through to the nearest open ground, like a mountain valley, and a tiny one (under 6 cells)
-   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again.
+   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again. The opposite
+   way round, a piece of rock smaller than 6 cells becomes open ground, here and whenever an event reshapes the land.
 7. Rivers (chances above). Each runs coast to coast at a random angle and meanders along its length (two
    overlapping waves plus a little jitter), so splits aren't straight lines.
 8. **Food sites** are placed, in the numbers the world type sets (see [food](#7-food)).
@@ -574,7 +575,8 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 - **water**: algae sites
 - **thicket**
 - **island**: land that isn't on the main landmass
-- **meadow**: land in the more fertile 45% of the fertility range, shown as darker green
+- **meadow**: land in the more fertile 45% of the fertility range, shown greener (the map's green and straw
+  colours follow fertility, fading into each other)
 - **plain**: all other land
 
 **What you see:**
@@ -930,21 +932,41 @@ The look is a scientific **field notebook / survey map**.
   - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
     line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
     also the background beyond the map, so the map has no visible border.
-  - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
+  - **Open land** (`OPENLAND`) is pale, with fertile meadows washed green and poor dry ground washed straw, fading
+    into each other (drawn as a small smoothed image, one pixel per cell, so it adds nothing to Safari's limit). In
+    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows, small ink grass tufts dot
+    fertile ground, and reed marks show the low wet ground by lakes and rivers. A very light hill shading (also a
+    small image) darkens slopes facing away from the north-west light and fades out at the water's edge.
+  - Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
     meadows and changing with the seasons (`TREES.colour`). Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
     thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
     112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
-    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock is grey
-    contoured plates. Rivers are pale blue with a
+    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock blocks
+    thickets: no tree stands where its crown would reach onto rock, and any crown edge that still overlaps is cut
+    off where the rock begins. (When the world is built, ground that is both thicket and rock becomes thicket.)
+  - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
+    slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
+    ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
+    to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
+    Meteor crater walls take their height from the crater's ring, rising to its crest. A
+    ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
+    shaded side. Where rock meets water it lowers over its last 3 cells (`ROCKS.shore`) and ends in sea cliffs: the
+    coast gets the rock's ink line and a row of strokes pointing inland. In winter the tiers are snow. The rock's base is a darker
+    stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather
+    than drawn lines, so it adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
+    get a plain fill of the same tone instead, as the fine lines would show as a check pattern.
+  - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
     keep their stepped edges.
   - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
     land that remains.
   - **Contours** are drawn every ninth of the land's height range, and every third one is an **index contour**,
-    drawn bold, as on an Ordnance Survey map.
+    drawn a little bolder, as on an Ordnance Survey map. They follow the land's own height (thickets sit in slight
+    hollows) and pass under the rocks, which show their own height, and they fade out just before each rock
+    (`CONTOURS`).
   - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, five
     steps each, so it shades gradually. The season decides how far each reaches. It is drawn as a small image (one
     pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
@@ -1037,6 +1059,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Energy burnt standing, moving, and by size | `BURN` |
 | How far into thickets each size goes, and where nuts and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
+| How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |

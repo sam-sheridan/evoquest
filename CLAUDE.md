@@ -40,9 +40,15 @@ Read the relevant section before changing a mechanic.
   (each world's old shelf width, plus wider stretches and offshore banks at their own depths), lakes sit in smooth
   hollows, and thickets are ink-drawn trees. Sam tried a painted, realistic look first and rejected it as too
   computer-generated: keep the hand-drawn, field-notebook style, which matches the line-drawn creatures.
-- Still to do, roughly in order: **rocks** (the next part of the map redesign), an **intro or tutorial** (the
-  creator's ? popup is a possible starting point), and a **sound redesign** (Sam will lead it). Thickets stay as
-  they are: Sam decided against thickets that change over time.
+- The rest of the map redesign shipped in October 2026 too: rocks are angular inked crags (faces, two tiers, a
+  skirt of uphill strokes, sea cliffs where they meet water; no rock pieces under 6 cells), contours follow the
+  land and fade before rocks, and the open land has blended meadow and dry-ground colours, very light hill
+  shading, lone trees, grass tufts and reeds. Heavy shading is always a small smoothed image (Safari's limit).
+- Possible follow-up Sam hasn't decided on: darker tree outlines, shading strokes and woodland floor (at every
+  zoom; the crowns stay see-through so submerged creatures show).
+- Still to do, roughly in order: an **intro or tutorial** (the creator's ? popup is a possible starting point) and
+  a **sound redesign** (Sam will lead it). Thickets stay as they are: Sam decided against thickets that change
+  over time.
 - Add the git tag `beta-1` (a permanent label on a version) only after the visual changes are done and Sam asks.
 
 ## How a batch of changes works
