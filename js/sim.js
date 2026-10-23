@@ -79,9 +79,38 @@ function newGame(design, seed) {
   const probe = { ...design };
   enforce(probe);
   compute(probe);
+  // the release spot: lots of food the design can eat nearby (RELEASE.near), and lots more it can reach from there
+  // without leaving the ground it's allowed on (RELEASE.reach), so it isn't put in a rich dead end such as a strip of
+  // shallows at the map's edge
+  const foodAt = new Map();
+  for (const f of world.sites)
+    if (allowed(probe, f.i, world.type[f.i])) foodAt.set(f.i, (foodAt.get(f.i) || 0) + 1);
+  const reachable = i0 => {
+    const x0 = i0 % GW,
+      y0 = (i0 / GW) | 0,
+      R = RELEASE.reach / CS,
+      seen = new Set([i0]),
+      st = [i0];
+    let n = 0;
+    while (st.length) {
+      const j = st.pop(),
+        x = j % GW,
+        y = (j / GW) | 0;
+      n += foodAt.get(j) || 0;
+      for (const [dx, dy] of NB) {
+        const xx = x + dx,
+          yy = y + dy,
+          k = yy * GW + xx;
+        if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || seen.has(k)) continue;
+        if ((xx - x0) ** 2 + (yy - y0) ** 2 > R * R || !allowed(probe, k, world.type[k])) continue;
+        seen.add(k);
+        st.push(k);
+      }
+    }
+    return n;
+  };
   const spot = comp => {
-    let best = null,
-      bs = -1;
+    const cand = [];
     for (let k = 0; k < 600; k++) {
       const x = rand() * W,
         y = rand() * H;
@@ -91,15 +120,19 @@ function newGame(design, seed) {
       if (probe.tail < 0.5 && world.comp[i] !== comp) continue;
       if (probe.tail >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
       let s = 0;
-      for (const f of world.sites) {
-        const dx = f.x - x,
-          dy = f.y - y;
-        if (dx * dx + dy * dy < 180 * 180 && allowed(probe, f.i, world.type[f.i])) s++;
+      for (const [j, n] of foodAt) {
+        const dx = ((j % GW) + 0.5) * CS - x,
+          dy = (((j / GW) | 0) + 0.5) * CS - y;
+        if (dx * dx + dy * dy < RELEASE.near ** 2) s += n;
       }
-      if (s > bs) {
-        bs = s;
-        best = [x, y];
-      }
+      cand.push({ x, y, i, s });
+    }
+    // only the most promising places are checked for how much they can reach
+    let best = null,
+      bs = -1;
+    for (const c of cand.sort((a, b) => b.s - a.s).slice(0, 30)) {
+      const s = c.s + RELEASE.weight * reachable(c.i);
+      if (s > bs) [bs, best] = [s, [c.x, c.y]];
     }
     return best || [W / 2, H / 2];
   };
@@ -470,7 +503,9 @@ function update(c, dt) {
   const hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
     here = world.type[hi],
     ok = allowed(c, hi, here);
-  let desired;
+  let desired,
+    near = Infinity, // how far the next point on its route is
+    waiting = false; // heading for regrowing or busy food to wait by, rather than food it can eat
   if (c.path && c.wp < c.path.length) {
     let p = c.path[c.wp];
     if (Math.hypot(p[0] - c.x, p[1] - c.y) < 6 && c.wp < c.path.length - 1) {
@@ -478,6 +513,8 @@ function update(c, dt) {
       p = c.path[c.wp];
     }
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
+    near = Math.hypot(p[0] - c.x, p[1] - c.y);
+    waiting = !c.target && c.wp === c.path.length - 1;
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
     // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
@@ -498,7 +535,10 @@ function update(c, dt) {
   }
   const da = ((((desired - c.dir + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
   c.dir += clamp(da, -3 * dt, 3 * dt);
-  const sp = speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
+  // a waiting creature that has reached its spot stands still, and one that must turn sharply close to its next
+  // point turns on the spot first: otherwise it can circle that point for ever, never quite getting there
+  const halt = (waiting && near < 12) || (near < 20 && Math.abs(da) > 1.2),
+    sp = halt ? 0 : speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
   let moved = false;
   for (const off of [0, 0.45, -0.45, 1, -1, 1.8, -1.8]) {
     const d = c.dir + off,

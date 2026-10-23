@@ -249,14 +249,12 @@ const SFX = {
       k = m ? 1.6 : 1;
     sfxNoise(t, 2.4 * k, 'lowpass', 300, 1400, 0.7, 0.09 * k);
     sfxNoise(t + 0.3, 2 * k, 'bandpass', 600, 250, 1.2, 0.05 * k);
-    [392, 330, 262].forEach((f, i) => sweep(t + i * 0.22, 0.7, 'sine', f, f * 0.92, 0.035));
   },
   drought: m => {
     if (!AC || !sound) return;
     const t = AC.currentTime,
       k = m ? 1.6 : 1;
     sfxNoise(t, 2.2 * k, 'highpass', 2500, 6000, 0.6, 0.04 * k);
-    [523, 659, 784, 1046].forEach((f, i) => sweep(t + i * 0.16, 0.9, 'triangle', f, f * 1.02, 0.025));
   },
   quake: m => {
     if (!AC || !sound) return;
@@ -282,6 +280,19 @@ const SFX = {
     sfxNoise(t + 1, 1.6 * k, 'lowpass', 1200, 90, 0.7, 0.2 * k);
   },
 };
+// while the world event sign flashes its warning, a soft beep once a second, on every other flash
+let warnFrom = 0,
+  warnBeeps = 0;
+setInterval(() => {
+  const on = S && !S.paused && !S.over && $('#evSq').classList.contains('warn');
+  if (!on) return void (warnFrom = 0);
+  const now = performance.now();
+  if (!warnFrom) [warnFrom, warnBeeps] = [now, 0];
+  if (now - warnFrom >= warnBeeps * 1000) {
+    warnBeeps++;
+    tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
+  }
+}, 50);
 function syncSettings() {
   $('#sSound').setAttribute('aria-pressed', String(sound));
 }

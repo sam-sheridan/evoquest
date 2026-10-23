@@ -9,6 +9,8 @@ const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up i
 const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
 const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
 const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
+// the soft beep, once a second, while the world event sign flashes before an event: pitch (Hz), length (s), loudness
+const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.035 };
 const AUDIO_CHECK = 2; // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)
@@ -19,6 +21,9 @@ const MAXPOP = 400; // safety limit only, far above normal numbers (crowding kee
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 const START = 25; // number of creatures released at the start
+// where they are released: the place with the most food they can eat within near px, plus weight x the food they
+// can reach within reach px without leaving ground they are allowed on
+const RELEASE = { near: 180, reach: 640, weight: 0.5 };
 // how steeply the sides of a sea channel drop, in height per cell; steep enough that the coast is crisp, while
 // the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
 const SEA_WALL = 0.03;
