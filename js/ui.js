@@ -57,29 +57,30 @@ const SEASON_ICON = [
 // around a mild middle; high ground is always colder than this and lowland warmer
 const worldTemp = () => 0.5 + world.tOff + TEMP.season[S.season],
   tempWord = v => (v < 0.3 ? 'cold' : v < 0.45 ? 'cool' : v < 0.58 ? 'mild' : v < 0.72 ? 'warm' : 'hot');
-// the clock: a pie in four quarters (the current one stronger) with a hand that goes round once a year
+// the season clock: the year as a strip of four seasons, read left to right, each with its icon above it (the
+// current one in full colour), and a marker that slides along it
+const STRIP = { seg: 28, icon: 0.8 }; // width of one season (px) and the size of its icon (1 = 16 px)
 function syncClock(sp) {
   const el = $('#hud'),
     k = S.season,
-    a = ((k + sp) / 4) * TAU,
-    R = 15;
+    { seg, icon } = STRIP;
   el.hidden = false;
-  let pie = '';
+  let st = '';
   for (let q = 0; q < 4; q++) {
-    const a0 = (q / 4) * TAU - Math.PI / 2,
-      a1 = ((q + 1) / 4) * TAU - Math.PI / 2;
-    pie += `<path d="M0 0L${R * Math.cos(a0)} ${R * Math.sin(a0)}A${R} ${R} 0 0 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)}Z" fill="${SEASONS[q].col}" fill-opacity="${q === k ? 1 : 0.35}" stroke="${INK}" stroke-width=".8"/>`;
+    const on = q === k;
+    st += `<g transform="translate(${q * seg + seg / 2} 9) scale(${icon})" style="color:${on ? INK : '#8b948f'}">${SEASON_ICON[q]}</g>`;
+    st += `<rect x="${q * seg + 1}" y="21" width="${seg - 2}" height="9" rx="1.5" fill="${SEASONS[q].col}" fill-opacity="${on ? 1 : 0.28}" stroke="${INK}" stroke-opacity="${on ? 1 : 0.25}" stroke-width=".8"/>`;
   }
-  pie += `<line x1="0" y1="0" x2="${(R + 1) * Math.sin(a)}" y2="${-(R + 1) * Math.cos(a)}" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>`;
-  $('#clkPie').innerHTML = pie;
+  const mx = (k + sp) * seg;
+  st += `<line x1="${mx}" y1="19" x2="${mx}" y2="32" stroke="${INK}" stroke-width="1.8"/><path d="M${mx} 32.5l-3.6 4.4h7.2z" fill="${INK}"/>`;
+  $('#clkPie').innerHTML = st;
   const v = worldTemp(),
     f = clamp((v - 0.2) / 0.6, 0, 1),
     c = v < 0.45 ? '#56B4E9' : v < 0.58 ? '#c9c27a' : '#E69F00',
     key = k + '|' + v;
   if (el.dataset.k === key) return;
   el.dataset.k = key;
-  $('#clkSeason').innerHTML =
-    `<svg width="16" height="16" viewBox="-8 -8 16 16">${SEASON_ICON[k]}</svg>${SEASONS[k].name}`;
+  $('#clkSeason').textContent = SEASONS[k].name;
   $('#clkTemp').innerHTML =
     `<svg width="14" height="26" viewBox="0 0 14 26"><rect x="4" y="2" width="6" height="16" rx="3" fill="var(--panel)" stroke="${INK}"/><rect x="6" y="${4 + 12 * (1 - f)}" width="2" height="${12 * f + 4}" fill="${c}"/><circle cx="7" cy="20.5" r="4.5" fill="${c}" stroke="${INK}"/></svg>`;
   $('#clkTemp').title = `World temperature this season: ${tempWord(v)}`;
