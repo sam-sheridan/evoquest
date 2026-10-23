@@ -250,6 +250,7 @@ const BAND_AT = [0.27, 0.58, 1];
 // plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures), as
 // [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
 // 5% almost fully solid
+// colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
 const TREES = {
   r: [5.5, 10.5],
   jitter: 2.5,
@@ -263,6 +264,12 @@ const TREES = {
     [0.86, 0.35],
     [0.92, 0.2],
     [0.97, 0.05],
+  ],
+  colour: [
+    ['#bcd3a0', '#b0ca92', '#a3bf86'],
+    ['#b6cf96', '#a9c488', '#9cb97b'],
+    ['#c9c58e', '#bdb27a', '#a9a868'],
+    ['#bccab0', '#afbea3', '#a2b296'],
   ],
 };
 
