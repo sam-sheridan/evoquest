@@ -57,8 +57,8 @@ const SEASON_ICON = [
 // around a mild middle; high ground is always colder than this and lowland warmer
 const worldTemp = () => 0.5 + world.tOff + TEMP.season[S.season],
   tempWord = v => (v < 0.3 ? 'cold' : v < 0.45 ? 'cool' : v < 0.58 ? 'mild' : v < 0.72 ? 'warm' : 'hot');
-// the season clock: the year as a ring of four seasons, going round clockwise from the top (the current one in full
-// colour, the others pale), with the current season's symbol in the middle and a dot that travels round the year
+// the season clock: the year as a ring of four seasons in full colour, going round clockwise from the top, with the
+// current season's symbol in the middle and a dot that travels round the year
 const RING = { r: 19, band: 7 }; // radius of the ring's band and its thickness, px
 function syncClock(sp) {
   const el = $('#hud'),
@@ -70,7 +70,7 @@ function syncClock(sp) {
   for (let q = 0; q < 4; q++) {
     const a0 = (q * Math.PI) / 2 + 0.04,
       a1 = ((q + 1) * Math.PI) / 2 - 0.04;
-    st += `<path d="M${at(a0)}A${r} ${r} 0 0 1 ${at(a1)}" fill="none" stroke="${SEASONS[q].col}" stroke-width="${band}" stroke-opacity="${q === k ? 1 : 0.28}"/>`;
+    st += `<path d="M${at(a0)}A${r} ${r} 0 0 1 ${at(a1)}" fill="none" stroke="${SEASONS[q].col}" stroke-width="${band}"/>`;
   }
   const [dx, dy] = at(((k + sp) * Math.PI) / 2).split(' ');
   st += `<circle cx="${dx}" cy="${dy}" r="4.2" fill="var(--panel)" stroke="${INK}" stroke-width="1.8"/>`;
