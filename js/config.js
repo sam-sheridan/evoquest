@@ -127,8 +127,9 @@ const TEMP = {
 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
 // tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
-// the limit grows quickly towards either end
-const HAB = { range: 200 };
+// the limit grows quickly towards either end. first: every visible tail swims at least this far from shore (one
+// cell, so into the first band of water), on top of the curve
+const HAB = { range: 200, first: 16 };
 // tail: min = the tail trait (hab) from which a tail shows and counts; below it the creature has no tail. From min
 // to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a

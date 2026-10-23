@@ -46,8 +46,9 @@ function compute(c) {
   c.vW =
     base * (1 + LEGS.water * (1 - 2 * c.leg)) * (1 - six) * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
-  // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
-  c.dW = c.tail >= 1 ? 1e9 : HAB.range * (c.tail / (1 - c.tail)) ** 2;
+  // anywhere in their own element; in between, both limits apply, about HAB.range px each way at 50%, and any
+  // visible tail swims at least HAB.first px from shore
+  c.dW = c.tail >= 1 ? 1e9 : c.tail > 0 ? HAB.first + HAB.range * (c.tail / (1 - c.tail)) ** 2 : 0;
   c.dL = c.tail <= 0 ? 1e9 : HAB.range * ((1 - c.tail) / c.tail) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
   c.cap = 30 + 25 * c.size;

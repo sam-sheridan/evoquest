@@ -155,28 +155,31 @@ what you can see.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
   anywhere in water. Everything in between has two limits (`HAB.range` = 200):
-  - it swims at most 200 × (tail ÷ (1 − tail))² px from shore
+  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.first`), so every visible tail gets into
+    at least the first band of water
   - it walks at most 200 × ((1 − tail) ÷ tail)² px from water
 
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
   | 0–33% | 0 | never enters water | anywhere |
-  | 46% | 0.2 | 13 px (never enters water, in practice) | 3200 px (anywhere, in practice) |
-  | 53% | 0.3 | 37 px | 1089 px |
-  | 60% | 0.4 | 89 px | 450 px |
-  | 67% | 0.5 | 200 px | 200 px |
-  | 73% | 0.6 | 450 px | 89 px |
-  | 87% | 0.8 | 3200 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
+  | 34% | just above 0 | 16 px | anywhere |
+  | 46% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
+  | 53% | 0.3 | 53 px | 1089 px |
+  | 60% | 0.4 | 105 px | 450 px |
+  | 67% | 0.5 | 216 px | 200 px |
+  | 73% | 0.6 | 466 px | 89 px |
+  | 87% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
 
-  Water is always at least one cell (16 px) from land, so a limit under 16 px means never: a tail below about 48%
-  never enters water, however it swims, and one above about 85% never leaves it. The creator and the specimen tab
-  say "Never enters water" or "Never leaves water" for these.
+  Water is always at least one cell (16 px) from land and land from water, so a limit under 16 px means never. Every
+  visible tail swims at least 16 px, so only a tailless creature never enters water, while a tail above about 85%
+  never leaves it. The creator and the specimen tab say "Never enters water" or "Never leaves water" for these.
 
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
 - **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to be willing to swim at least 16 px from shore (a tail of about 48% or more).
+  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 47% or
+  more is needed to swim that fast, depending on legs and roundness.
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
 
