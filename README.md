@@ -430,6 +430,14 @@ Rivers: an 85% chance of one and a 55% chance of a second, except archipelagos (
 (always one, 70% a second) and highlands (85%, 30%). Supercontinents have slightly fewer wetlands, highlands
 noticeably fewer.
 
+**Lakes** (`lakes` in `WORLD_TYPES`, and `LAKES`): each world carves lake basins into its land, at least 5 cells from
+the coast, 4 to 10 cells across with wobbly shores: 2–4 on classic and forest worlds, 3–6 on supercontinents, 4–7 on
+highlands (a lake district) and 0–1 on archipelagos, which have water enough. Basins that touch become one bigger
+lake. Their floors are only a little below the starting sea level, so a big drought can drain the shallow ones and a
+flood spreads them. Low wetlands still hold a few small lakes of their own. Lakes are water like the sea, always
+shallow, so the same rules apply: land creatures keep out, and a water creature in a lake that can't leave water is
+cut off there, which can lead to a new species.
+
 Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
 | Shape | How often | What it looks like |
@@ -449,7 +457,8 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 3. If a world with a strait has a second landmass smaller than a quarter of the first (or under 1100 cells), the
    world is rebuilt from a variation of the same seed (up to 5 tries).
 4. **Relief.** Ridged hills and valleys are added to the land (`RELIEF`). They grow with height above the starting
-   sea level, so coasts stay where they are. High ground is cold (see [temperature](#temperature)).
+   sea level, so coasts stay where they are. High ground is cold (see [temperature](#temperature)). Then the
+   **lakes** are carved (see above). The sea stays where it started: the lakes take their share out of the land.
 5. **Regions.** Broad, slowly varying patterns give each area its own character (`REGIONS.strength` = 1.3):
    - **thicket country**: thickets cluster here
    - **rocky uplands**: rock clusters here
@@ -504,7 +513,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 |---|---|---|
 | **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf and rivers | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf. Not in the outer margin. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -534,7 +543,9 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 
 **Floods and droughts wipe food out.** Berries and nuts on land that floods, algae on water that dries up, and algae left
 in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
-(say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown.
+(say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
+waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
+take it from walkers.
 
 ---
 
@@ -592,7 +603,7 @@ All of this is in the `SEASONS` table in `js/config.js`.
 | **Flood** | Sea level rises: land falls by 12 percentage points of the map (never more than 18 below where the world started, `LAND.min`). Low land and its food go underwater. Every river and sea channel widens by 35%, and a river that reaches 2.6 cells wide becomes a **sea channel** (`EVENTS.widen`, `toSea`). | Land falls by 20 points, and rivers and sea channels widen by 60%. |
 | **Drought** | Sea level falls: land rises by 12 points (never more than 18 above where it started, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). The rest narrow by the same share a flood widens them, but never below the width they started at; a sea channel that began as a river turns back into one when it narrows below 2.6 cells. | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each), and the rest narrow by the share a major flood widens them. |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
-| **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle. | Kills within 280 px and makes a much bigger crater. |
+| **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle, where 3 algae sites start growing. | Kills within 280 px and makes a much bigger crater. |
 
 Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`,
 `dryShare`).
@@ -972,6 +983,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How hilly the land is | `RELIEF` |
 | Temperature: cold and hot levels, season shifts, energy costs | `TEMP` |
 | Shallow shelf size and deep-water cost | `SEA` |
+| Lakes: how many per world type, size, depth, their algae, algae for floods and craters | `lakes` in `WORLD_TYPES`, `LAKES` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
 | How much roundness helps swimming and blockiness walking | `ROUND` |

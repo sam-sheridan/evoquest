@@ -53,6 +53,7 @@ const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1
 //   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
 //   wet: added to how widespread low wetlands are (0 normal, + more, - fewer); food: [berry sites, algae sites]
 //   temp: added to the whole world's temperature (0 normal, - colder, + warmer)
+//   lakes: [fewest, random extra] lake basins carved into the land (see LAKES)
 const WORLD_TYPES = {
   classic: {
     w: 3,
@@ -66,6 +67,7 @@ const WORLD_TYPES = {
     wet: 0,
     temp: 0,
     food: [375, 125],
+    lakes: [2, 2],
   },
   archipelago: {
     w: 2,
@@ -79,6 +81,7 @@ const WORLD_TYPES = {
     wet: 0,
     temp: 0.05,
     food: [250, 250],
+    lakes: [0, 1],
   },
   supercontinent: {
     w: 2,
@@ -92,6 +95,7 @@ const WORLD_TYPES = {
     wet: -0.05,
     temp: 0,
     food: [440, 60],
+    lakes: [3, 3],
   },
   highlands: {
     w: 1.5,
@@ -105,6 +109,7 @@ const WORLD_TYPES = {
     wet: -0.12,
     temp: -0.08,
     food: [375, 125],
+    lakes: [4, 3],
   },
   forest: {
     w: 1.5,
@@ -118,8 +123,15 @@ const WORLD_TYPES = {
     wet: -0.04,
     temp: 0,
     food: [400, 100],
+    lakes: [2, 2],
   },
 };
+// lakes: basins carved into the land at least inland cells from the coast, radius r cells [smallest, random extra],
+// their floors depth below the starting sea level [shallowest, random extra], so a big drought can drain the shallow
+// ones and a flood can spread them. algae: algae sites per lake cell, on top of the world type's algae. flood: share
+// of the world type's algae that waits, dormant, on low land a big flood would drown, growing once it does.
+// crater: algae sites that start in each new crater's lake
+const LAKES = { inland: 5, r: [4, 6], depth: [0.03, 0.08], algae: 0.08, flood: 0.3, crater: 3 };
 // overall shape of the land, rolled separately from the type (relative weights): oval as before, lagoon (land in a
 // ring around a central sea) or crescent (land curving round a big bay)
 const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };

@@ -988,6 +988,21 @@ function meteor(x, y, major) {
   const old = snapMap();
   buildTerrain();
   startFade(old);
+  // a few algae sites start growing in the crater's new lake
+  const cx = (x / CS) | 0,
+    cy = (y / CS) | 0,
+    pool = [];
+  for (let yy = cy - 6; yy <= cy + 6; yy++)
+    for (let xx = cx - 6; xx <= cx + 6; xx++) {
+      const i = yy * GW + xx;
+      if (xx >= 0 && yy >= 0 && xx < GW && yy < GH && world.type[i] === 4 && world.lS[i] > 0) pool.push(i);
+    }
+  for (let k = 0; k < LAKES.crater && pool.length; k++) {
+    const i = pool[(rand() * pool.length) | 0],
+      f = { x: ((i % GW) + rand()) * CS, y: (((i / GW) | 0) + rand()) * CS, i, kind: 'w', active: false };
+    f.t = f.t0 = regrow(f);
+    world.sites.push(f);
+  }
   parts.push({ x, y, t: 0, k: 'boom' });
   S.events++;
   S.lastEvent = S.t;
