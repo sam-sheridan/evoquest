@@ -598,7 +598,7 @@ Two kinds of split are looked for:
    (more than `SPC.geo` = 0.22), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
    two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
-   separate, with the gap between them at least 3.1 times the spread within them (`SPC.ratio`). The smaller
+   separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
    cluster must have at least 8 members.
 
 The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
@@ -610,8 +610,11 @@ runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
 **Trait difference** is measured across seven traits on comparable scales: width, length (each ÷ 10), legs,
 tail, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness (× 0.5). Width and length count
-separately here even though only size matters for survival, because they are what you see. Look traits count too, so long
-separation alone can eventually be enough.
+separately here even though only size matters for survival, because they are what you see. Two features that are
+either there or not count extra (`SHOWS`), because they make creatures look different even when the trait behind
+them has barely moved: having a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15. So a population
+that has split into tailed and tailless creatures, or 4- and 6-legged ones, is closer to becoming two species. Look
+traits count too, so long separation alone can eventually be enough.
 
 Species never merge back together.
 
@@ -712,18 +715,28 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 
 ### Bottom right: inspector
 
-Collapse or expand it with the arrow. It has three tabs.
+Collapse or expand it with the arrow. It has four tabs.
 
-- **Traits**
-  - **Map colours**: colour creatures by their own body colour, or by species tag.
-  - **Chart**: pick Population, Size, Legs, Tail, Mouth (as % of the way to a straw) or Roundness. One line per species. For
-    population, a thin black line shows the total. The dashed line is the starting value. A chart shows at most
-    the last 20 minutes (`CHART_SPAN`). After that a **slider** appears under it: drag it left to look back
-    through earlier time, and right to the end to follow the present again.
-  - **Table**: compares the released design with the three biggest living species: width, length, size, legs,
-    tail, mouth and roundness, then what they add up to (land and water speed, and the share that fits into
-    thickets and crosses rivers). Values noticeably up or down from the release are highlighted. Body traits and
-    look traits are grouped separately.
+- **Species**
+  - **Table**: one column for the released design and one for every species, extinct ones greyed out and marked
+    †. Numbers are shown to one decimal place. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
+    is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
+    one scale, at the same height and right-aligned above the values. Then:
+    size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
+    (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
+    instead. In each species' column, the one or two traits that most set it apart from the species it split
+    from are highlighted in orange (primus is compared with the released design). A trait counts only if it
+    differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
+    or mouth traits.
+- **Stats**
+  - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
+    second walking flat out, without temperature or deep water), Energy store, Fits thickets or Crosses rivers (the
+    last two as the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
+    beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, so a few unlimited
+    creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
+    released design's value. A chart shows at most the last 20 minutes (`CHART_SPAN`). After that a **slider**
+    appears under it: drag it left to look back through earlier time, and right to the end to follow the present
+    again.
 - **Specimen**: tap any creature on the map to select it. The camera follows it automatically (dragging the map
   stops following). The tab shows its:
   - generation, parent, offspring and meals
@@ -742,7 +755,7 @@ Collapse or expand it with the arrow. It has three tabs.
   then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
   bump. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
   select another creature, or it dies.
-- **World**: world number, current season and time left, sea cover, time to the next event, number of
+- **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
   crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
   a map key. All of them are measured from the map as it is now, so they change after every event.
@@ -762,8 +775,8 @@ When the last creature dies, the summary shows:
 
 - **Time alive, generations, peak population, ever born, species, achievements.**
 - **How they died**: a bar split by starvation, old age and meteor strike.
-- **Trait table**: the released design compared with the last survivors (width, length, size, legs, tail, mouth
-  and roundness), split into "shaped by the world" and "drifted by chance".
+- **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
+  (none greyed out, since all have died).
 - **Family tree**: every species as a line through time. Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
 - **Watch replay**: the whole run played back at 12 recorded moments per second. A moment is recorded each
@@ -908,7 +921,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, bigger `extra` means fewer species at once) |
+| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail or 6 legs counts |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |

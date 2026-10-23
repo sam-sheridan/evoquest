@@ -144,6 +144,9 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { share: 0.5, nut: 1.25, bonus: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)
+// features that are either there or not count extra towards a new species, since they make creatures look
+// different: having a tail at all, and having 6 legs rather than 4
+const SHOWS = { tail: 0.25, legs: 0.15 };
 // speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
 // base px/s; bigger bodies are slower, smaller ones faster.
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
@@ -274,4 +277,4 @@ const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups 
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.22, eco: 0.4, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.7 }; // tuned with home ranges: about 0-2 new species per 15 minutes
+const SPC = { geo: 0.22, eco: 0.4, ratio: 1.8, streak: 4, age: 90, cool: 110, extra: 0.7 }; // tuned with home ranges: about 0-2 new species per 15 minutes

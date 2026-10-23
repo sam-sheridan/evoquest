@@ -50,10 +50,18 @@ function compute(c) {
   c.dL = c.tail <= 0 ? 1e9 : HAB.range * ((1 - c.tail) / c.tail) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
   c.cap = 30 + 25 * c.size;
+  // for the Stats charts: distances beyond 2000 px (more than most of the map) count as 2000, and the energy burnt
+  // walking flat out, without temperature or deep water
+  c.dWc = Math.min(c.dW, 2000);
+  c.dLc = Math.min(c.dL, 2000);
+  c.burnW = moveBurn(c, c.vL);
   c.poly = shapePoly(c); // the body without its tail (legs are placed on this)
   c.anch = anchors(c);
   c.p2 = pathOf(outline(c, 0, 0)); // the body with its tail, still (see drawCreature for the swaying one)
 }
+// how long the legs are drawn (a tail shortens them) and how far the tail reaches behind the body, in px
+const legLen = c => (2.45 + c.leg * 2.75) * (1 - c.tail * 0.4);
+const tailLen = c => (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0);
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added:
 // moving fast costs a lot, and bigger bodies burn less
 const moveBurn = (c, v) => (BURN.rest + BURN.move * (v / 30) ** 2) * (1 + BURN.size * (0.9 - c.size));
@@ -235,11 +243,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     for (let k = 0; k < 3; k++) {
       const kk = k + ph,
         r = (11 + kk * 3.5) * s,
-        apex =
-          -L -
-          (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0) -
-          1.5 * s -
-          kk * 2.4 * s,
+        apex = -L - tailLen(c) - 1.5 * s - kk * 2.4 * s,
         span = 0.38 + kk * 0.11, // each arc spans wider the further it is behind, so the wake spreads out
         a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
       g.strokeStyle = `rgba(77,115,133,${a.toFixed(3)})`;
@@ -251,7 +255,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   if (detail) drawMouth(g, c, L, t);
   g.strokeStyle = INK;
   if (detail) {
-    const Lg = (2.45 + c.leg * 2.75) * (1 - c.tail * 0.4) * (swim ? 0.7 : 1),
+    const Lg = legLen(c) * (swim ? 0.7 : 1),
       wd = 2 + c.tail * 1.6;
     g.lineCap = 'butt';
     g.lineWidth = wd;

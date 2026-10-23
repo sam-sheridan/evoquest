@@ -113,15 +113,19 @@ function toast(m, k) {
     setTimeout(() => el.remove(), 400);
   }, 9000);
 }
-let tab = 'pop',
+let tab = 'sp',
   metric = 'n';
+// what the Stats chart can show: [key, label, decimals, unit]; shares (fits, river) are shown as %
 const METRICS = [
-  ['n', 'Population'],
-  ['size', 'Size'],
-  ['leg', 'Legs'],
-  ['hab', 'Tail'],
-  ['mth', 'Mouth'],
-  ['round', 'Roundness'],
+  ['n', 'Population', 0, ''],
+  ['vL', 'Land speed', 0, ' px/s'],
+  ['vW', 'Water speed', 0, ' px/s'],
+  ['dWc', 'Swims from shore', 0, ' px'],
+  ['dLc', 'Walks from water', 0, ' px'],
+  ['burnW', 'Energy use', 1, '/s'],
+  ['cap', 'Energy store', 0, ''],
+  ['fits', 'Fits thickets', 0, '%'],
+  ['river', 'Crosses rivers', 0, '%'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
 $('#cmode').onclick = e => {
@@ -143,7 +147,7 @@ function selectTab(t) {
   document
     .querySelectorAll('.tabs [data-tab]')
     .forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-  for (const k of ['pop', 'one', 'world']) $('#p-' + k).hidden = k !== t;
+  for (const k of ['sp', 'stats', 'one', 'world']) $('#p-' + k).hidden = k !== t;
   syncUI(true);
 }
 document.querySelectorAll('.tabs [data-tab]').forEach(
@@ -273,7 +277,8 @@ function drawChart() {
     slider.style.setProperty('--p', `calc(${v * 100}% - ${v * 12 - 6}px)`); // the track fills up to the thumb
   }
   g.clearRect(0, 0, w, h);
-  const pct = metric === 'hab' || metric === 'mth' || metric === 'leg',
+  const [, , dec, unit] = METRICS.find(m => m[0] === metric),
+    pct = unit === '%',
     mul = pct ? 100 : 1;
   const series = S.species
     .map(sp => ({ sp, pts: HS.filter(e => e.sp[sp.id]).map(e => [e.t, e.sp[sp.id][metric] * mul]) }))
@@ -283,7 +288,7 @@ function drawChart() {
   let vals = [o];
   series.forEach(s => s.pts.forEach(p => seen(p[0]) && vals.push(p[1])));
   if (tot) tot.forEach(p => seen(p[0]) && vals.push(p[1]));
-  const small = metric === 'round' || metric === 'size';
+  const small = dec === 2;
   let lo = Math.min(...vals),
     hi = Math.max(...vals);
   if (hi - lo < 1e-6) {
@@ -294,13 +299,13 @@ function drawChart() {
   lo -= sp * 0.08;
   hi += sp * 0.08;
   lo = Math.max(0, lo);
+  if (pct) hi = Math.min(hi, 100); // a share never goes over 100%
   const X = t => pad.l + ((w - pad.l - pad.r) * (t - t0)) / span,
     Y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
   g.font = '10px "IBM Plex Mono", monospace';
   g.fillStyle = '#636d69';
   g.strokeStyle = '#d2d8d4';
   g.lineWidth = 1;
-  const dec = metric === 'n' || pct ? 0 : small ? 2 : 1;
   for (let k = 0; k <= 3; k++) {
     const v = lo + ((hi - lo) * k) / 3;
     g.beginPath();
@@ -343,11 +348,94 @@ function drawChart() {
   g.restore();
 }
 
-function cell(v, o, d = 1, suf = '') {
-  const x = v - o,
-    thr = suf === '%' ? 0.05 : suf === ' px/s' ? 1.5 : d === 2 ? 0.04 : 0.15,
-    cls = Math.abs(x) < thr ? '' : x > 0 ? 'up' : 'down';
-  return `<td class="${cls}">${suf === '%' ? Math.round(v * 100) + '%' : v.toFixed(d) + suf}</td>`;
+// the Species table: the released design and every species, each as its average creature, with the traits that
+// most set each species apart from the one it split from highlighted. grey: grey out extinct species (not at the
+// end of a run, when every species has died)
+const SP_ROWS = [
+  // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
+  ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
+  ['Leg length (px)', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
+  ['Leg number', (m, c) => m.legs.toFixed(1), 'legs', 0.6],
+  ['Tail length (px)', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
+  ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
+  ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
+];
+// a species' average traits: now if it is alive, otherwise as last recorded
+function spAvg(sp) {
+  const M = S.creatures.filter(c => c.sp === sp.id);
+  if (M.length) return summ(M);
+  const e = [...S.hist].reverse().find(e => e.sp[sp.id]);
+  return e ? e.sp[sp.id] : null;
+}
+// a creature built from average traits, for drawing and for leg and tail length
+function avgCreature(m) {
+  const c = { ...m, hue: m.hue, sat: S.design.sat, id: 0, dir: -Math.PI / 2, walk: 0.6, rest: 0 };
+  enforce(c);
+  compute(c);
+  return c;
+}
+let picQueue = [];
+function speciesTable(grey) {
+  const cols = [{ name: 'Released', m: S.orig, key: 'r' }];
+  for (const sp of S.species) {
+    const m = spAvg(sp);
+    if (!m) continue;
+    cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
+  }
+  for (const k of cols) k.c = avgCreature(k.m);
+  const byKey = new Map(cols.map(k => [k.key, k]));
+  // the one or two traits that differ most from the parent, if they differ notably
+  for (const k of cols) {
+    const p = byKey.get(k.parent);
+    k.hl = p
+      ? SP_ROWS.map(([, , t, sc], i) => [i, Math.abs(k.m[t] - p.m[t]) / sc])
+          .filter(d => d[1] >= 1)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 2)
+          .map(d => d[0])
+      : [];
+  }
+  // one drawing scale for every picture, so sizes compare fairly, and every body centred at the same height:
+  // room above for the longest head and mouth, below for the longest tail
+  const up = Math.max(...cols.map(k => k.c.bh / 2 + 7)),
+    down = Math.max(...cols.map(k => k.c.bh / 2 + tailLen(k.c) + 3)),
+    sc = Math.min(2.6, 68 / (up + down)),
+    // the pictures are only as wide as the widest creature with its legs, so they sit right above the values
+    wide = Math.max(...cols.map(k => k.c.bw + 2 * (legLen(k.c) + 1.5))) * sc + 4;
+  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc, wide]);
+  const ext = k => (k.ext ? ' class="ext"' : '');
+  return `<table class="sp"><thead><tr><th></th>${cols
+    .map(k =>
+      k.sp
+        ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
+        : `<th>Released</th>`
+    )
+    .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
+    .map(
+      (k, i) =>
+        `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'released design'}"></canvas></td>`
+    )
+    .join('')}</tr>${SP_ROWS.map(
+    ([l, f], i) =>
+      `<tr><td>${l}</td>${cols
+        .map(k => `<td class="${k.ext ? 'ext ' : ''}${k.hl.includes(i) ? 'hl' : ''}">${f(k.m, k.c)}</td>`)
+        .join('')}</tr>`
+  ).join('')}</tbody></table>`;
+}
+// draw the average creatures into the table's picture row
+function drawPics(root) {
+  for (const cv of root.querySelectorAll('canvas[data-pic]')) {
+    const [c, sc, y, h, w] = picQueue[+cv.dataset.pic],
+      s = Math.ceil(w);
+    cv.width = s * dpr;
+    cv.height = Math.ceil(h) * dpr;
+    cv.style.width = s + 'px';
+    cv.style.height = Math.ceil(h) + 'px';
+    const g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // the head points up and the tail down, the body at the same height in every column
+    drawCreature(g, c, s / 2, y, sc, 7, col(c), 0, false, 1.1 / sc);
+  }
 }
 // rank the traits that separate two groups, biggest difference first (scaled so traits are comparable)
 const DIFF = [
@@ -492,40 +580,19 @@ function syncUI() {
   }
   updScale();
   if ($('#sheet').classList.contains('closed') || $('#sheet').hidden) return;
-  if (tab === 'pop') {
+  if (tab === 'sp') {
+    // keep the table's sideways scroll while it refreshes
+    const box = $('#spTable'),
+      x = box.scrollLeft;
+    box.innerHTML = speciesTable(true);
+    drawPics(box);
+    box.scrollLeft = x;
+    $('#spMore').hidden = box.scrollWidth <= box.clientWidth + 1;
+  } else if (tab === 'stats') {
     document
       .querySelectorAll('#metrics button')
       .forEach(b => b.classList.toggle('on', b.dataset.m === metric));
     drawChart();
-    document
-      .querySelectorAll('#cmode button')
-      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
-    const L = liveSp().slice(0, 3),
-      by = bySpecies(),
-      o = S.orig,
-      ms = L.map(s => summ(by[s.id] || []));
-    $('#thead').innerHTML =
-      `<tr><th>Trait</th><th>Released</th>${L.map(s => `<th><span class="tag" style="background:${s.tag}"></span>${s.epithet}</th>`).join('')}</tr>`;
-    const cols = 2 + L.length;
-    const R1 = [
-      ['Width', 'w'],
-      ['Length', 'h'],
-      ['Size', 'size', 2],
-      ['Legs', 'leg', 0, '%'],
-      ['Tail', 'hab', 0, '%'],
-      ['Mouth (straw)', 'mth', 0, '%'],
-      ['Roundness', 'round', 2],
-      ['Land speed', 'vL', 0, ' px/s'],
-      ['Water speed', 'vW', 0, ' px/s'],
-      ['Fits thickets', 'fits', 0, '%'],
-      ['Crosses rivers', 'river', 0, '%'],
-    ];
-    const row = ([l, k, d = 1, suf = '']) =>
-      `<tr><td>${l}</td><td>${suf === '%' ? Math.round(o[k] * 100) + '%' : o[k].toFixed(d) + suf}</td>${ms.map(m => cell(m[k], o[k], d, suf)).join('')}</tr>`;
-    $('#ttab').innerHTML =
-      `<tr class="grp"><td colspan="${cols}">Body · shaped by the world</td></tr>${R1.map(row).join('')}
-      <tr class="grp"><td colspan="${cols}">Look · drifts by chance</td></tr>
-      <tr><td>Colour</td><td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:${col(S.design)}"></span></td>${ms.map(m => `<td><span class="tag" style="width:22px;height:12px;vertical-align:-1px;background:hsl(${m.hue} ${S.design.sat}% ${m.lt}%)"></span></td>`).join('')}</tr>`;
   } else if (tab === 'one') {
     const c = S.sel;
     if (!c) {
@@ -568,7 +635,10 @@ function syncUI() {
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
-    $('#p-world').innerHTML =
+    document
+      .querySelectorAll('#cmode button')
+      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
+    $('#worldBody').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
       <div><span>Land cover</span><b>${world.stats.land}%</b></div><div><span>Sea cover</span><b>${world.stats.sea}%</b></div>
       <div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>

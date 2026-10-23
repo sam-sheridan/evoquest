@@ -37,14 +37,15 @@ with sync_playwright() as p:
         for (const k of ['flood', 'drought', 'quake', 'meteor']) q.triggerEvent(k, true); }""")
     time.sleep(1.5)
 
-    # inspector tabs, chart metrics and map colour toggle
-    for tab in ['pop', 'one', 'world']:
+    # inspector tabs, chart options and map colour toggle
+    for tab in ['sp', 'stats', 'one', 'world']:
         pg.click(f'[data-tab={tab}]')
         time.sleep(0.2)
-    pg.click('[data-tab=pop]')
-    for metric in ['n', 'size', 'leg', 'hab', 'mth', 'round']:
+    pg.click('[data-tab=stats]')
+    for metric in ['n', 'vL', 'vW', 'dWc', 'dLc', 'burnW', 'cap', 'fits', 'river']:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
+    pg.click('[data-tab=world]')
     pg.click('#cmode [data-cm=species]')
     pg.click('#cmode [data-cm=body]')
 
