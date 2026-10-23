@@ -575,6 +575,14 @@ table.sp .hl {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+/* the specimen stat that stops a controlled creature going somewhere */
+.kv div.limit span,
+.kv div.limit b {
+  color: var(--signal);
+}
+.kv div.limit {
+  box-shadow: -6px 0 0 -4px var(--signal);
+}
 .meter {
   height: 5px;
   background: var(--chip);

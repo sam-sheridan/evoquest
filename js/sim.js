@@ -626,7 +626,16 @@ function steer(c, dt) {
       }
     }
     if (moved) c.walk += dt * sp * 0.2;
-    else c.bump = 0.25;
+    else {
+      c.bump = 0.25;
+      // which of its limits stopped it, so the specimen tab can flash that stat
+      const why = blockedBy(
+        c,
+        c.x + Math.cos(d) * Math.max(2, sp * dt),
+        c.y + Math.sin(d) * Math.max(2, sp * dt)
+      );
+      if (why) [c.blockWhy, c.blockAt] = [why, performance.now()];
+    }
   }
   c.burnNow = burn(c, moved ? sp : 0);
   c.E -= c.burnNow * dt;
@@ -642,6 +651,17 @@ function steer(c, dt) {
           S.claims.push(c);
           return;
         }
+}
+// why a creature can't go to x, y: 'range' (too far from shore or from water), 'speed' (allowed in the water but too
+// slow a swimmer for a river's current), 'thicket' (too big to get that far into a thicket), or null (rock, the
+// map's edge, or allowed)
+function blockedBy(c, x, y) {
+  if (!inside(x, y)) return null;
+  const i = cellI(x, y),
+    t = world.type[i];
+  if (t === 3 || allowed(c, i, t)) return null;
+  if (isWater(t)) return world.dLand[i] > c.dW ? 'range' : 'speed';
+  return t === 2 && world.dThick[i] > c.dT && world.dWater[i] <= c.dL ? 'thicket' : 'range';
 }
 function kill(c, why) {
   if (S.ctrl === c) S.ctrl = null;
