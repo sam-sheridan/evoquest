@@ -529,9 +529,7 @@ function renderTerrain() {
     true,
     false
   ).fill;
-  let rMax = w.rThr;
-  for (let i = 0; i < N; i++) if (T[i] === 3 && w.rck[i] > rMax) rMax = w.rck[i];
-  // elevation used for contours: in 'steep' mode rocks rise sharply out of the land, so contour lines bunch around them
+  // how deep thickets sit in their hollows, for the contours
   let tMax = w.tThr;
   for (let i = 0; i < N; i++) if (T[i] === 2 && w.thk[i] > tMax) tMax = w.thk[i];
   const t0 = w.tThr - 0.03;
@@ -554,16 +552,10 @@ function renderTerrain() {
     }
     cdf[i] = lo / R.length;
   }
-  const r0 = w.rThr - 0.035,
-    el = new Float32Array(N);
-  for (let i = 0; i < N; i++) {
-    const t = T[i];
-    el[i] = !isLand(t)
-      ? 0
-      : cdf[i] +
-        clamp((w.rck[i] - r0) / (rMax - r0), 0, 1) ** 1.3 * 1.7 -
-        clamp((w.thk[i] - t0) / (tMax - t0), 0, 1) ** 1.2 * 0.22;
-  } // thickets sit in hollows
+  // contour heights follow the land itself (rocks sit on top and show their own height), with thickets in hollows
+  const el = new Float32Array(N);
+  for (let i = 0; i < N; i++)
+    el[i] = isLand(T[i]) ? cdf[i] - clamp((w.thk[i] - t0) / (tMax - t0), 0, 1) ** 1.2 * 0.22 : 0;
   const fn = i => (w.fert[i] - w.fLo) / (w.fHi - w.fLo);
   V.dry = march(
     sm(i => (T[i] === 1 ? 1 - fn(i) : 0)),
@@ -602,7 +594,7 @@ function renderTerrain() {
   // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
   V.contB = new Path2D();
-  for (let k = 1; k <= 24; k++)
+  for (let k = 1; k <= 8; k++)
     (k % 3 ? V.cont : V.contB).addPath(
       march(
         sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
@@ -729,12 +721,22 @@ function paintTerrain(g) {
   g.fillStyle = 'rgba(60,80,50,.13)';
   g.fill(V.trees.shadow);
   g.restore();
-  g.strokeStyle = 'rgba(70,62,50,.32)';
-  g.lineWidth = 0.9;
+  g.strokeStyle = CONTOURS.line[0];
+  g.lineWidth = CONTOURS.line[1];
   g.stroke(V.cont);
-  g.strokeStyle = 'rgba(70,62,50,.5)';
-  g.lineWidth = 1.6;
+  g.strokeStyle = CONTOURS.bold[0];
+  g.lineWidth = CONTOURS.bold[1];
   g.stroke(V.contB);
+  if (CONTOURS.halo) {
+    // contours fade out just before a rock: a soft band of the land's colour round each rock, under the rock
+    g.save();
+    g.clip(V.land);
+    g.strokeStyle = CONTOURS.halo[0];
+    g.lineWidth = CONTOURS.halo[1];
+    g.lineJoin = 'round';
+    g.stroke(V.rock.outline);
+    g.restore();
+  }
   paintRock(g, se);
   g.strokeStyle = 'rgba(21,25,24,.75)';
   g.lineWidth = 1.2;
