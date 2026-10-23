@@ -1021,8 +1021,6 @@ function meteor(x, y, major) {
   SFX.meteor(major);
   startShake('meteor', major);
   eventAlert('meteor');
-  // for Impact Survivor: the population just before a strike that killed 5 or more
-  if (k >= 5) S.meteorBack = S.creatures.filter(c => !c.dead).length + k;
 }
 // Extinction from Settings: one huge meteor lands among the creatures, a few small ones follow, and then every
 // creature left dies. It is a way to start again rather than a world event, so it leaves no craters.
@@ -1344,12 +1342,6 @@ const BADGES = [
     f: () => (S.lowPop ||= S.creatures.length <= 5) && S.creatures.length >= 20,
   },
   {
-    id: 'met',
-    name: 'Impact Survivor',
-    d: 'Population recovers to where it was before a meteor killed 5 or more',
-    f: () => S.meteorBack != null && S.creatures.length >= S.meteorBack,
-  },
-  {
     id: 'storms',
     name: 'Trauma Bonding',
     d: 'Survive a flood, a drought, an earthquake and a meteor',
@@ -1373,6 +1365,7 @@ const BADGES = [
     d: "A species' tail shrinks by 40 points",
     f: () => live().some(m => S.orig.hab - m.hab >= 0.4),
   },
+  { id: 'branch', name: 'Branching Out', d: 'Witness a new species form', f: () => S.species.length >= 2 },
   {
     id: 'both',
     name: 'Land and Sea',
@@ -1380,7 +1373,6 @@ const BADGES = [
     // a species that, on average, never enters water, alongside one that never leaves it
     f: () => live().some(m => m.dWc < CS) && live().some(m => m.dLc < CS),
   },
-  { id: 'branch', name: 'Branching Out', d: 'Witness a new species form', f: () => S.species.length >= 2 },
   {
     id: 'three',
     name: 'Crowded Tree',

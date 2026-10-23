@@ -737,13 +737,12 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Dynasty | Reach generation 100 (runs reach about generation 65–85 in an hour, so this takes a long run) |
 | Weathered | Survive 10 world events |
 | Against the Odds | Population grows to 20 after falling to 5 or lower (checked every 2 seconds, so a very brief dip can be missed) |
-| Impact Survivor | Population recovers to where it was just before a meteor killed 5 or more (the latest such strike) |
 | Trauma Bonding | Survive at least one of each world event: flood, drought, earthquake and meteor |
 | Re-productive | One creature has 5 offspring (most have 0–2; in 10-minute test runs about 1 creature in 6 runs reached 5) |
 | Taking to the Water | A species' average tail grows by 40 points |
 | Coming Ashore | A species' average tail shrinks by 40 points |
-| Land and Sea | An entirely land species (on average it never enters water) and an entirely water species (on average it never leaves water) alive at once |
 | Branching Out | Witness a new species form |
+| Land and Sea | An entirely land species (on average it never enters water) and an entirely water species (on average it never leaves water) alive at once |
 | Crowded Tree | Three species alive at once |
 | Changing of the Guard | A newer species outlives primus |
 | Tree of Life | Six species over one run |
@@ -857,7 +856,7 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
 - **Watch replay**, **Retry world** (the same world) and **New world** (a new random world), at the top. Retry and
   New world both open the creator set to the design that just died, ready to change or release again.
 - **Time alive, generations, peak population, ever born, species, achievements** (earned out of the total, such as
-  3 / 16).
+  3 / 15).
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died), and the **starting design** as the first column. Primus isn't
