@@ -196,7 +196,7 @@ function drawPreview(t) {
     378
   );
 }
-function openCreator(seed, design, canCancel) {
+function openCreator(seed, design) {
   if (design && design.w !== undefined && design.sat !== undefined)
     D = { ...D, ...upgrade(design), w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
   else randomDesign();
@@ -214,7 +214,6 @@ function openCreator(seed, design, canCancel) {
   $('#fWorld').innerHTML = opts.join('');
   $('#fWorld').value = seed != null ? String(seed) : '';
   $('#fName').value = D.name;
-  $('#cancel').hidden = !(canCancel && S && !S.over);
   $('#pastWrap').innerHTML = saved.runs.length
     ? `<h3 class="sec" style="margin-top:22px">Past lineages</h3>${histHTML()}`
     : '';
@@ -224,19 +223,13 @@ function openCreator(seed, design, canCancel) {
       b =>
         (b.onclick = () => {
           const r = saved.runs[+b.dataset.revisit];
-          openCreator(r.seed, r.design, canCancel);
+          openCreator(r.seed, r.design);
         })
     );
   syncCreator();
   $('#creator').hidden = false;
   $('#sheet').hidden = true;
 }
-$('#cancel').onclick = () => {
-  $('#creator').hidden = true;
-  $('#sheet').hidden = false;
-  S.paused = false;
-  syncUI(true);
-};
 $('#go').onclick = () => {
   D.name = ($('#fName').value.trim() || 'Blorbs').slice(0, 20);
   const v = $('#fWorld').value;

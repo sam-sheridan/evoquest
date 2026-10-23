@@ -9,8 +9,14 @@ const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up i
 const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
 const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
 const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
-// the soft beep, once a second, while the world event sign flashes before an event: pitch (Hz), length (s), loudness
-const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.035 };
+// the beep, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
+// how long it holds before fading (s), loudness
+const WARN_BEEP = { f: 880, hold: 0.22, vol: 0.06 };
+// the password for the testing tools in Settings (change it here; a password changed in Settings is kept only in
+// that browser and wins there)
+const TEST_PASSWORD = '1234';
+// Extinction (Settings): a major meteor strikes a random survivor every gap seconds of game time until none are left
+const DOOM = { gap: 0.8 };
 const AUDIO_CHECK = 2; // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)

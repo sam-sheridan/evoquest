@@ -290,9 +290,35 @@ setInterval(() => {
   if (!warnFrom) [warnFrom, warnBeeps] = [now, 0];
   if (now - warnFrom >= warnBeeps * 1000) {
     warnBeeps++;
-    tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
+    // only in the run-up: no beep in the moment the event itself happens
+    if (S.nextEvent - S.t > 0.5) beep();
   }
 }, 50);
+// a held beep: quick to start, steady for WARN_BEEP.hold seconds, then a short fade
+function beep() {
+  if (!AC || !sound) return;
+  const t = AC.currentTime,
+    o = AC.createOscillator(),
+    g = AC.createGain(),
+    { f, hold, vol } = WARN_BEEP;
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.015);
+  g.gain.setValueAtTime(vol, t + hold);
+  g.gain.linearRampToValueAtTime(0, t + hold + 0.08);
+  o.connect(g).connect(OUT);
+  o.start(t);
+  o.stop(t + hold + 0.1);
+}
 function syncSettings() {
   $('#sSound').setAttribute('aria-pressed', String(sound));
+  // testing tools greyed out until unlocked; events also need a live run
+  const live = S && !S.over && !S.replay;
+  for (const b of document.querySelectorAll('#sSpeed button, #sMajor')) b.disabled = !testUnlocked;
+  for (const b of document.querySelectorAll('.testev button')) b.disabled = !testUnlocked || !live;
+  $('#sPw').placeholder = testUnlocked ? 'New password' : 'Password';
+  $('#sPwGo').textContent = testUnlocked ? 'Change' : 'Unlock';
+  if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction';
+  $('#bDoom').disabled = !live || !!S.doom;
 }

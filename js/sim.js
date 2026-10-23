@@ -740,6 +740,16 @@ function step(dt) {
     if (!c.dead) update(c, dt);
   }
   resolveClaims();
+  // Extinction from Settings: major meteors strike random survivors until none are left
+  if (S.doom) {
+    S.doomT -= dt;
+    const L = C.filter(c => !c.dead).concat(S.newborns);
+    if (S.doomT <= 0 && L.length) {
+      S.doomT = DOOM.gap;
+      const c = L[(rand() * L.length) | 0];
+      meteor(c.x, c.y, true, true);
+    }
+  }
   if (S.newborns.length || C.some(c => c.dead)) {
     S.creatures = C.filter(c => !c.dead).concat(S.newborns);
     S.newborns = [];
@@ -920,14 +930,16 @@ function dryUp(sea, m) {
   }
   return k;
 }
-function meteor(x, y, major) {
-  world.craters.push({
-    x: x / CS,
-    y: y / CS,
-    gap: rand() * TAU,
-    r: EVENTS.crater[major ? 1 : 0],
-    p: [rand() * TAU, rand() * TAU, rand() * TAU],
-  });
+// shower: one of Extinction's meteors, which leaves no crater (redrawing the map for each would stall the game)
+function meteor(x, y, major, shower) {
+  if (!shower)
+    world.craters.push({
+      x: x / CS,
+      y: y / CS,
+      gap: rand() * TAU,
+      r: EVENTS.crater[major ? 1 : 0],
+      p: [rand() * TAU, rand() * TAU, rand() * TAU],
+    });
   let k = 0;
   for (const c of S.creatures) {
     if (!c.dead && Math.hypot(c.x - x, c.y - y) < EVENTS.blast[major ? 1 : 0]) {
@@ -935,14 +947,16 @@ function meteor(x, y, major) {
       k++;
     }
   }
-  world.dirty = true;
-  const old = snapMap();
-  buildTerrain();
-  startFade(old);
+  if (!shower) {
+    world.dirty = true;
+    const old = snapMap();
+    buildTerrain();
+    startFade(old);
+  }
   parts.push({ x, y, t: 0, k: 'boom' });
   S.events++;
   S.lastEvent = S.t;
-  const m = `${major ? 'Major meteor strike' : 'Meteor strike'}. ${k} creature${k === 1 ? '' : 's'} killed. A crater wall now rings the impact, with a small lake at its centre.`;
+  const m = `${major ? 'Major meteor strike' : 'Meteor strike'}. ${k} creature${k === 1 ? '' : 's'} killed.${shower ? '' : ' A crater wall now rings the impact, with a small lake at its centre.'}`;
   logEv(m);
   if (major) S.majorAt = S.t;
   SFX.meteor(major);
