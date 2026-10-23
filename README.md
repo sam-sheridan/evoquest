@@ -1062,6 +1062,13 @@ python3 tests/scenarios.py 6 15
   - 0 to 2 new species per 15 minutes, with at most 3 alive at once
 
   Results vary from run to run, so compare batches rather than single runs.
+- **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three
+  worlds each by default, with a mix of shapes) and five designs on each (middling, fully random, small clawed
+  walker, big long-legged walker, water creature), run several at a time. `python3 tests/study.py 45 4 3` makes 75
+  runs of 45 minutes and takes about half an hour. Each run is saved as a line of JSON: populations at 10, 20 and 30
+  minutes and at the end, time over 100, seasonal swing, new species with when and how each split happened,
+  extinctions and their causes, exploration, how far each body trait moved, and which creature type each species
+  ended up as.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
