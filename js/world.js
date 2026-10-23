@@ -193,6 +193,36 @@ function genWorld(seed, att = 0) {
       const flat = lvl0 + 0.03 + (hgt[i] - lvl0) * 0.25 - Math.max(0, fl(u, v) - 0.5) * 0.9;
       hgt[i] += (flat - hgt[i]) * wet;
     }
+  // lakes: basins carved into the land away from the coast, with wobbly shorelines (their own random stream, so the rest
+  // of the world keeps its layout)
+  const rl = mulberry32(seed * 13 + 4241 + att * 17),
+    nLakes = T.lakes[0] + Math.floor(rl() * (T.lakes[1] + 1)),
+    fromSea = distField(i => hgt[i] < lvl0 || border(i));
+  for (let n = 0, tries = 0; n < nLakes && tries < 300; tries++) {
+    const c = (rl() * GW * GH) | 0,
+      room = fromSea[c] / CS - 2;
+    if (room < LAKES.inland) continue;
+    const r = Math.min(room, LAKES.r[0] + rl() * LAKES.r[1]),
+      deep = LAKES.depth[0] + rl() * LAKES.depth[1],
+      p1 = rl() * TAU,
+      p2 = rl() * TAU,
+      cx = c % GW,
+      cy = (c / GW) | 0;
+    const span = Math.ceil(r * 1.4);
+    for (let y = Math.max(0, cy - span); y < Math.min(GH, cy + span); y++)
+      for (let x = Math.max(0, cx - span); x < Math.min(GW, cx + span); x++) {
+        const a = Math.atan2(y - cy, x - cx),
+          d =
+            Math.hypot(x - cx, y - cy) / (r * (1 + 0.22 * Math.sin(3 * a + p1) + 0.1 * Math.sin(5 * a + p2)));
+        if (d < 1) hgt[y * GW + x] = Math.min(hgt[y * GW + x], lvl0 - 0.004 - deep * (1 - d * d));
+      }
+    n++;
+  }
+  // the sea stays where it was: the lakes' basins come out of the land share, rather than the sea rising to make up
+  // for them (which would flood the low wetlands)
+  let landNow = 0;
+  for (let i = 0; i < GW * GH; i++) if (hgt[i] >= lvl0) landNow++;
+  const land = landNow / (GW * GH);
   // thicket and rock are shares of the starting land, so each world type gets the amount it asks for
   const onLand = a => a.filter((_, i) => hgt[i] >= lvl0 && !border(i));
   world = {
@@ -208,8 +238,8 @@ function genWorld(seed, att = 0) {
     fl: new Float32Array(N),
     dLand: null,
     dWater: null,
-    landFrac,
-    land0: landFrac,
+    landFrac: land,
+    land0: land,
     tOff: T.temp,
     channels: [],
     craters: [],
@@ -269,6 +299,50 @@ function genWorld(seed, att = 0) {
     world.sites.push({ x, y, i, kind: 'w', active: true, t: 0 });
     nw++;
   }
+  // lakes (water not joined to the open sea) get their own algae, and some algae waits on low land a big flood would
+  // drown, growing only once it is under water
+  const sea = new Uint8Array(GW * GH),
+    st = [];
+  for (let i = 0; i < GW * GH; i++) if (world.type[i] === 0 && border(i)) [sea[i], st[st.length]] = [1, i];
+  while (st.length) {
+    const j = st.pop(),
+      x = j % GW,
+      y = (j / GW) | 0;
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      const xx = x + dx,
+        yy = y + dy,
+        k = yy * GW + xx;
+      if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || sea[k] || world.type[k] !== 0) continue;
+      sea[k] = 1;
+      st.push(k);
+    }
+  }
+  const lake = [],
+    low = [],
+    floodLine = quant(world.hgt, 1 - Math.max(0.02, landFrac + LAND.min));
+  for (let i = 0; i < GW * GH; i++) {
+    if (world.type[i] === 0 && !sea[i] && !world.deep[i]) lake.push(i);
+    else if (isLand(world.type[i]) && world.type[i] !== 3 && world.hgt[i] < floodLine) low.push(i);
+  }
+  const rl2 = mulberry32(seed * 31 + 977),
+    put = i =>
+      world.sites.push({
+        x: ((i % GW) + rl2()) * CS,
+        y: (((i / GW) | 0) + rl2()) * CS,
+        i,
+        kind: 'w',
+        active: true,
+        t: 0,
+      });
+  for (let k = Math.round(lake.length * LAKES.algae); k > 0 && lake.length; k--)
+    put(lake[(rl2() * lake.length) | 0]);
+  for (let k = Math.round(T.food[1] * LAKES.flood); k > 0 && low.length; k--)
+    put(low[(rl2() * low.length) | 0]);
 }
 function distPoly(px, py, pts) {
   let m = 1e9;
