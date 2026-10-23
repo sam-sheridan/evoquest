@@ -7,7 +7,7 @@ possible (no rendering), and prints one line per run plus a summary. What "healt
 (the targets the current config was tuned to):
   - population mostly between about 40 and 100 (pctOver100 low)
   - seasons swing gently (summer/autumn a bit busier than winter/spring)
-  - 0 to 2 new species per 15-minute run, never more than 3 alive at once
+  - new species are rare in 15 minutes (the target is primus plus 1-3 over an hour: see study.py), never more than 3 alive at once
   - extinction now and then, even for ordinary designs (a real risk while populations are small and local)
   - about a quarter of the land explored after 10 minutes (explored10)
 

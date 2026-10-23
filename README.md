@@ -663,8 +663,9 @@ The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.s
 becomes a new species.
 
 **More species make splitting harder.** Both thresholds are multiplied by 1 + 0.9 × (living species − 1)
-(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. That keeps
-runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
+(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. In 75
+hour-long test runs that lasted the hour, three in four had 1–3 new species (the rest none), none ever had more
+than 3 alive at once, and most new species were still alive at the end of the hour.
 
 **Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.5,
 `SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour still drifts, and shows how long
@@ -1069,7 +1070,8 @@ python3 tests/scenarios.py 6 15
   - about a quarter of the land explored at 10 minutes, with a population of roughly 20–50
   - populations mostly between 40 and 100 after 20 minutes
   - gentle seasonal swings
-  - 0 to 2 new species per 15 minutes, with at most 3 alive at once
+  - over an hour (use `study.py`), primus plus 1–3 new species, each clearly different and lasting a good while,
+    with at most 3 alive at once
 
   Results vary from run to run, so compare batches rather than single runs.
 - **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three
