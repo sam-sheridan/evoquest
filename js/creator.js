@@ -131,6 +131,49 @@ function updP() {
     r.style.setProperty('--p', `calc(${p * 100}% - ${p * 12 - 6}px)`);
   });
 }
+// the values the creator's tags show: distances run from 0 to RANGE_CAP px (past that the limit no longer matters
+// on this map), thickets from 0 to 200 px (past that it reaches every thicket's middle)
+const RANGE_CAP = 2000;
+function tagVals(c) {
+  const cap = (d, other) => (d < CS ? 0 : other < CS ? RANGE_CAP : Math.min(RANGE_CAP, Math.round(d)));
+  return {
+    size: c.size,
+    vL: c.vL,
+    vW: c.vW,
+    reach: c.reach,
+    dW: cap(c.dW, c.dL),
+    dL: cap(c.dL, c.dW),
+    cap: c.cap,
+    burn: moveBurn(c, c.vL),
+    nut: mouthGain(c, 'n'),
+    alg: mouthGain(c, 'w'),
+    dT: Math.min(200, Math.round(c.dT)),
+  };
+}
+// the lowest and highest value of each tag over the whole range of designs, worked out once
+let ranges = null;
+function statRanges() {
+  if (ranges) return ranges;
+  ranges = {};
+  const ends = [0, 0.5, 1],
+    sizes = [1, 2.5, 4, 5.5, 7];
+  for (const w of sizes)
+    for (const h of sizes)
+      for (const leg of ends)
+        for (const hab of [0, 0.15, 0.5, 0.85, 1])
+          for (const mth of [0, 1])
+            for (const round of ends) {
+              const c = { w, h, leg, hab, mth, round, hue: 0, sat: 100, lt: 50 };
+              enforce(c);
+              compute(c);
+              for (const [k, x] of Object.entries(tagVals(c))) {
+                const r = (ranges[k] ||= [x, x]);
+                r[0] = Math.min(r[0], x);
+                r[1] = Math.max(r[1], x);
+              }
+            }
+  return ranges;
+}
 function syncCreator() {
   $('#fHue')
     .querySelectorAll('button')
@@ -153,34 +196,44 @@ function syncCreator() {
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
-  const b = moveBurn(c, c.vL),
-    river = c.vW >= RIVER && c.dW >= 16,
-    // how far it goes from shore and from water: never under one cell, anywhere past 2000 px (as in rangeTxt)
-    far = (verb, d, other, from) =>
-      d < CS
-        ? `Never ${verb}s`
-        : other < CS || d > 2000
-          ? `${verb[0].toUpperCase() + verb.slice(1)}s anywhere`
-          : `${verb[0].toUpperCase() + verb.slice(1)}s ${Math.round(d)} px from ${from}`;
-  // what the body does, roughly most important first; crossing rivers and thickets last
-  $('#pvStats').innerHTML =
+  const v = tagVals(c),
+    R = statRanges(),
+    // each tag is filled like a bar: how far its value sits between the lowest and highest any design can have
+    tag = (k, t) => {
+      // energy burnt spans a few extreme designs far above the rest, so it is measured on a log scale
+      const f = !R[k]
+        ? 0
+        : k === 'burn'
+          ? clamp(Math.log(v[k] / R[k][0]) / Math.log(R[k][1] / R[k][0]), 0, 1)
+          : clamp((v[k] - R[k][0]) / (R[k][1] - R[k][0] || 1), 0, 1);
+      return `<span class="chip" style="--f:${(f * 100).toFixed(1)}%">${t}</span>`;
+    };
+  // in four rows: body, getting about, energy and food, then thickets and rivers
+  $('#pvStats').innerHTML = [
     [
-      `Land ${Math.round(c.vL)} px/s`,
-      `Water ${Math.round(c.vW)} px/s`,
-      `Energy ${Math.round(c.cap)}`,
-      `Burns ${b.toFixed(2)}/s`,
-      far('swim', c.dW, c.dL, 'shore'),
-      far('walk', c.dL, c.dW, 'water'),
-      `Nuts ×${mouthGain(c, 'n').toFixed(2)}`,
-      `Algae ×${mouthGain(c, 'w').toFixed(2)}`,
-      `Size ${c.size.toFixed(2)}`,
-      `${c.legs} legs`,
-      `Reach ${c.reach.toFixed(0)} px`,
-      c.dT >= 200 ? 'Anywhere in thickets' : `${Math.round(c.dT)} px into thickets`,
-    ]
-      .map(t => `<span class="chip">${t}</span>`)
-      .join('') +
-    `<span class="chip ${river ? 'ok' : 'no'}">${river ? 'Crosses rivers' : 'Blocked by rivers'}</span>`;
+      tag('size', `Size ${c.size.toFixed(2)}`),
+      tag(null, `${c.legs} legs`),
+      tag('vL', `Land ${Math.round(c.vL)} px/s`),
+      tag('vW', `Water ${Math.round(c.vW)} px/s`),
+    ],
+    [
+      tag('reach', `Reach ${c.reach.toFixed(0)} px`),
+      tag('dW', `Swims out ${v.dW} px`),
+      tag('dL', `Walks inland ${v.dL} px`),
+    ],
+    [
+      tag('cap', `Energy ${Math.round(c.cap)}`),
+      tag('burn', `Burns ${v.burn.toFixed(2)}/s`),
+      tag('nut', `Nuts ×${v.nut.toFixed(2)}`),
+      tag('alg', `Algae ×${v.alg.toFixed(2)}`),
+    ],
+    [
+      tag('dT', `${v.dT} px into thickets`),
+      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'),
+    ],
+  ]
+    .map(r => `<div class="chiprow">${r.join('')}</div>`)
+    .join('');
   $('#pvWhy').innerHTML =
     `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();

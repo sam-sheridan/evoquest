@@ -927,6 +927,20 @@ h3.sec {
 #creator .sheet {
   position: relative;
 }
+.pvwrap {
+  position: relative;
+}
+/* Randomise: a dice button in the preview's top right corner */
+.btn.dice {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
 .brand {
   display: flex;
   align-items: baseline;
@@ -976,20 +990,20 @@ h3.sec {
   gap: 4px;
   margin-top: 8px;
 }
+.chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+}
+/* a tag filled like a bar (--f), showing where its value sits between the lowest and highest possible */
 .chip {
   border: 1px solid var(--line);
+  background: linear-gradient(90deg, #d9e0dc var(--f, 0%), transparent var(--f, 0%));
   padding: 3px 7px;
   font-family: var(--mono);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-}
-.chip.ok {
-  border-color: var(--good);
-  color: var(--good);
-}
-.chip.no {
-  border-color: var(--warn);
-  color: var(--warn);
 }
 .group {
   border-top: 1px solid var(--ink);

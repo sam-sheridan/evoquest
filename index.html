@@ -166,14 +166,38 @@
         </div>
         <div class="cgrid">
           <div>
-            <canvas id="pv" width="520" height="390"></canvas>
+            <div class="pvwrap">
+              <canvas id="pv" width="520" height="390"></canvas>
+              <button class="btn dice" id="rnd" aria-label="Randomise" title="Randomise">
+                <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+                  <rect
+                    x="2.5"
+                    y="2.5"
+                    width="15"
+                    height="15"
+                    rx="3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                  />
+                  <circle cx="6.5" cy="6.5" r="1.4" fill="currentColor" />
+                  <circle cx="13.5" cy="6.5" r="1.4" fill="currentColor" />
+                  <circle cx="10" cy="10" r="1.4" fill="currentColor" />
+                  <circle cx="6.5" cy="13.5" r="1.4" fill="currentColor" />
+                  <circle cx="13.5" cy="13.5" r="1.4" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
             <div class="chips" id="pvStats"></div>
           </div>
           <div>
-            <button class="btn" id="rnd" style="width: 100%; margin-bottom: 14px">Randomise</button>
             <div class="field">
               <label for="fName">Species name</label
               ><input type="text" id="fName" maxlength="20" value="Blorbs" />
+            </div>
+            <div class="field">
+              <span class="flabel">Colour</span>
+              <div class="hues" id="fHue"></div>
             </div>
             <div class="group">
               <div class="gh"><b>Body</b></div>
@@ -206,13 +230,6 @@
                   <label for="fR">Roundness<output id="oR"></output></label
                   ><input type="range" id="fR" min="0" max="1" step="0.01" />
                 </div>
-              </div>
-            </div>
-            <div class="group">
-              <div class="gh"><b>Look</b></div>
-              <div class="field">
-                <span class="flabel">Colour</span>
-                <div class="hues" id="fHue"></div>
               </div>
             </div>
             <div class="group">

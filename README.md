@@ -79,18 +79,27 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the stats under the preview give how much it gets from each. |
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
-| **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
+| **Colour** | Under the name. One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | At the top of the controls. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
+| **Randomise** | The dice button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
 | **Release into the world** | Starts the run, releasing 20 creatures (`START`). |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar and the body's size in pixels. Every few
 seconds it acts out eating, so you can see its mouth snap. There is no text beside the headings or under the
-sliders. Under the preview, a row of **tags** lists every stat the sliders change, roughly most important first,
-with thickets and rivers last: land and water speed (px/s), energy store, energy burnt per second walking flat out,
-how far it swims from shore and walks from water (or never, or anywhere), what it gets from nuts and from algae
-(× a berry's worth), size, number of legs, reach (how close it must get to food to eat it), how far into thickets it
-goes, and whether it crosses rivers (green) or is blocked by them (orange).
+sliders. Under the preview, **tags** list every stat the sliders change, in four rows:
+
+1. Size, number of legs, land speed and water speed (px/s).
+2. Reach (how close it must get to food to eat it), how far it swims out from shore and how far it walks inland
+   from water. These run from 0 px (never) to 2000 px (`RANGE_CAP`; past that the limit no longer matters on this
+   map, so 2000 px means anywhere).
+3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
+   worth).
+4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it crosses rivers.
+
+Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
+design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
+scale, since a few extreme designs burn far more than the rest. Legs and rivers are either/or, so their tags have
+no fill.
 
 The **?** button at the top right opens *How it works*: energy, breeding and lifespan, then how each slider trades
 one thing against another. Click anywhere else to close it.
