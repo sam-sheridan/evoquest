@@ -84,14 +84,13 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
 | **Release into the world** | Starts the run, releasing 20 creatures (`START`). |
 
-The **preview** shows the creature at 7× zoom with a 10 px scale bar and the body's size in pixels. Every few
+The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few
 seconds it acts out eating, so you can see its mouth snap. There is no text beside the headings or under the
 sliders. Under the preview, **tags** list every stat the sliders change, in four rows:
 
 1. Size, number of legs, land speed and water speed (px/s).
-2. Reach (how close it must get to food to eat it), how far it swims out from shore and how far it walks inland
-   from water. These run from 0 px (never) to 2000 px (`RANGE_CAP`; past that the limit no longer matters on this
-   map, so 2000 px means anywhere).
+2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
+   2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
 3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
    worth).
 4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it crosses rivers.

@@ -140,7 +140,6 @@ function tagVals(c) {
     size: c.size,
     vL: c.vL,
     vW: c.vW,
-    reach: c.reach,
     dW: cap(c.dW, c.dL),
     dL: cap(c.dL, c.dW),
     cap: c.cap,
@@ -222,11 +221,7 @@ function syncCreator() {
       tag('vL', x => `Land ${px(x)} px/s`),
       tag('vW', x => `Water ${px(x)} px/s`),
     ],
-    [
-      tag('reach', x => `Reach ${px(x)} px`),
-      tag('dW', x => `Swims out ${x} px`),
-      tag('dL', x => `Walks inland ${x} px`),
-    ],
+    [tag('dW', x => `Swims out ${x} px`), tag('dL', x => `Walks inland ${x} px`)],
     [
       tag('cap', x => `Energy ${px(x)}`),
       tag('burn', x => `Burns ${x.toFixed(2)}/s`),
@@ -276,17 +271,16 @@ function drawPreview(t) {
   g.strokeStyle = INK;
   g.lineWidth = 1;
   g.beginPath();
-  g.moveTo(40, 340);
-  g.lineTo(40 + 10 * k, 340);
-  g.moveTo(40, 335);
-  g.lineTo(40, 345);
-  g.moveTo(40 + 10 * k, 335);
-  g.lineTo(40 + 10 * k, 345);
+  g.moveTo(40, 358);
+  g.lineTo(40 + 10 * k, 358);
+  g.moveTo(40, 353);
+  g.lineTo(40, 363);
+  g.moveTo(40 + 10 * k, 353);
+  g.lineTo(40 + 10 * k, 363);
   g.stroke();
   g.fillStyle = INK;
   g.font = '12px "IBM Plex Mono", monospace';
-  g.fillText('10 px', 40, 360);
-  g.fillText(`${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px`, 40, 378);
+  g.fillText('10 px', 40, 378);
 }
 function openCreator(seed, design) {
   if (design && design.w !== undefined && design.sat !== undefined)
