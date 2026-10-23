@@ -36,9 +36,12 @@ Read the relevant section before changing a mechanic.
   creator's colour, each new species gets the most different one at its split), black or white eyes set per
   species, a redesigned creator (stat tags that fill like bars, a ? help popup, a refresh button for Randomise)
   and 15 achievements.
-- Still to do, roughly in order: the **map redesign** (a more natural look, more interesting water, thickets that
-  change over time), an **intro or tutorial** (the creator's ? popup is a possible starting point), and a
-  **sound redesign** (Sam will lead it).
+- The map redesign's water and trees shipped in October 2026: the drawn bands are now the game's real shelf
+  (each world's old shelf width, plus wider stretches and offshore banks at their own depths), lakes sit in smooth
+  hollows, and thickets are ink-drawn trees. Sam tried a painted, realistic look first and rejected it as too
+  computer-generated: keep the hand-drawn, field-notebook style, which matches the line-drawn creatures.
+- Still to do, roughly in order: the rest of the **map redesign** (thickets that change over time), an **intro or
+  tutorial** (the creator's ? popup is a possible starting point), and a **sound redesign** (Sam will lead it).
 - Add the git tag `beta-1` (a permanent label on a version) only after the visual changes are done and Sam asks.
 
 ## How a batch of changes works
@@ -66,7 +69,10 @@ properly on a branch.
 ## Checks before every preview and every merge
 
 In a Claude Code cloud session, Chromium is preinstalled but Playwright isn't. Install the version that matches
-the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't run `playwright install`.
+the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't run `playwright install`. If no
+version matches (`chromium-1243` had none), install any recent one, make a folder of symlinks named the way it
+expects (for example `chromium_headless_shell-1200` pointing at `/opt/pw-browsers/chromium_headless_shell-1243`)
+and run the tests with `PLAYWRIGHT_BROWSERS_PATH` set to that folder.
 
 1. Run `python3 tests/smoke.py`. It must print PASS with no page errors.
    When a push depends on a test, don't pipe the test through `tail` without `set -o pipefail`, or a failing

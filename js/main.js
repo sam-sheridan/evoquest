@@ -50,7 +50,7 @@ function updScale() {
 }
 function drawDetail() {
   const z = cam.z;
-  if (z * dpr <= TS * 1.05) return false;
+  if (z * dpr <= DETAIL) return false;
   const d = detail,
     now = performance.now();
   const same = d.ok && Math.abs(d.z - z) / z < 0.002,
@@ -67,7 +67,7 @@ function drawDetail() {
       }
     const g = d.can.getContext('2d');
     g.setTransform(1, 0, 0, 1, 0, 0);
-    g.fillStyle = BAND[3];
+    g.fillStyle = BAND[BAND.length - 1];
     g.fillRect(0, 0, Wc, Hc);
     g.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cw - cam.x * z), dpr * (ch - cam.y * z));
     paintTerrain(g);
@@ -120,7 +120,7 @@ function render(nowT) {
 function renderScene(nowT) {
   const t = nowT / 1000;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = BAND[3];
+  ctx.fillStyle = BAND[BAND.length - 1];
   ctx.fillRect(0, 0, cw, ch);
   if (!world) return;
   if (S && S.follow && S.sel && !S.sel.dead) {
@@ -132,7 +132,7 @@ function renderScene(nowT) {
   ctx.imageSmoothingEnabled = true;
   const loMode = z * dpr <= LO * 1.08,
     det = loMode ? null : drawDetail(),
-    zoomedIn = z * dpr > TS * 1.05,
+    zoomedIn = z * dpr > DETAIL,
     // while zooming or panning, stretch the last sharp detail image instead of showing only the softer base map
     stale = zoomedIn && !det && detail.ok ? detailRect(detail) : null;
   if (loMode) ctx.drawImage(tlo, 0, 0, W, H);

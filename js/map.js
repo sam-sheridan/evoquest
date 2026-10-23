@@ -82,6 +82,113 @@ function hatch(g, clip, spacing, colr, lw, ang = 1) {
   g.stroke();
   g.restore();
 }
+// a scalloped tree crown: n bumps round the edge, as one closed outline
+function crown(p, x, y, r, n, a0) {
+  for (let k = 0; k <= n; k++) {
+    const a = a0 + (k * TAU) / n,
+      px = x + Math.cos(a) * r,
+      py = y + Math.sin(a) * r;
+    if (k === 0) p.moveTo(px, py);
+    else {
+      const am = a - Math.PI / n;
+      p.quadraticCurveTo(x + Math.cos(am) * r * 1.38, y + Math.sin(am) * r * 1.38, px, py);
+    }
+  }
+  p.closePath();
+}
+// for each thicket cell, how far in (px) the middle of its patch is, up to TREES.mid
+function patchMiddles(w) {
+  const T = w.type,
+    mid = new Float32Array(GW * GH),
+    seen = new Uint8Array(GW * GH);
+  for (let s = 0; s < GW * GH; s++) {
+    if (T[s] !== 2 || seen[s]) continue;
+    const cells = [s],
+      st = [s];
+    seen[s] = 1;
+    let top = 0;
+    while (st.length) {
+      const j = st.pop(),
+        x = j % GW,
+        y = (j / GW) | 0;
+      top = Math.max(top, w.dThick[j]);
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ]) {
+        const xx = x + dx,
+          yy = y + dy,
+          k = yy * GW + xx;
+        if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || seen[k] || T[k] !== 2) continue;
+        seen[k] = 1;
+        cells.push(k);
+        st.push(k);
+      }
+    }
+    for (const j of cells) mid[j] = Math.max(THICKET.edge + CS, Math.min(top, TREES.mid));
+  }
+  return mid;
+}
+// thicket trees: small bushes scattered at the edge, big trees packed in the middle, where only smaller creatures
+// can go. They are grouped into rows 8 px tall, drawn from the top down, so nearer crowns hide the ones behind
+function trees(w) {
+  const r = mulberry32(w.seed ^ 0x7ee5),
+    T = w.type,
+    list = [],
+    mid = patchMiddles(w);
+  for (let i = 0; i < GW * GH; i++) {
+    if (T[i] !== 2) continue;
+    // size follows how far in a creature can go; how close together they grow rises all the way to the patch's middle
+    const k = clamp((w.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1),
+      m = clamp((w.dThick[i] - THICKET.edge) / (mid[i] - THICKET.edge), 0, 1),
+      per = TREES.per[0] + (TREES.per[1] - TREES.per[0]) * m,
+      n = Math.floor(per) + (r() < per % 1 ? 1 : 0),
+      x0 = (i % GW) * CS,
+      y0 = ((i / GW) | 0) * CS;
+    for (let j = 0; j < n; j++) {
+      const x = x0 + r() * CS,
+        y = y0 + r() * CS;
+      if (T[cellI(x, y)] !== 2) continue;
+      list.push({ x, y, r: TREES.r[0] + (TREES.r[1] - TREES.r[0]) * k + r() * TREES.jitter, a: r() * TAU });
+    }
+  }
+  list.sort((a, b) => a.y - b.y);
+  const rows = [],
+    shadow = new Path2D();
+  let row = null;
+  for (const t of list) {
+    const y8 = Math.floor(t.y / 8);
+    if (!row || row.y8 !== y8)
+      rows.push(
+        (row = {
+          y8,
+          crowns: new Path2D(),
+          fills: TREES.colour[0].map(() => TREES.alpha.map(() => new Path2D())),
+          shade: new Path2D(),
+        })
+      );
+    // each crown's outline is inked, and its fill goes in a group by shade and by how see-through it is
+    crown(row.crowns, t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
+    let pick = r(),
+      k = 0;
+    while (k < TREES.alpha.length - 1 && pick >= TREES.alpha[k][1]) pick -= TREES.alpha[k++][1];
+    crown(row.fills[(r() * TREES.colour[0].length) | 0][k], t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
+    // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
+    // the ground
+    if (r() > TREES.plain) {
+      const a = r() * TAU,
+        len = 0.7 + r() * 1.1,
+        rr = t.r * (0.5 + r() * 0.2);
+      row.shade.moveTo(t.x + Math.cos(a) * rr, t.y + Math.sin(a) * rr);
+      row.shade.arc(t.x, t.y, rr, a, a + len);
+    }
+    shadow.moveTo(t.x + t.r * 1.45, t.y + t.r * 0.4);
+    shadow.arc(t.x + t.r * 0.35, t.y + t.r * 0.4, t.r * 1.1, 0, TAU);
+  }
+  return { rows, shadow };
+}
 // terrain is kept as vector paths so it can be redrawn sharply at any zoom
 function renderTerrain() {
   const w = world,
@@ -92,14 +199,10 @@ function renderTerrain() {
   // stopping at the grid cells it cut
   const fade = i => clamp(w.seaD[i] / 3, 0, 1),
     sm = f => i => f(i) * fade(i);
-  const sea = i => (T[i] === 0 ? 200 - w.dLand[i] : 200);
-  V.bands = [110, 64, 30].map(d => march(sea, 200 - d, true, false).fill);
-  V.river = march(
-    i => (w.lS[i] > -2.5 && T[i] !== 0 ? clamp(0.5 + w.lS[i] * 0.35, 0, 1) : T[i] === 4 ? 1 : 0),
-    0.5,
-    true,
-    false
-  ).fill;
+  // sea depth bands (land counts as shallowest, so each band meets the shore under the land), with the edge of each
+  // kept as a line: thin ones for the bands, and the shelf's edge, where deep water starts, drawn dashed
+  const shallow = i => (T[i] === 0 ? -w.depth[i] : 20);
+  V.bands = BAND_AT.map(d => march(shallow, -d, true, true));
   const land = march(i => w.fl[i], w.level, true, true);
   V.land = land.fill;
   V.coast = land.line;
@@ -109,7 +212,7 @@ function renderTerrain() {
     true,
     false
   ).fill;
-  const thick = march(
+  V.thick = march(
     sm(i =>
       T[i] === 2
         ? Math.max(w.thk[i], w.tThr + 0.002)
@@ -119,27 +222,9 @@ function renderTerrain() {
     ),
     w.tThr,
     true,
-    true
-  );
-  V.thick = thick.fill;
-  V.thickL = thick.line;
-  const r = mulberry32(w.seed ^ 0xd07);
-  V.dots = new Path2D();
-  for (let i = 0; i < N; i++)
-    if (T[i] === 2) {
-      // dots get denser towards the middle, where only smaller creatures can go
-      const keep = 0.3 + 0.32 * clamp((w.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1),
-        x0 = (i % GW) * CS,
-        y0 = ((i / GW) | 0) * CS;
-      for (let yy = 1.6; yy < CS; yy += 3.2)
-        for (let xx = 1.6; xx < CS; xx += 3.2)
-          if (r() < keep) {
-            const x = x0 + xx + (r() - 0.5) * 2.4,
-              y = y0 + yy + (r() - 0.5) * 2.4;
-            V.dots.moveTo(x + 1.15, y);
-            V.dots.arc(x, y, 1.15, 0, TAU);
-          }
-    }
+    false
+  ).fill;
+  V.trees = trees(w);
   let rMax = w.rThr;
   for (let i = 0; i < N; i++) if (T[i] === 3 && w.rck[i] > rMax) rMax = w.rck[i];
   const rs = (rMax - w.rThr) / 4.2;
@@ -286,16 +371,17 @@ function tempWash(se) {
 }
 function paintTerrain(g) {
   const V = world.vec;
-  g.fillStyle = BAND[3];
+  g.fillStyle = BAND[BAND.length - 1];
   g.fillRect(0, 0, W, H);
-  g.fillStyle = BAND[2];
-  g.fill(V.bands[0]);
-  g.fillStyle = BAND[1];
-  g.fill(V.bands[1]);
-  g.fillStyle = BAND[0];
-  g.fill(V.bands[2]);
+  for (let k = V.bands.length - 1; k >= 0; k--) {
+    g.fillStyle = BAND[k];
+    g.fill(V.bands[k].fill);
+  }
   g.fillStyle = BAND[0];
   g.fill(V.river);
+  g.strokeStyle = 'rgba(77,115,133,.35)';
+  g.lineWidth = 0.7;
+  for (const b of V.bands) g.stroke(b.line);
   g.fillStyle = '#e9ecde';
   g.fill(V.land);
   const se = typeof S !== 'undefined' && S ? S.season : 0;
@@ -326,13 +412,18 @@ function paintTerrain(g) {
     'rgba(205,214,196,.35)',
   ][se];
   g.fill(V.mead);
-  g.fillStyle = ['#bdd0a6', '#bdd0a6', '#c6c99c', '#b6c2aa'][se];
+  // woodland floor: a soft tint with no hard outline (the trees on top show the edge)
+  g.fillStyle = [
+    'rgba(176,200,150,.55)',
+    'rgba(176,200,150,.55)',
+    'rgba(190,190,140,.55)',
+    'rgba(180,192,170,.5)',
+  ][se];
   g.fill(V.thick);
-  g.strokeStyle = '#47643a';
-  g.lineWidth = 1;
-  g.stroke(V.thickL);
   g.imageSmoothingEnabled = true;
   g.drawImage(tempWash(se), 0, 0, W, H);
+  g.fillStyle = 'rgba(60,80,50,.13)';
+  g.fill(V.trees.shadow);
   g.restore();
   const RF =
     se === 3 ? ['#cfc8bb', '#bfb7a8', '#e9eeef', '#fbfcfc'] : ['#cfc8bb', '#bfb7a8', '#aea595', '#9d9483']; // winter: snow on the peaks
@@ -364,14 +455,25 @@ function paintTerrain(g) {
   g.lineJoin = 'round';
   g.stroke(V.chev);
 }
-// thicket stipple lives on its own layer, drawn over creatures and food so they look tucked into the bushes
+// thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {
-  const V = world.vec;
+  const se = typeof S !== 'undefined' && S ? S.season : 0;
   g.save();
-  g.clip(V.land);
-  g.clip(V.thick);
-  g.fillStyle = '#34502b';
-  g.fill(V.dots);
+  g.lineJoin = 'round';
+  g.strokeStyle = '#34502b';
+  g.lineWidth = 0.75;
+  for (const row of world.vec.trees.rows) {
+    TREES.colour[se].forEach((c, j) => {
+      g.fillStyle = c;
+      TREES.alpha.forEach(([a], k) => {
+        g.globalAlpha = a;
+        g.fill(row.fills[j][k]);
+      });
+    });
+    g.globalAlpha = 1;
+    g.stroke(row.crowns);
+    g.stroke(row.shade);
+  }
   g.restore();
 }
 

@@ -428,9 +428,9 @@ re-plan at once.
 
 | Type | How it is made |
 |---|---|
-| **Sea** | Everything below sea level: a shallow shelf near coasts and over banks, and deep water beyond (see [sea depth](#sea-depth)). |
+| **Sea** | Everything below sea level: a shallow shelf round every coast, wider along some stretches and over offshore banks, and deep water beyond, always deep near the map's edge (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
-| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). Denser dots on the map mean further in. |
+| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). On the map, small scattered bushes at the edge grow into big, packed trees towards the middle. |
 | **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
@@ -454,7 +454,8 @@ noticeably fewer.
 **Lakes** (`lakes` in `WORLD_TYPES`, and `LAKES`): each world carves lake basins into its land, at least 5 cells from
 the coast, 4 to 10 cells across with wobbly shores: 2–4 on classic and forest worlds, 3–6 on supercontinents, 4–7 on
 highlands (a lake district) and 0–1 on archipelagos, which have water enough. Basins that touch become one bigger
-lake. Their floors are only a little below the starting sea level, so a big drought can drain the shallow ones and a
+lake. The land slopes gently down to each lake over its last 6 cells (`LAKES.shore`, `LAKES.slope`), so a lake sits
+in a hollow with a smooth shoreline, not in a steep-sided pit. Their floors are only a little below the starting sea level, so a big drought can drain the shallow ones and a
 flood spreads them. Low wetlands still hold a few small lakes of their own. Lakes are water like the sea, always
 shallow, so the same rules apply: land creatures keep out, and a water creature in a lake that can't leave water is
 cut off there, which can lead to a new species.
@@ -498,12 +499,31 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
 ### Sea depth
 
-The sea has a **shallow shelf** and **deep water** beyond it. Depth blends distance from shore (two thirds) with
-the sea floor's depth (one third), each measured as a rank among sea cells, so shelves follow the coasts and reach
-out over offshore banks. The shallowest 30% of the sea is shelf (`SEA.shelf`). It is worked out again after
-every flood, drought or earthquake.
+The sea has a **shallow shelf** and **deep water** beyond it, and the map draws exactly what the game uses: the
+three pale bands round the coasts are the shelf, and the edge of the outer band is where deep water starts.
+(Before the map redesign the shelf was worked out separately and never drawn, and the bands were a fixed width.)
 
-- **Algae** grows only on the shelf.
+- **Every coast** has a tapering shelf as wide as the nearest 30% of the world's open sea at the start
+  (`SEA.shelf`), as the shelf was before, but never narrower than 110 px (`SEA.minWidth`). So worlds with a lot of
+  open sea have wide shelves (about 250 px on classic and forest worlds) and supercontinents narrow ones (about
+  130–145 px). That width is fixed for the world, so after a flood or drought the shelf follows the new coast.
+- **Along some stretches** the shallows reach further out, up to 2.2 times as far (`SEA.widen`, `SEA.wide`).
+- **Shallow banks** rise as separate patches out at sea, where there is room (`SEA.bank`).
+- **Each wider stretch and bank has its own shallowest depth** (`SEA.top`, `SEA.topAt`): usually only the outer
+  band, sometimes the middle band, and now and then all three. Next to the coast the plain taper stays, so a wide
+  stretch is a broad shelf beyond the normal bands. They settle in the middle of a band, never on its edge, which
+  would give ragged outlines.
+- **Smooth shapes.** The whole depth pattern is softened 5 times (`SEA.smooth`), so every band has smooth curves
+  and the stretches and banks join the coastal shelf naturally.
+- **Near the map's edge**, wider stretches and banks fade away over the 14 cells inside the sea margin
+  (`SEA.edgeFade`), and within the margin itself even a plain shelf runs out, so the open ocean round the map is
+  always deep.
+- **Lakes** (water not joined to the open sea) are always shallow.
+
+With the extra stretches and banks, the shelf is about 29–39% of the open sea, a little more than the 30% it was.
+Depth is worked out again after every flood, drought or earthquake.
+
+- **Algae** grows only on the shelf, most thickly close to shore (`SEA.algaeFade`).
 - **Deep water** costs extra energy for anything that isn't fully aquatic (see [energy](#energy)), so it is a real
   barrier for land creatures and amphibians.
 
@@ -571,7 +591,7 @@ in deep water when the shelf moves are wiped out: they vanish and can't be eaten
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
 waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
 take it from walkers. Likewise, 40% more of the world type's algae waits in the deep water just beyond the shelf
-(`SEA.drought`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
+(`SEA.drought`, up to half a shelf width past its edge, `SEA.beyond`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
 waits. Without it, a drought could take two thirds of an archipelago's algae at once.
 
 ---
@@ -907,9 +927,17 @@ species. Browsers that can't do this send sound straight to the speakers instead
 The look is a scientific **field notebook / survey map**.
 
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
-  - The sea is shown in four depth bands by distance from shore (`BAND`). The shallow shelf isn't drawn
-    separately, but the paler bands near coasts roughly follow it. Land is pale with darker fertile meadows. Thickets are green with
-    dots, getting denser over the first 48 px from the edge, where the thicket gets too tight for bigger creatures. Rock is grey contoured plates. Rivers are pale blue with a
+  - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
+    line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
+    also the background beyond the map, so the map has no visible border.
+  - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
+    top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
+    meadows and changing with the seasons (`TREES.colour`). Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
+    scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
+    thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
+    112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
+    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock is grey
+    contoured plates. Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
     keep their stepped edges.
@@ -922,10 +950,11 @@ The look is a scientific **field notebook / survey map**.
     pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
     holds too many detailed shapes.
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
-  out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). When zoomed in, the visible part is redrawn sharply. While zooming or panning, the last
+  out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). From a mid zoom inwards (`DETAIL`: 0.65 screen pixels per world px), the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
-  map at full sharpness, so the map doesn't go blurry. When zoomed in, creatures stay under the thicket dots,
-  mid-zoom included.
+  map at full sharpness, so the map doesn't go blurry. From that zoom inwards, creatures stay under the trees,
+  which are partly see-through (`TREES.alpha`): 40% of trees are the most see-through, 35% a bit more solid,
+  20% more solid again and 5% almost fully solid, so creatures and food show through most of them.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
@@ -1006,7 +1035,8 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How much offspring vary | `VAR` |
 | How leg length, leg count and size set speed | `LEGS` |
 | Energy burnt standing, moving, and by size | `BURN` |
-| How far into thickets each size goes, and where nuts and denser dots begin | `THICKET` |
+| How far into thickets each size goes, and where nuts and bigger trees begin | `THICKET` |
+| Size and spacing of thicket trees | `TREES` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
@@ -1019,7 +1049,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | World shapes | `SHAPES` |
 | How hilly the land is | `RELIEF` |
 | Temperature: cold and hot levels, season shifts, energy costs | `TEMP` |
-| Shallow shelf size and deep-water cost | `SEA` |
+| Shallow shelf size and shape, and deep-water cost | `SEA` |
 | Lakes: how many per world type, size, depth, their algae, algae for floods and craters | `lakes` in `WORLD_TYPES`, `LAKES` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
