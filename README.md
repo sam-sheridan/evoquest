@@ -384,7 +384,7 @@ allowed into.
 
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply. Close to the next point
   on their route (within 20 px) they turn on the spot instead, and a creature waiting by regrowing or busy food
-  stands still once within 12 px of its spot. Without this, a creature could circle a point for ever without ever
+  stands still once within 12 px of its spot (a stranded creature heading for safe ground never stops short of it). Without this, a creature could circle a point for ever without ever
   quite reaching it.
 - Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.

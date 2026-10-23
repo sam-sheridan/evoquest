@@ -470,6 +470,8 @@ function plan(c) {
     // with no food free, head for the nearest regrowing or busy food and wait there (looking again soon)
     goal = best || c._wait;
   setTarget(c, best);
+  // waiting by regrowing or busy food (not heading somewhere safe, nor for food it can eat)
+  c.waits = !best && !!c._wait;
   c.blk = 0;
   if (!best) c.rt = 1.2 + rand();
   // stranded with no food in reach: make for the nearest safe ground instead
@@ -548,7 +550,7 @@ function update(c, dt) {
     }
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
     near = Math.hypot(p[0] - c.x, p[1] - c.y);
-    waiting = !c.target && c.wp === c.path.length - 1;
+    waiting = c.waits && c.wp === c.path.length - 1;
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
     // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
