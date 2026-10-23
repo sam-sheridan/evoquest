@@ -335,7 +335,7 @@ function genWorld(seed, att = 0) {
   // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
   const beyond = [];
   for (let i = 0; i < GW * GH; i++)
-    if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < SEA.shelf + 0.2)
+    if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < SEA.shelf + SEA.beyond)
       beyond.push(i);
   for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
     put(beyond[(rl2() * beyond.length) | 0]);
@@ -448,25 +448,6 @@ function openSea(T) {
     }
   }
   return sea;
-}
-// each cell becomes the average of itself and its neighbours, which softens a field's shapes
-function soften(a) {
-  const b = new Float32Array(a.length);
-  for (let y = 0; y < GH; y++)
-    for (let x = 0; x < GW; x++) {
-      let s = 0,
-        n = 0;
-      for (let dy = -1; dy <= 1; dy++)
-        for (let dx = -1; dx <= 1; dx++) {
-          const xx = x + dx,
-            yy = y + dy;
-          if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;
-          s += a[yy * GW + xx];
-          n++;
-        }
-      b[y * GW + x] = s / n;
-    }
-  return b;
 }
 function distPoly(px, py, pts) {
   let m = 1e9;
@@ -663,30 +644,38 @@ function buildTerrain(skipDraw) {
   // how far each thicket cell is from the thicket's edge (16 px for an edge cell), which sets who can go there
   w.dThick = distField(i => w.type[i] !== 2);
   w.dWater = distField(i => isWater(w.type[i]));
-  // sea depth: a blend of distance from shore and the sea floor, each as a rank among open-sea cells, deepening
-  // towards the map's edge and softened, so shallows form rounded banks and bays; the shallowest share is the shelf.
-  // Lakes are always shallow
-  const open = openSea(w.type),
-    sea = [];
-  for (let i = 0; i < N; i++) if (open[i]) sea.push(i);
-  const rank = f => {
-    const r = new Float32Array(N);
-    sea.sort((a, b) => f(a) - f(b)).forEach((i, k) => (r[i] = k / sea.length));
-    return r;
-  };
-  const rD = rank(i => w.dLand[i]),
-    rF = rank(i => w.level - w.hgt[i]);
-  let raw = new Float32Array(N);
-  for (const i of sea) raw[i] = (1 - SEA.floor) * rD[i] + SEA.floor * rF[i];
-  for (let k = 0; k < SEA.smooth; k++) raw = soften(raw);
-  const rS = rank(i => raw[i]);
+  // sea depth, as how far from land (px) the water would be on a plain coast: every coast keeps at least the plain
+  // taper, some stretches reach further out (wider shallows), and shallow banks rise out at sea. Both fade out
+  // towards the map's edge, so the open ocean round the map is always deep. Lakes are always shallow
+  const open = openSea(w.type);
+  if (!w.seaN) {
+    const r = mulberry32(w.seed ^ 0x5ea),
+      wide = field(r, [
+        [6, 1],
+        [12, 0.5],
+      ]),
+      bank = field(r, [
+        [8, 1],
+        [16, 0.5],
+        [32, 0.25],
+      ]);
+    w.seaN = [new Float32Array(N), new Float32Array(N)];
+    for (let i = 0; i < N; i++) {
+      const u = (i % GW) / GW,
+        v = ((i / GW) | 0) / GH;
+      w.seaN[0][i] = wide(u, v);
+      w.seaN[1][i] = bank(u, v);
+    }
+  }
   w.depth = new Float32Array(N);
   w.deep = new Uint8Array(N);
-  for (const i of sea) {
-    const x = i % GW,
-      y = (i / GW) | 0,
-      edge = clamp(1 - (edgeDist(x, y) - EDGE) / SEA.margin, 0, 1);
-    w.depth[i] = Math.max(rS[i], edge * edge * (3 - 2 * edge));
+  for (let i = 0; i < N; i++) {
+    if (w.type[i] !== 0) continue;
+    const fade = clamp((edgeDist(i % GW, (i / GW) | 0) - EDGE) / SEA.edgeFade, 0, 1),
+      n = clamp((w.seaN[0][i] - SEA.wide[0]) / (SEA.wide[1] - SEA.wide[0]), 0, 1),
+      coast = w.dLand[i] / (1 + SEA.widen * n * n * (3 - 2 * n) * fade),
+      bank = Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1];
+    w.depth[i] = open[i] ? Math.min(coast, bank) : Math.min(w.dLand[i], SEA.shelf - 1);
     w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
   }
   for (let i = 0; i < N; i++) {

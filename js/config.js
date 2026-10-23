@@ -155,22 +155,25 @@ const REGIONS = { strength: 1.3 };
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
-// sea depth: shelf is the share of the open sea that is shallow shelf (a little less once the margin is deepened).
-// Depth blends distance from shore with the sea floor's depth; floor is the sea floor's share, so shallows reach out
-// over banks and into bays rather than ringing every coast evenly. The sea deepens over the last margin cells before
-// the map's oval edge, so the open ocean round the map is always deep. smooth: how many times depth is softened,
-// which rounds off its shapes. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance
-// from shore (algaeFade px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones).
-// drought: share of the world type's algae that waits, dormant, in the deep water just beyond the shelf, growing
-// once a drought pulls the shallows out to it
+// sea depth is measured as how far from land (px) the water would be on a plain coast. shelf: the depth where the
+// shallow shelf ends and deep water starts. Every coast has at least the plain taper; along some stretches the
+// shallows reach further out, up to 1 + widen times as far, where a broad pattern is between wide[0] and wide[1]
+// and above. Shallow banks rise out at sea where another pattern goes over bank[0], tapering bank[1] px of depth
+// per unit of the pattern. Both fade out over edgeFade cells inside the map's sea margin, so the open ocean round
+// the map is always deep. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance from
+// shore (algaeFade px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones).
+// drought: share of the world type's algae that waits, dormant, in the deep water just beyond the shelf (up to
+// beyond px deeper), growing once a drought pulls the shallows out to it
 const SEA = {
-  shelf: 0.3,
-  floor: 0.65,
-  margin: 24,
-  smooth: 2,
+  shelf: 110,
+  widen: 2,
+  wide: [0.52, 0.72],
+  bank: [0.72, 1100],
+  edgeFade: 14,
   algaeFade: 80,
   deepCost: 0.8,
   drought: 0.4,
+  beyond: 60,
 };
 const TEMP = {
   cold: 0.3,
@@ -226,13 +229,14 @@ const VAR = 1.6; // how much offspring traits vary from their parent (1 = base a
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
 const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
-// sea depth bands, shallowest to deepest, and the depths where each deeper band starts (the second is the shelf's edge,
-// drawn dashed). The deepest colour is also the background beyond the map
-const BAND = ['#dbe7e7', '#cbdde1', '#bfd4da', '#b5ccd4', '#adc6cf'];
-const BAND_AT = [0.16, SEA.shelf, 0.55, 0.8];
-// thicket trees: crown radius in px [at the edge, deep in], plus up to jitter px more, and trees per cell [at the
-// edge, deep in], plus up to extra more, so the edge has a few small bushes and the middle big, packed trees
-const TREES = { r: [5.5, 10.5], jitter: 2.5, per: [0.2, 0.42], extra: 0.15 };
+// sea depth bands, shallowest to deepest, and the depths (px, see SEA) where each deeper band starts; the last is
+// the shelf's edge, drawn dashed. The deepest colour is also the background beyond the map
+const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
+const BAND_AT = [30, 64, SEA.shelf];
+// thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
+// [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
+// each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees
+const TREES = { r: [5.5, 10.5], jitter: 2.5, per: [0.3, 1], mid: 112 };
 
 /* ---- colours ---- */
 // Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers

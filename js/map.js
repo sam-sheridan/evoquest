@@ -96,16 +96,55 @@ function crown(p, x, y, r, n, a0) {
   }
   p.closePath();
 }
+// for each thicket cell, how far in (px) the middle of its patch is, up to TREES.mid
+function patchMiddles(w) {
+  const T = w.type,
+    mid = new Float32Array(GW * GH),
+    seen = new Uint8Array(GW * GH);
+  for (let s = 0; s < GW * GH; s++) {
+    if (T[s] !== 2 || seen[s]) continue;
+    const cells = [s],
+      st = [s];
+    seen[s] = 1;
+    let top = 0;
+    while (st.length) {
+      const j = st.pop(),
+        x = j % GW,
+        y = (j / GW) | 0;
+      top = Math.max(top, w.dThick[j]);
+      for (const [dx, dy] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ]) {
+        const xx = x + dx,
+          yy = y + dy,
+          k = yy * GW + xx;
+        if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || seen[k] || T[k] !== 2) continue;
+        seen[k] = 1;
+        cells.push(k);
+        st.push(k);
+      }
+    }
+    for (const j of cells) mid[j] = Math.max(THICKET.edge + CS, Math.min(top, TREES.mid));
+  }
+  return mid;
+}
 // thicket trees: small bushes scattered at the edge, big trees packed in the middle, where only smaller creatures
 // can go. They are grouped into rows 8 px tall, drawn from the top down, so nearer crowns hide the ones behind
 function trees(w) {
   const r = mulberry32(w.seed ^ 0x7ee5),
     T = w.type,
-    list = [];
+    list = [],
+    mid = patchMiddles(w);
   for (let i = 0; i < GW * GH; i++) {
     if (T[i] !== 2) continue;
+    // size follows how far in a creature can go; how close together they grow rises all the way to the patch's middle
     const k = clamp((w.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1),
-      n = TREES.per[0] + (TREES.per[1] - TREES.per[0]) * k + r() * TREES.extra,
+      m = clamp((w.dThick[i] - THICKET.edge) / (mid[i] - THICKET.edge), 0, 1),
+      per = TREES.per[0] + (TREES.per[1] - TREES.per[0]) * m,
+      n = Math.floor(per) + (r() < per % 1 ? 1 : 0),
       x0 = (i % GW) * CS,
       y0 = ((i / GW) | 0) * CS;
     for (let j = 0; j < n; j++) {
@@ -143,8 +182,8 @@ function renderTerrain() {
     sm = f => i => f(i) * fade(i);
   // sea depth bands (land counts as shallowest, so each band meets the shore under the land), with the edge of each
   // kept as a line: thin ones for the bands, and the shelf's edge, where deep water starts, drawn dashed
-  const shallow = i => (T[i] === 0 ? 1 - w.depth[i] : 1.2);
-  V.bands = BAND_AT.map(d => march(shallow, 1 - d, true, true));
+  const shallow = i => (T[i] === 0 ? -w.depth[i] : 20);
+  V.bands = BAND_AT.map(d => march(shallow, -d, true, true));
   const land = march(i => w.fl[i], w.level, true, true);
   V.land = land.fill;
   V.coast = land.line;
@@ -323,12 +362,12 @@ function paintTerrain(g) {
   g.fill(V.river);
   g.strokeStyle = 'rgba(77,115,133,.35)';
   g.lineWidth = 0.7;
-  V.bands.forEach((b, k) => k !== 1 && k < 3 && g.stroke(b.line));
+  V.bands.forEach((b, k) => k < V.bands.length - 1 && g.stroke(b.line));
   g.save();
   g.setLineDash([5, 3.5]);
   g.strokeStyle = 'rgba(60,98,118,.65)';
   g.lineWidth = 0.9;
-  g.stroke(V.bands[1].line);
+  g.stroke(V.bands[V.bands.length - 1].line);
   g.restore();
   g.fillStyle = '#e9ecde';
   g.fill(V.land);
