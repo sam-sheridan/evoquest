@@ -575,7 +575,8 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 - **water**: algae sites
 - **thicket**
 - **island**: land that isn't on the main landmass
-- **meadow**: land in the more fertile 45% of the fertility range, shown as darker green
+- **meadow**: land in the more fertile 45% of the fertility range, shown greener (the map's green and straw
+  colours follow fertility, fading into each other)
 - **plain**: all other land
 
 **What you see:**
@@ -931,7 +932,12 @@ The look is a scientific **field notebook / survey map**.
   - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
     line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
     also the background beyond the map, so the map has no visible border.
-  - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
+  - **Open land** (`OPENLAND`) is pale, with fertile meadows washed green and poor dry ground washed straw, fading
+    into each other (drawn as a small smoothed image, one pixel per cell, so it adds nothing to Safari's limit). In
+    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows, small ink grass tufts dot
+    fertile ground, and reed marks show the low wet ground by lakes and rivers. A very light hill shading (also a
+    small image) darkens slopes facing away from the north-west light and fades out at the water's edge.
+  - Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
     meadows and changing with the seasons (`TREES.colour`). Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
@@ -946,7 +952,8 @@ The look is a scientific **field notebook / survey map**.
     to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
     Meteor crater walls take their height from the crater's ring, rising to its crest. A
     ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
-    shaded side (along the coast they read as sea cliffs). In winter the tiers are snow. The rock's base is a darker
+    shaded side. Where rock meets water it lowers over its last 3 cells (`ROCKS.shore`) and ends in sea cliffs: the
+    coast gets the rock's ink line and a row of strokes pointing inland. In winter the tiers are snow. The rock's base is a darker
     stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather
     than drawn lines, so it adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
     get a plain fill of the same tone instead, as the fine lines would show as a check pattern.

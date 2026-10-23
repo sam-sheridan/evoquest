@@ -251,6 +251,34 @@ const BAND_AT = [0.27, 0.58, 1];
 // [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
 // 5% almost fully solid
 // colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
+// open land. wash: per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
+// strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
+// per open cell of a lone tree or small clump, [base, extra on the most fertile ground]. grass: chance of a grass
+// tuft per fertile cell (times fertility). reed: chance of a reed mark per low cell by lakes and rivers
+const OPENLAND = {
+  wash: [
+    [
+      [150, 190, 110, 0.36],
+      [222, 200, 140, 0.32],
+    ],
+    [
+      [160, 190, 110, 0.26],
+      [228, 196, 110, 0.36],
+    ],
+    [
+      [185, 175, 110, 0.3],
+      [220, 190, 130, 0.32],
+    ],
+    [
+      [160, 180, 150, 0.22],
+      [215, 210, 195, 0.28],
+    ],
+  ],
+  hill: 0.13,
+  lone: [0.02, 0.06],
+  grass: 0.35,
+  reed: 0.55,
+};
 // contour lines: [colour, width px] for ordinary lines and for the bold index lines (every third). halo: a soft
 // band [colour, width px] drawn round each rock before it, so contours fade out just before reaching it (null: none)
 const CONTOURS = {
@@ -262,8 +290,9 @@ const CONTOURS = {
 // ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
 // edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
 // sets how steep its faces are. minPeak: every rock's peak is lifted to at least this height (on the tiers' scale),
-// rising towards 1 for the tallest, so even low rocks get faces and a tier. flat: faces rising less than this
-// share of relief count as flat and stay plain.
+// rising towards 1 for the tallest, so even low rocks get faces and a tier. shore: over how many cells rock lowers
+// towards water, ending in sea cliffs. flat: faces rising less than this share of relief count as flat and stay
+// plain.
 // hatch: gap (px) between hatching lines on shaded faces, measured across the lines; hatchFrom: the zoom (screen
 // pixels per world px) below which shaded faces get the plain hatchFlat colour instead, as finer lines would show
 // as a check pattern. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
@@ -275,6 +304,7 @@ const ROCKS = {
   mesh: 44,
   relief: 160,
   minPeak: 0.5,
+  shore: 3,
   flat: 0.14,
   hatch: 3.4,
   tiers: [0.33, 0.62],
