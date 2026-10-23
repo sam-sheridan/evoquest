@@ -415,31 +415,45 @@ function drawBerry(g, x, y, p) {
   g.restore();
 }
 // an acorn: brown nut under a darker cap; regrowing ones are small and pale
+// a nut grows through three stages: a bare pale nut just after eating, a pale nut with a small cap half grown, and
+// the full dark acorn when ready to eat
 function drawNut(g, x, y, p) {
+  const k = 0.45 + 0.55 * p,
+    ripe = p >= 1;
   g.save();
   g.translate(x, y);
-  g.scale(3.2 * (0.45 + 0.55 * p), 3.2 * (0.45 + 0.55 * p));
-  g.lineWidth = 0.28 / (0.45 + 0.55 * p);
+  g.scale(3.2 * k, 3.2 * k);
+  g.lineWidth = 0.28 / k;
   g.strokeStyle = INK;
-  g.globalAlpha = p >= 1 ? 1 : p > 0 ? 0.45 : 0.3;
   g.beginPath();
   g.ellipse(0, 0.35, 0.95, 1.15, 0, 0, TAU);
-  g.fillStyle = '#b07a3c';
+  g.fillStyle = ripe ? '#b07a3c' : '#d8b98e';
   g.fill();
   g.stroke();
-  g.beginPath();
-  g.ellipse(0, -0.55, 1.15, 0.6, 0, Math.PI, TAU);
-  g.lineTo(1.15, -0.45);
-  g.quadraticCurveTo(0, 0, -1.15, -0.45);
-  g.closePath();
-  g.fillStyle = '#5b3a1a';
-  g.fill();
-  g.stroke();
-  g.beginPath();
-  g.moveTo(0, -1.15);
-  g.lineTo(0.15, -1.6);
-  g.lineWidth *= 1.25;
-  g.stroke();
+  if (ripe) {
+    g.beginPath();
+    g.ellipse(0, -0.55, 1.15, 0.6, 0, Math.PI, TAU);
+    g.lineTo(1.15, -0.45);
+    g.quadraticCurveTo(0, 0, -1.15, -0.45);
+    g.closePath();
+    g.fillStyle = '#5b3a1a';
+    g.fill();
+    g.stroke();
+    g.beginPath();
+    g.moveTo(0, -1.15);
+    g.lineTo(0.15, -1.6);
+    g.lineWidth *= 1.25;
+    g.stroke();
+  } else if (p > 0) {
+    g.beginPath();
+    g.ellipse(0, -0.45, 0.8, 0.42, 0, Math.PI, TAU);
+    g.lineTo(0.8, -0.38);
+    g.quadraticCurveTo(0, -0.08, -0.8, -0.38);
+    g.closePath();
+    g.fillStyle = '#a07d55';
+    g.fill();
+    g.stroke();
+  }
   g.restore();
 }
 function drawAlgae(g, x, y, p) {

@@ -46,8 +46,6 @@ with sync_playwright() as p:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
     pg.click('[data-tab=world]')
-    pg.click('#cmode [data-cm=species]')
-    pg.click('#cmode [data-cm=body]')
 
     # menus and info popovers
     for button in ['#bLog', '#bBadge', '#bSet']:
@@ -61,19 +59,19 @@ with sync_playwright() as p:
     # controls
     for button in ['#bFast', '#bPause', '#bPause']:
         pg.click(button)
-    # testing tools live in Settings, locked until the password is entered
+    # testing tools live in Settings, hidden until the password is entered
     pg.click('#bSet')
-    locked = pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
+    locked = pg.evaluate("() => document.querySelector('#testTools').hidden")
     pg.fill('#sPw', 'wrong')
     pg.click('#sPwGo')
-    still_locked = pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
+    still_locked = pg.evaluate("() => document.querySelector('#testTools').hidden")
     pg.fill('#sPw', '1234')
     pg.click('#sPwGo')
     for spd in ['10', '1']:
         pg.click(f'#sSpeed [data-spd="{spd}"]')
     pg.click('#sMajor')
     pg.click('#sMajor')
-    lock_ok = locked and still_locked and not pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
+    lock_ok = locked and still_locked and not pg.evaluate("() => document.querySelector('#testTools').hidden")
     pg.click('#sSound')
     pg.click('#sSound')
     pg.click('#bSet')

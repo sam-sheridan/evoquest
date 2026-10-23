@@ -27,7 +27,7 @@ const MAXPOP = 400; // safety limit only, far above normal numbers (crowding kee
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 // choosing food: each point of energy a food gives this creature beyond a berry's counts as this many seconds less
-// travel, so a claw goes out of its way for nuts and a straw for algae
+// travel, so a beak goes out of its way for nuts and a straw for algae
 const FOOD_PREF = 1.5;
 const START = 20; // number of creatures released at the start
 // the founders are released already old enough to breed (MATURE plus up to this many seconds, spread so they don't
@@ -171,9 +171,9 @@ const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
 // roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
 // blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
 const ROUND = { swim: 0.1, walk: 0.1 };
-// mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
+// mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
 //   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
-//   bonus: a claw gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
+//   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)
@@ -186,6 +186,8 @@ const SHOWS = { tail: 0.25, legs: 0.15 };
 //   share faster and the longest this share slower (medium legs make no difference)
 //   six: 6 legs walk this share faster and swim this share slower, 4 legs the reverse; sixFrom: the size from which a
 //   creature has 6 legs rather than 4
+// eyes are white on a species whose starting body is darker than this lightness, black otherwise
+const EYE_WHITE = 40;
 const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
@@ -216,8 +218,11 @@ const OKABE = [
   ['Vermilion', '#D55E00', 26, 100, 42],
   ['Reddish purple', '#CC79A7', 327, 46, 64],
 ];
-// colours used to tag species in charts and the family tree
-const TAGS = ['#D55E00', '#0072B2', '#009E73', '#CC79A7', '#E69F00', '#56B4E9', '#F0E442', '#151918'];
+// each species is one colour: primus keeps the creator's colour, and a new species takes the palette colour most
+// unlike every living species'. Individuals differ only in shade, up to SHADE lightness points either way
+const SHADE = 4;
+// seconds a new species' creatures take to blend from the old colour to the new one
+const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
 
 /* ---- seasons and food ---- */

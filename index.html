@@ -61,7 +61,7 @@
       <div id="setPop" class="panelx" hidden>
         <b>Settings</b>
         <button class="btn" id="bDoom" style="width: 100%; margin: 10px 0 12px; text-align: left">
-          Extinction
+          Extinction (end run)
         </button>
         <div class="setrow">
           <span>Sound</span>
@@ -78,20 +78,22 @@
           /><button class="btn" id="sPwGo" type="submit">Unlock</button>
           <span id="pwMark" class="pwmark" aria-live="polite"></span>
         </form>
-        <div class="setrow"><span>Testing: speed</span></div>
-        <div class="spdset" id="sSpeed">
-          <button class="btn" data-spd="1">1×</button><button class="btn" data-spd="2">2×</button
-          ><button class="btn" data-spd="4">4×</button><button class="btn" data-spd="10">10×</button>
-        </div>
-        <div class="setrow">
-          <span>Testing: trigger an event now</span>
-          <div class="seg2"><button id="sMajor" aria-pressed="false">Major</button></div>
-        </div>
-        <div class="testev">
-          <button class="btn" data-ev="flood">Flood</button
-          ><button class="btn" data-ev="drought">Drought</button
-          ><button class="btn" data-ev="quake">Earthquake</button
-          ><button class="btn" data-ev="meteor">Meteor</button>
+        <div id="testTools" hidden>
+          <div class="setrow"><span>Testing: speed</span></div>
+          <div class="spdset" id="sSpeed">
+            <button class="btn" data-spd="1">1×</button><button class="btn" data-spd="2">2×</button
+            ><button class="btn" data-spd="4">4×</button><button class="btn" data-spd="10">10×</button>
+          </div>
+          <div class="setrow">
+            <span>Testing: trigger an event now</span>
+            <div class="seg2"><button id="sMajor" aria-pressed="false">Major</button></div>
+          </div>
+          <div class="testev">
+            <button class="btn" data-ev="flood">Flood</button
+            ><button class="btn" data-ev="drought">Drought</button
+            ><button class="btn" data-ev="quake">Earthquake</button
+            ><button class="btn" data-ev="meteor">Meteor</button>
+          </div>
         </div>
       </div>
     </header>
@@ -123,8 +125,7 @@
         <div class="panel" id="p-sp">
           <div class="tw" id="spTable"></div>
           <p class="hint">
-            <span id="spMore" hidden>Scroll sideways to see every species. </span>Highlighted: the traits that
-            most set each species apart from the one it split from (primus from the released design).
+            <span id="spMore" hidden>Scroll sideways to see every species.</span>
           </p>
         </div>
         <div class="panel" id="p-stats" hidden>
@@ -142,12 +143,6 @@
         </div>
         <div class="panel" id="p-one" hidden></div>
         <div class="panel" id="p-world" hidden>
-          <div class="row" style="justify-content: space-between; margin-bottom: 10px">
-            <span class="lbl">Map colours</span>
-            <div class="seg2" role="group" aria-label="Map colours" id="cmode">
-              <button data-cm="body">Body colour</button><button data-cm="species">By species</button>
-            </div>
-          </div>
           <div id="worldBody"></div>
         </div>
       </div>
@@ -210,7 +205,9 @@
               <p class="budget" id="budget"></p>
             </div>
             <div class="group">
-              <div class="gh"><b>Look</b><small>no effect on survival, drifts by chance</small></div>
+              <div class="gh">
+                <b>Look</b><small>no effect on survival; each new species gets its own colour</small>
+              </div>
               <div class="field">
                 <span class="flabel">Colour</span>
                 <div class="hues" id="fHue"></div>
