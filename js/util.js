@@ -4,9 +4,12 @@ const rand = Math.random,
   clamp = (v, a, b) => (v < a ? a : v > b ? b : v),
   TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
+// a time as m:ss, or hh:mm:ss from an hour on
 const fmtT = s => {
   s = Math.max(0, Math.floor(s));
-  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const p = n => String(n).padStart(2, '0');
+  if (s >= 3600) return p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60);
+  return Math.floor(s / 60) + ':' + p(s % 60);
 };
 const esc = s =>
   String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

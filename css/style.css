@@ -669,7 +669,7 @@ table.sp .hl {
   font-family: var(--mono);
   font-size: 11px;
   flex: none;
-  width: 40px;
+  min-width: 40px; /* wider for hh:mm:ss times */
   padding-top: 1px;
 }
 .badges {

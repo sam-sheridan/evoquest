@@ -63,7 +63,8 @@ be changed, its name in `js/config.js` is shown like `this`.
    limit. You can also end a run at any time with *Extinction* in Settings, which brings up the end screen, where
    you can start a new species.
 
-Time in this README means game time. At 2× or 4× speed everything happens faster in real time.
+Time in this README means game time. At 2× or 4× speed everything happens faster in real time. Times in the game
+are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 
 ---
 
@@ -812,7 +813,8 @@ When the last creature dies, the summary shows:
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died).
-- **Family tree**: every species as a line through time. Branches show where each split from its parent. A
+- **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
+  runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
 - **Watch replay**: the whole run played back at 12 recorded moments per second. A moment is recorded each
   second of game time, and the gap between recordings doubles on very long runs to save memory.
