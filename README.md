@@ -819,7 +819,7 @@ Collapse or expand it with the arrow. It has four tabs.
   bump, and the stat that stops it turns orange in the tab (just its text, nothing added): **Range** (too far from shore or from water),
   **Speed** (allowed in the water but slower than the 14 px/s a river's current needs) or **Thickets** (too big to
   get that far into a thicket). Rock and the map's edge stop everyone, so nothing flashes for them. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
-  select another creature, or it dies. *Control* is greyed out while a testing speed above 1× is set (controlling
+  select another creature, or it dies. *Control* is greyed out on phones and tablets, which usually have no arrow keys (pressing any key on an attached keyboard turns it back on), and while a testing speed above 1× is set (controlling
   only makes sense in real time), and choosing such a speed lets go of a controlled creature.
 - **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
