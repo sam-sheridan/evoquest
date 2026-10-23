@@ -47,7 +47,7 @@ const EDGE = 10; // width in cells of the guaranteed sea margin inside the oval 
 // big drought close it in about a third of worlds
 const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1.0 };
 // world types: each world secretly rolls one, never shown to the player, so the same traits don't win everywhere
-//   w: how often it is picked (relative weight); land: starting land share [minimum, random extra]
+//   w: how often it is picked (relative weight; all 1, so each type is equally likely); land: starting land share [minimum, random extra]
 //   split: chance of a strait splitting it into two landmasses at the start; seas: [fewest, most] extra sea
 //   channels cutting it up; isles: 0 = solid landmasses, 1 = broken into many islands
 //   rivers: [chance of a first, chance of a second]; thicket, rock: share of the starting land that is each
@@ -56,7 +56,7 @@ const LAND = { min: -0.18, max: 0.18, noFlood: -0.12, noDrought: 0.12, strait: 1
 //   lakes: [fewest, random extra] lake basins carved into the land (see LAKES)
 const WORLD_TYPES = {
   classic: {
-    w: 3,
+    w: 1,
     land: [0.31, 0.04],
     split: 1,
     seas: [0, 0],
@@ -70,7 +70,7 @@ const WORLD_TYPES = {
     lakes: [2, 2],
   },
   archipelago: {
-    w: 2,
+    w: 1,
     land: [0.2, 0.04],
     split: 0,
     seas: [0, 0],
@@ -84,7 +84,7 @@ const WORLD_TYPES = {
     lakes: [0, 1],
   },
   supercontinent: {
-    w: 2,
+    w: 1,
     land: [0.42, 0.04],
     split: 0,
     seas: [0, 0],
@@ -98,7 +98,7 @@ const WORLD_TYPES = {
     lakes: [3, 3],
   },
   highlands: {
-    w: 1.5,
+    w: 1,
     land: [0.33, 0.04],
     split: 1,
     seas: [0, 0],
@@ -112,7 +112,7 @@ const WORLD_TYPES = {
     lakes: [4, 3],
   },
   forest: {
-    w: 1.5,
+    w: 1,
     land: [0.32, 0.04],
     split: 1,
     seas: [0, 0],

@@ -415,16 +415,16 @@ re-plan at once.
 
 ### World types and shapes
 
-Each world secretly rolls a **type** from its world number. The player never sees it: the point is that you have
+Each world secretly rolls a **type** from its world number, each type equally likely. The player never sees it: the point is that you have
 no say in the world, and different worlds favour different designs. All the numbers are in `WORLD_TYPES`.
 
 | Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
-| **Classic** | 3 in 10 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
-| **Archipelago** | 2 in 10 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
-| **Supercontinent** | 2 in 10 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
-| **Highlands** | 1.5 in 10 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
-| **Forest** | 1.5 in 10 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
+| **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
+| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
+| **Supercontinent** | 1 in 5 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
+| **Highlands** | 1 in 5 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
+| **Forest** | 1 in 5 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
 
 Rivers: an 85% chance of one and a 55% chance of a second, except archipelagos (30%, never two), supercontinents
 (always one, 70% a second) and highlands (85%, 30%). Supercontinents have slightly fewer wetlands, highlands
