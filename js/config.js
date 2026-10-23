@@ -26,7 +26,13 @@ const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
-const START = 25; // number of creatures released at the start
+const START = 20; // number of creatures released at the start
+// the founders are released already old enough to breed (MATURE plus up to this many seconds) and this full, so
+// the population gets going without a long wait
+const FOUNDERS = { age: 10, energy: 0.9 };
+// a creature only eats food in front of it: within this angle (radians, about 35 degrees) of the way it faces, so the
+// food goes into its mouth; close to food it turns on the spot to face it
+const EAT_FACE = 0.6;
 // where they are released: the place with the most food they can eat within near px, plus weight x the food they
 // can reach within reach px without leaving ground they are allowed on
 const RELEASE = { near: 180, reach: 640, weight: 0.5 };

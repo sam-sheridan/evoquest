@@ -1,6 +1,6 @@
 # EvoQuest
 
-Design a species, release 25 of them onto a randomly generated island world, and watch the world decide what
+Design a species, release 20 of them onto a randomly generated island world, and watch the world decide what
 they become. Food, terrain, seasons and world events shape their bodies over generations. Groups that get cut
 off, or that take up a different way of life, can split into new species.
 
@@ -46,13 +46,13 @@ be changed, its name in `js/config.js` is shown like `this`.
 ## 1. A run from start to finish
 
 1. **Design** a species in the creator. You set its name, body, look and which world to use.
-2. **Release.** 25 creatures (`START`) appear together on the main landmass (or in the water near it, for a
+2. **Release.** 20 creatures (`START`) appear together on the main landmass (or in the water near it, for a
    design that lives in water). The release spot is chosen for the food the design can eat within 180 px, plus half
    the food it can reach within 640 px without leaving ground it's allowed on (`RELEASE`). So a water design isn't
    left in a rich but cut-off strip of shallows at the map's edge when a longer coast or a river network is on
-   offer. The founders start with 80% energy, ages spread
-   between 0 and 20 seconds, and traits varied 1.5 times more than normal so selection has something to work on
-   straight away.
+   offer. The founders start with 90% energy and already
+   old enough to breed, aged 15 to 25 seconds (`FOUNDERS`), so the population gets going without a long wait. Their
+   traits are varied 1.5 times more than normal so selection has something to work on straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
    every 2.5 minutes. A world event happens every 7 minutes.
 4. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
@@ -81,7 +81,7 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
-| **Release 25 specimens** | Starts the run. |
+| **Release 20 specimens** | Starts the run. |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few seconds it acts out eating, so
 you can see its mouth snap. It also shows the body in pixels, its size and how far into thickets it can go. The line
@@ -385,6 +385,9 @@ allowed into.
 - Wanderers turn back towards the middle of the map near its oval edge.
 
 ### Reaching food
+
+A creature eats only food in front of it, within about 35° of the way it faces (`EAT_FACE`), so the food goes into
+its mouth. Close to its food it turns on the spot until it faces it. A controlled creature eats the same way.
 
 When several creatures reach the same food in the same moment, **the biggest one gets it**. The others
 re-plan at once.
@@ -754,7 +757,7 @@ Collapse or expand it with the arrow. It has four tabs.
     species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
     scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
-    one scale, at the same height and right-aligned above the values. Then: population (25 for the released
+    one scale, at the same height and right-aligned above the values. Then: population (20 for the released
     design; at the end of a run, each species' peak), time alive (how long the species has existed, or did), size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
     (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
