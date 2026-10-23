@@ -14,9 +14,6 @@ let D = {
   lt: 45,
   round: 1,
 };
-// the number released comes from START
-$('#go').textContent = `Release ${START} specimens`;
-$('.brand p').textContent = `Design a species. Release ${START}. The world decides the rest.`;
 $('#fHue').innerHTML = OKABE.map(
   ([n, hex], k) => `<button data-v="${k}" aria-label="${n}" title="${n}" style="background:${hex}"></button>`
 ).join('');
@@ -143,15 +140,31 @@ function syncCreator() {
   const c = { ...D, id: 0, dir: 0, walk: 0 };
   compute(c);
   pvC = c;
-  const b = moveBurn(c, c.vL);
-  $('#budget').innerHTML =
-    `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, goes ${thickTxt(c)}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
-    <br /><b>${rangeTxt(c)}.</b> Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
-    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A beak gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
-  $('#pvChips').innerHTML =
-    `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
-    <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>
-    <span class="chip">Energy ${Math.round(c.cap)} · burns ${b.toFixed(2)}/s</span><span class="chip">Reach ${c.reach.toFixed(0)} px</span>`;
+  const b = moveBurn(c, c.vL),
+    river = c.vW >= RIVER && c.dW >= 16,
+    // how far it goes from shore and from water: Never under one cell, Anywhere past 2000 px (as in rangeTxt)
+    far = (d, other) =>
+      d < CS ? 'Never' : other < CS ? 'Anywhere' : d > 2000 ? 'Anywhere' : `${Math.round(d)} px`;
+  // what the body does, roughly most important first; crossing rivers and thickets last
+  $('#pvStats').innerHTML = [
+    ['Land speed', `${Math.round(c.vL)} px/s`],
+    ['Water speed', `${Math.round(c.vW)} px/s`],
+    ['Energy store', Math.round(c.cap)],
+    ['Energy use', `${b.toFixed(2)}/s`],
+    ['Swims from shore', far(c.dW, c.dL)],
+    ['Walks from water', far(c.dL, c.dW)],
+    ['From nuts', `×${mouthGain(c, 'n').toFixed(2)}`],
+    ['From algae', `×${mouthGain(c, 'w').toFixed(2)}`],
+    ['Size', c.size.toFixed(2)],
+    ['Legs', c.legs],
+    ['Reach', `${c.reach.toFixed(0)} px`],
+    ['Into thickets', c.dT >= 200 ? 'Anywhere' : `${Math.round(c.dT)} px`],
+    ['Crosses rivers', river ? 'Yes' : 'No'],
+  ]
+    .map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`)
+    .join('');
+  $('#pvWhy').innerHTML =
+    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();
 }
 function drawPreview(t) {
@@ -193,11 +206,7 @@ function drawPreview(t) {
   g.fillStyle = INK;
   g.font = '12px "IBM Plex Mono", monospace';
   g.fillText('10 px', 40, 360);
-  g.fillText(
-    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · size ${pvC.size.toFixed(2)} · goes ${thickTxt(pvC)}`,
-    40,
-    378
-  );
+  g.fillText(`${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px`, 40, 378);
 }
 function openCreator(seed, design) {
   if (design && design.w !== undefined && design.sat !== undefined)

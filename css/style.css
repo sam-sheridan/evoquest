@@ -944,27 +944,6 @@ h3.sec {
   display: block;
   border: 1px solid var(--line);
 }
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-.chip {
-  border: 1px solid var(--line);
-  padding: 3px 7px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-.chip.ok {
-  border-color: var(--good);
-  color: var(--good);
-}
-.chip.no {
-  border-color: var(--warn);
-  color: var(--warn);
-}
 .group {
   border-top: 1px solid var(--ink);
   padding-top: 10px;
@@ -1114,16 +1093,6 @@ input[type='range']:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
-.budget {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  margin: -6px 0 14px;
-}
-.budget b {
-  color: var(--ink);
-  font-weight: 500;
-}
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1187,6 +1156,18 @@ select {
   flex: none;
   border: 1px solid var(--ink);
   border-radius: 3px;
+}
+/* the creator's stats under the creature drawing */
+.pvstats {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+.explain p {
+  margin: 0;
+}
+.explain p + p {
+  margin-top: 8px;
 }
 .explain {
   border-left: 2px solid var(--signal);
