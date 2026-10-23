@@ -367,13 +367,16 @@ function dijkstra(c) {
   c._wait = null;
   let bs = Infinity,
     ws = Infinity;
-  const range = homeRange(c);
+  const range = homeRange(c),
+    // the most a food can be worth to this creature beyond a berry, in seconds (see FOOD_PREF), so the search
+    // doesn't stop before a richer food further away
+    pref = FOOD_PREF * FOOD * Math.max(0, mouthGain(c, 'n') - 1, mouthGain(c, 'w') - 1);
   while (hn) {
     hpop2();
     const i = PI,
       k = PK;
     if (k > pd[i] + 1e-6) continue;
-    if (k - 1.5 > bs || k > MAXT || ++n > 2600) break;
+    if (k - 1.5 - pref > bs || k > MAXT || ++n > 2600) break;
     const L = idx.get(i);
     if (L)
       for (const f of L) {
@@ -386,7 +389,8 @@ function dijkstra(c) {
           if (w < ws) [ws, c._wait] = [w, f];
           continue;
         }
-        const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
+        const sc =
+          k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range) - FOOD_PREF * (foodEnergy(c, f) - FOOD);
         if (sc < bs) {
           bs = sc;
           c._best = f;
@@ -1054,13 +1058,14 @@ function logEv(m) {
 
 /* stats */
 const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
+// what counts towards a new species: only the body traits that change how a creature lives (size, legs, tail,
+// mouth, roundness, and having a tail or 6 legs at all). Colour drifts but never makes a species, and width and
+// length count only through size, so look-alike groups don't become separate species
 const vec = c => [
-  c.w / 10,
-  c.h / 10,
+  c.size * SPC.size,
   c.leg,
   c.hab,
   c.mth * MOUTH_SPLIT,
-  dHue(c) / 60,
   c.round * 0.5,
   c.tail > 0 ? SHOWS.tail : 0,
   c.legs === 6 ? SHOWS.legs : 0,
@@ -1196,7 +1201,7 @@ function checkSpeciation() {
       g.get(k).push(c);
     }
     const gs = [...g.entries()].sort((x, y) => y[1].length - x[1].length);
-    if (gs.length >= 2 && gs[1][1].length >= 8) {
+    if (gs.length >= 2 && gs[1][1].length >= SPC.min) {
       const d = dist(centroid(gs[0][1]), centroid(gs[1][1]));
       if (d > SPC.geo * hard) {
         key = 'geo' + gs[0][0] + '-' + gs[1][0];
@@ -1211,7 +1216,7 @@ function checkSpeciation() {
         r &&
         r.d > SPC.eco * hard &&
         r.ratio > SPC.ratio &&
-        Math.min(r.groups[0].length, r.groups[1].length) >= 8
+        Math.min(r.groups[0].length, r.groups[1].length) >= SPC.min
       ) {
         key = 'eco';
         small = r.groups[0].length < r.groups[1].length ? r.groups[0] : r.groups[1];
@@ -1223,7 +1228,14 @@ function checkSpeciation() {
       sp.key = key;
       sp.streak = key ? 1 : 0;
     }
+    // a group that would copy a species already alive stays where it is
     if (sp.streak >= SPC.streak) {
+      const mid = centroid(small);
+      if (S.species.some(o => !o.died && o !== sp && by[o.id] && dist(mid, centroid(by[o.id])) < SPC.same)) {
+        sp.streak = 0;
+        sp.key = null;
+        continue;
+      }
       split(
         sp,
         small,

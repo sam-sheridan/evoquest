@@ -66,7 +66,9 @@ the browser (`pip install playwright==1.56.0` matched `chromium-1194`); don't ru
   local food should keep numbers in range naturally. Use `python3 tests/scenarios.py 6 30` to see the later
   numbers.
 - Gentle seasonal swings.
-- 0–2 new species per 15-minute run, at most 3 alive at once. Species never merge back.
+- Over an hour, primus plus 1–3 new species in total, each clearly different in body (not just colour) and lasting
+  a good while once formed. At most 3 alive at once. Species never merge back. Use `python3 tests/study.py 60 4 3`
+  (75 hour-long runs, about 20 minutes) to check this.
 - Extinction should happen now and then, even for ordinary designs: Sam wants it to be a real risk, especially
   early on while a population is small and local. Don't add safety nets that rescue struggling populations.
   Extreme designs dying out is expected.

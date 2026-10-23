@@ -345,6 +345,13 @@ function genWorld(seed, att = 0) {
     put(lake[(rl2() * lake.length) | 0]);
   for (let k = Math.round(T.food[1] * LAKES.flood); k > 0 && low.length; k--)
     put(low[(rl2() * low.length) | 0]);
+  // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
+  const beyond = [];
+  for (let i = 0; i < GW * GH; i++)
+    if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < SEA.shelf + 0.2)
+      beyond.push(i);
+  for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
+    put(beyond[(rl2() * beyond.length) | 0]);
 }
 // no ground should be sealed off by rock where nothing can reach it: a pocket of land (or water) walled in by rock
 // gets a pass 2 cells wide cut through to the nearest open ground, and a tiny one (under 6 cells, all land) is

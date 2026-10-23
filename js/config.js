@@ -26,10 +26,13 @@ const GH = 197; // terrain grid height in cells
 const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
+// choosing food: each point of energy a food gives this creature beyond a berry's counts as this many seconds less
+// travel, so a claw goes out of its way for nuts and a straw for algae
+const FOOD_PREF = 1.5;
 const START = 20; // number of creatures released at the start
-// the founders are released already old enough to breed (MATURE plus up to this many seconds) and this full, so
-// the population gets going without a long wait
-const FOUNDERS = { age: 10, energy: 0.9 };
+// the founders are released already old enough to breed (MATURE plus up to this many seconds, spread so they don't
+// all die of old age at once) and this full, so the population gets going without a long wait
+const FOUNDERS = { age: 30, energy: 0.9 };
 // a creature only eats food in front of it: within this angle (radians, about 35 degrees) of the way it faces, so the
 // food goes into its mouth; close to food it turns on the spot to face it
 const EAT_FACE = 0.6;
@@ -80,7 +83,7 @@ const WORLD_TYPES = {
     rock: 0.06,
     wet: 0,
     temp: 0.05,
-    food: [250, 250],
+    food: [320, 250],
     lakes: [0, 1],
   },
   supercontinent: {
@@ -144,8 +147,9 @@ const REGIONS = { strength: 1.3 };
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
 // sea depth: shelf is the share of the sea that is shallow shelf (by distance from shore and the sea floor);
 // algae grows only there, thinning out with distance from shore (algaeFade px). In deep water, creatures burn up
-// to deepCost more energy (none for fully aquatic ones)
-const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8 };
+// to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae that waits,
+// dormant, in the deep water just beyond the shelf, growing once a drought pulls the shallows out to it
+const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8, drought: 0.4 };
 const TEMP = {
   cold: 0.3,
   hot: 0.8,
@@ -184,8 +188,9 @@ const SHOWS = { tail: 0.25, legs: 0.15 };
 //   creature has 6 legs rather than 4
 const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
-// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less
-const BURN = { rest: 0.32, move: 0.81, size: 0.25 };
+// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
+// stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
+const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
 // thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
@@ -311,4 +316,17 @@ const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups 
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.22, eco: 0.4, ratio: 1.8, streak: 4, age: 90, cool: 110, extra: 0.7 }; // tuned with home ranges: about 0-2 new species per 15 minutes
+// min: fewest creatures a new species can start with; same: a group this close (in trait difference) to a species
+// already alive doesn't split off; size: how much size counts in the trait difference
+const SPC = {
+  geo: 0.22,
+  eco: 0.4,
+  ratio: 1.8,
+  streak: 4,
+  age: 90,
+  cool: 110,
+  extra: 0.9,
+  min: 12,
+  same: 0.2,
+  size: 1.5,
+};

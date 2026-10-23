@@ -51,7 +51,8 @@ be changed, its name in `js/config.js` is shown like `this`.
    the food it can reach within 640 px without leaving ground it's allowed on (`RELEASE`). So a water design isn't
    left in a rich but cut-off strip of shallows at the map's edge when a longer coast or a river network is on
    offer. The founders start with 90% energy and already
-   old enough to breed, aged 15 to 25 seconds (`FOUNDERS`), so the population gets going without a long wait. Their
+   old enough to breed, aged 15 to 45 seconds (`FOUNDERS`), so the population gets going without a long wait. Their ages are spread so
+   they don't all die of old age at the same moment, which used to halve the population at about 70 seconds. Their
    traits are varied 1.5 times more than normal so selection has something to work on straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
    every 2.5 minutes. A world event happens every 7 minutes.
@@ -265,13 +266,14 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)²) × (1 + 0.25 × (0.9 − size)), plus temperature,
-  and more in deep water (`BURN`).
+- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)² × (1 + 0.9 − size)) × (1 + 0.5 × (0.9 − size)), plus
+  temperature, and more in deep water (`BURN`). The middle part (`BURN.stride`) makes moving cheaper for big bodies,
+  like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     long legs.
-  - Big bodies burn less: the smallest burn about 10% more than a size-0.9 creature, the biggest about 9% less.
+  - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 2.1 a second and the biggest about 0.9.
+    about 3.1 a second and the biggest about 0.6.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
     for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
     and big ones least (about 0.65 times).
@@ -372,6 +374,10 @@ allowed into.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
+- **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
+  1.5 seconds less travel (`FOOD_PREF`). A claw gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
+  a straw's algae (10) as 3 seconds closer. So creatures go out of their way for the food their mouth suits, which
+  pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
 ### Moving
@@ -421,7 +427,7 @@ no say in the world, and different worlds favour different designs. All the numb
 | Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
 | **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
-| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
+| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 320 / 250 | a little warmer |
 | **Supercontinent** | 1 in 5 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
 | **Highlands** | 1 in 5 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
 | **Forest** | 1 in 5 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
@@ -514,9 +520,9 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
+| **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -548,7 +554,9 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
 waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
-take it from walkers.
+take it from walkers. Likewise, 40% more of the world type's algae waits in the deep water just beyond the shelf
+(`SEA.drought`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
+waits. Without it, a drought could take two thirds of an archipelago's algae at once.
 
 ---
 
@@ -644,27 +652,30 @@ Every 5 seconds, each living species is checked. A species can only split if:
 Two kinds of split are looked for:
 
 1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
-   on. If the second-biggest group has at least 8 members and differs enough in traits from the biggest group
+   on. If the second-biggest group has at least 12 members (`SPC.min`) and differs enough in traits from the biggest group
    (more than `SPC.geo` = 0.22), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
    two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
    separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
-   cluster must have at least 8 members.
+   cluster must have at least 12 members.
 
 The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
 becomes a new species.
 
-**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.7 × (living species − 1)
-(`SPC.extra`). With 2 species alive, splits need 70% more difference, and with 3 alive, 140% more. That keeps
-runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
+**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.9 × (living species − 1)
+(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. In 75
+hour-long test runs that lasted the hour, three in four had 1–3 new species (the rest none), none ever had more
+than 3 alive at once, and most new species were still alive at the end of the hour.
 
-**Trait difference** is measured across seven traits on comparable scales: width, length (each ÷ 10), legs,
-tail, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness (× 0.5). Width and length count
-separately here even though only size matters for survival, because they are what you see. Two features that are
-either there or not count extra (`SHOWS`), because they make creatures look different even when the trait behind
-them has barely moved: having a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15. So a population
-that has split into tailed and tailless creatures, or 4- and 6-legged ones, is closer to becoming two species. Look
-traits count too, so long separation alone can eventually be enough.
+**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.5,
+`SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour still drifts, and shows how long
+groups have been apart, but it never makes a new species, and width and length count only through size, so two
+groups that only look a little different stay one species. Two features that are either there or not count extra
+(`SHOWS`), because they change how creatures live and look even when the trait behind them has barely moved: having
+a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15.
+
+**No copies.** A group that would be within 0.2 of a species already alive (`SPC.same`) doesn't split off, so a
+species can't split into a copy of one that already exists.
 
 Species never merge back together.
 
@@ -1059,9 +1070,17 @@ python3 tests/scenarios.py 6 15
   - about a quarter of the land explored at 10 minutes, with a population of roughly 20–50
   - populations mostly between 40 and 100 after 20 minutes
   - gentle seasonal swings
-  - 0 to 2 new species per 15 minutes, with at most 3 alive at once
+  - over an hour (use `study.py`), primus plus 1–3 new species, each clearly different and lasting a good while,
+    with at most 3 alive at once
 
   Results vary from run to run, so compare batches rather than single runs.
+- **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three
+  worlds each by default, with a mix of shapes) and five designs on each (middling, fully random, small clawed
+  walker, big long-legged walker, water creature), run several at a time. `python3 tests/study.py 45 4 3` makes 75
+  runs of 45 minutes and takes about half an hour. Each run is saved as a line of JSON: populations at 10, 20 and 30
+  minutes and at the end, time over 100, seasonal swing, new species with when and how each split happened,
+  extinctions and their causes, exploration, how far each body trait moved, and which creature type each species
+  ended up as.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
