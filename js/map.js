@@ -145,29 +145,6 @@ function renderTerrain() {
   // kept as a line: thin ones for the bands, and the shelf's edge, where deep water starts, drawn dashed
   const shallow = i => (T[i] === 0 ? 1 - w.depth[i] : 1.2);
   V.bands = BAND_AT.map(d => march(shallow, 1 - d, true, true));
-  // algae beds on the shallow water, with dots scattered through them
-  const bed = march(i => w.bed[i], SEA.bed, true, true);
-  V.bed = bed.fill;
-  V.bedL = bed.line;
-  V.bedDots = new Path2D();
-  const rb = mulberry32(w.seed ^ 0xa16a);
-  for (let i = 0; i < N; i++) {
-    if (!isWater(T[i]) || w.bed[i] < SEA.bed) continue;
-    const x0 = (i % GW) * CS,
-      y0 = ((i / GW) | 0) * CS;
-    for (let k = 0; k < 3; k++) {
-      const x = x0 + rb() * CS,
-        y = y0 + rb() * CS;
-      V.bedDots.moveTo(x + 0.9, y);
-      V.bedDots.arc(x, y, 0.9, 0, TAU);
-    }
-  }
-  V.river = march(
-    i => (w.lS[i] > -2.5 && T[i] !== 0 ? clamp(0.5 + w.lS[i] * 0.35, 0, 1) : T[i] === 4 ? 1 : 0),
-    0.5,
-    true,
-    false
-  ).fill;
   const land = march(i => w.fl[i], w.level, true, true);
   V.land = land.fill;
   V.coast = land.line;
@@ -344,13 +321,6 @@ function paintTerrain(g) {
   }
   g.fillStyle = BAND[0];
   g.fill(V.river);
-  g.fillStyle = 'rgba(160,196,150,.38)';
-  g.fill(V.bed);
-  g.strokeStyle = 'rgba(70,120,80,.35)';
-  g.lineWidth = 0.7;
-  g.stroke(V.bedL);
-  g.fillStyle = 'rgba(52,110,70,.55)';
-  g.fill(V.bedDots);
   g.strokeStyle = 'rgba(77,115,133,.35)';
   g.lineWidth = 0.7;
   V.bands.forEach((b, k) => k !== 1 && k < 3 && g.stroke(b.line));

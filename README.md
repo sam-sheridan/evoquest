@@ -507,9 +507,7 @@ shallows reach out into bays and over banks out at sea, rather than ringing ever
 (water not joined to the open sea) are always shallow. Depth is worked out again after every flood, drought or
 earthquake.
 
-- **Algae** grows only in **algae beds**: patches on the shallow water, set by a mottled pattern that favours the
-  shallowest water (`SEA.bed`, `SEA.bedShallow`). The pattern is fixed for each world, so when a drought or flood
-  moves the shelf, the beds move with it.
+- **Algae** grows only on the shelf, most thickly close to shore (`SEA.algaeFade`).
 - **Deep water** costs extra energy for anything that isn't fully aquatic (see [energy](#energy)), so it is a real
   barrier for land creatures and amphibians.
 
@@ -543,7 +541,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 |---|---|---|
 | **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or in the algae beds on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -915,8 +913,7 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in five depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
     line, as on a sea chart. The shelf's edge, where deep water starts, is a dashed line. The deepest colour is
-    also the background beyond the map, so the map has no visible border. Algae beds are pale green patches
-    speckled with dots.
+    also the background beyond the map, so the map has no visible border.
   - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a small shading stroke and a faint shadow. At the edge they are small
     scattered bushes; over the first 48 px in they grow bigger and closer together (`TREES`), until the middle is
@@ -1033,7 +1030,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | World shapes | `SHAPES` |
 | How hilly the land is | `RELIEF` |
 | Temperature: cold and hot levels, season shifts, energy costs | `TEMP` |
-| Shallow shelf size and shape, algae beds, and deep-water cost | `SEA` |
+| Shallow shelf size and shape, and deep-water cost | `SEA` |
 | Lakes: how many per world type, size, depth, their algae, algae for floods and craters | `lakes` in `WORLD_TYPES`, `LAKES` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |

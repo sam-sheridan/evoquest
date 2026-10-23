@@ -145,21 +145,20 @@ const REGIONS = { strength: 1.3 };
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
-// sea depth: shelf is the share of the open sea that is shallow shelf (a little less once the margin is deepened). Depth blends distance from shore with the
-// sea floor's depth; floor is the sea floor's share, so shallows reach out over banks and into bays rather than
-// ringing every coast evenly. The sea deepens over the last margin cells before the map's oval edge, so the open
-// ocean round the map is always deep. smooth: how many times depth is softened, which rounds off its shapes.
-// Lakes are always shallow. Algae grows in algae beds on the shelf: patches set by a mottled pattern, favouring the
-// shallowest water (bedShallow), where pattern + bedShallow x (shelf - depth) is at least bed. In deep water,
-// creatures burn up to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae
-// that waits, dormant, in the deep water just beyond the shelf, growing once a drought pulls the shallows out to it
+// sea depth: shelf is the share of the open sea that is shallow shelf (a little less once the margin is deepened).
+// Depth blends distance from shore with the sea floor's depth; floor is the sea floor's share, so shallows reach out
+// over banks and into bays rather than ringing every coast evenly. The sea deepens over the last margin cells before
+// the map's oval edge, so the open ocean round the map is always deep. smooth: how many times depth is softened,
+// which rounds off its shapes. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance
+// from shore (algaeFade px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones).
+// drought: share of the world type's algae that waits, dormant, in the deep water just beyond the shelf, growing
+// once a drought pulls the shallows out to it
 const SEA = {
   shelf: 0.3,
   floor: 0.65,
   margin: 24,
   smooth: 2,
-  bed: 0.66,
-  bedShallow: 0.9,
+  algaeFade: 80,
   deepCost: 0.8,
   drought: 0.4,
 };

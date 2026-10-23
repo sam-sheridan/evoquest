@@ -296,8 +296,8 @@ function genWorld(seed, att = 0) {
       i = cellI(x, y),
       t = world.type[i];
     if (!isWater(t) || border(i)) continue;
-    // algae grows only in the algae beds on the shelf
-    if (t === 0 && (world.deep[i] || world.bed[i] < SEA.bed)) continue;
+    // algae grows only on the shelf, and most thickly close to shore
+    if (t === 0 && (world.deep[i] || rng() > Math.exp(-world.dLand[i] / SEA.algaeFade))) continue;
     world.sites.push({ x, y, i, kind: 'w', active: true, t: 0 });
     nw++;
   }
@@ -682,19 +682,6 @@ function buildTerrain(skipDraw) {
     w.depth[i] = Math.max(rS[i], edge * edge * (3 - 2 * edge));
     w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
   }
-  // algae beds: a mottled pattern (fixed for the world) plus a pull towards the shallowest water
-  if (!w.bedN) {
-    const f = field(mulberry32(w.seed ^ 0x51ab), [
-      [18, 1],
-      [36, 0.6],
-      [72, 0.3],
-    ]);
-    w.bedN = new Float32Array(N);
-    for (let i = 0; i < N; i++) w.bedN[i] = f((i % GW) / GW, ((i / GW) | 0) / GH);
-  }
-  w.bed = new Float32Array(N);
-  for (let i = 0; i < N; i++)
-    if (isWater(w.type[i])) w.bed[i] = w.bedN[i] + SEA.bedShallow * (SEA.shelf - w.depth[i]);
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
     w.fl[i] = isLand(t)
