@@ -273,7 +273,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
     long legs.
   - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 2.9 a second and the biggest about 0.6.
+    about 3.1 a second and the biggest about 0.6.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
     for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
     and big ones least (about 0.65 times).
