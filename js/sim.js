@@ -1248,20 +1248,8 @@ function split(sp, small, rest, reason, island) {
   sp.lastSplit = S.t;
   for (const c of small) c.sp = ns.id;
   sp.n = rest.length;
-  // the biggest change, always put as a strength: [when the trait went up, when it went down]
-  const top = diffs(a, b, 1)[0],
-    TRAIT = {
-      hab: ['longer-tailed and more at home in water', 'shorter-tailed and more at home on land'],
-      mth: ['better at sipping algae through its straw-like mouth', 'better at cracking nuts with its claw'],
-      leg: ['longer-legged and faster on land', 'shorter-legged and a better swimmer'],
-      size: ['bigger and thriftier with energy', 'smaller and quicker on its feet'],
-      dTc: ['small enough to slip deeper into thickets', 'bigger and thriftier with energy'],
-      river: ['better at crossing rivers', 'more settled on dry land'],
-      dhue: ['a striking new colour', 'a striking new colour'],
-      round: ['rounder and a better swimmer', 'blockier and a better walker'],
-    };
-  const how = top ? (TRAIT[top.k] || [top.l, top.l])[top.va > top.vb ? 0 : 1] : 'a little different';
-  const m = `Welcome the first ${S.genus} ${ep}, who is ${how}.`;
+  // no reason given: the Species tab shows how it differs
+  const m = `Welcome the first ${S.genus} ${ep}.`;
   logEv('New species: ' + m);
   toast(m, 'A new species has formed!');
   SND.badge();

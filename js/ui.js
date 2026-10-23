@@ -481,23 +481,6 @@ function drawPics(root) {
     drawCreature(g, c, x, y, sc, 7, col(c), 0, false, 1.1 / sc);
   }
 }
-// rank the traits that separate two groups, biggest difference first (scaled so traits are comparable)
-const DIFF = [
-  ['hab', 'Tail', 0.12, v => Math.round(v * 100) + '%'],
-  ['mth', 'Mouth', 0.12, v => `${mouthTxt(v)} (${Math.round(v * 100)}% straw)`],
-  ['leg', 'Legs', 0.12, v => Math.round(v * 100) + '%'],
-  ['size', 'Size', 0.12, v => v.toFixed(2)],
-  ['dTc', 'Reach into thickets', 25, v => Math.round(v) + ' px'],
-  ['river', 'Crosses rivers', 0.25, v => Math.round(v * 100) + '%'],
-  ['dhue', 'Colour', 20, v => (v >= 0 ? '+' : '') + Math.round(v) + '°'],
-  ['round', 'Roundness', 0.2, v => v.toFixed(2)],
-];
-function diffs(a, b, n = 4) {
-  return DIFF.map(([k, l, s, f]) => ({ l, k, va: a[k], vb: b[k], f, sc: Math.abs(a[k] - b[k]) / s }))
-    .filter(d => d.sc >= 0.6)
-    .sort((x, y) => y.sc - x.sc)
-    .slice(0, n);
-}
 function renderBadges() {
   const all = BADGES,
     mine = S ? S.badges : [],

@@ -674,12 +674,10 @@ Species never merge back together.
 - *insularis* is used first if the new group was cut off on an island (not the main landmass).
 - If those names are all taken, the fallbacks are *novus*, *alter*, *tertius* and *remotus*.
 
-A notification headed **"A new species has formed!"** welcomes it with its biggest change from its parent, always
-put as a strength: for example "Welcome the first Blorbus natans, who is longer-tailed and more at home in water."
-A species with shorter legs is "shorter-legged and a better swimmer", a smaller one "smaller and quicker on its
-feet", a bigger one "bigger and thriftier with energy", one whose mouth moved towards a claw is "better at cracking
-nuts with its claw" (or towards a straw, "better at sipping algae through its straw-like mouth"), and one that lost
-the ability to cross rivers is "more settled on dry land". The event log keeps the same line.
+A notification headed **"A new species has formed!"** welcomes it by name, for example "Welcome the first Blorbus
+natans." It doesn't say how the new species differs: one changed trait can't tell you how well it does overall (shorter
+legs swim faster, but not if the tail shrank too), so the Species tab is the place to compare them. Its Latin name
+still hints at its biggest change. The event log keeps the same line.
 
 ---
 
