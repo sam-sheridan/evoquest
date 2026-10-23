@@ -1021,7 +1021,8 @@ function meteor(x, y, major) {
   SFX.meteor(major);
   startShake('meteor', major);
   eventAlert('meteor');
-  if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
+  // for Impact Survivor: the population just before a strike that killed 5 or more
+  if (k >= 5) S.meteorBack = S.creatures.filter(c => !c.dead).length + k;
 }
 // Extinction from Settings: one huge meteor lands among the creatures, a few small ones follow, and then every
 // creature left dies. It is a way to start again rather than a world event, so it leaves no craters.
@@ -1334,8 +1335,7 @@ const BADGES = [
   },
   { id: 't30', name: 'Old Lineage', d: 'Lineage lasts 30 minutes', f: () => S.t >= 1800 },
   { id: 't60', name: 'Ancient Line', d: 'Lineage lasts an hour', f: () => S.t >= 3600 },
-  { id: 'g50', name: 'Dynasty', d: 'Reach generation 50', f: () => S.maxGen >= 50 },
-  { id: 'g80', name: 'Deep Time', d: 'Reach generation 80', f: () => S.maxGen >= 80 },
+  { id: 'g100', name: 'Dynasty', d: 'Reach generation 100', f: () => S.maxGen >= 100 },
   { id: 'ev10', name: 'Weathered', d: 'Survive 10 world events', f: () => S.events >= 10 },
   {
     id: 'rally',
@@ -1346,8 +1346,20 @@ const BADGES = [
   {
     id: 'met',
     name: 'Impact Survivor',
-    d: 'Recover after a meteor kills 5 or more',
-    f: () => S.meteorHit > 0 && S.creatures.length >= 40,
+    d: 'Population recovers to where it was before a meteor killed 5 or more',
+    f: () => S.meteorBack != null && S.creatures.length >= S.meteorBack,
+  },
+  {
+    id: 'storms',
+    name: 'Trauma Bonding',
+    d: 'Survive a flood, a drought, an earthquake and a meteor',
+    f: () => Object.values(S.count).every(n => n > 0),
+  },
+  {
+    id: 'kids',
+    name: 'Re-productive',
+    d: 'One creature has 5 offspring',
+    f: () => S.creatures.some(c => c.births >= 5),
   },
   {
     id: 'fins',
@@ -1364,15 +1376,9 @@ const BADGES = [
   {
     id: 'both',
     name: 'Land and Sea',
-    d: 'An entirely land species and an entirely water species in the same run',
-    f: () => {
-      // a species that, on average, never enters water, and one that never leaves it (not necessarily at once)
-      for (const m of live()) {
-        S.hadLand ||= m.dWc < CS;
-        S.hadWater ||= m.dLc < CS;
-      }
-      return S.hadLand && S.hadWater;
-    },
+    d: 'An entirely land species and an entirely water species alive at once',
+    // a species that, on average, never enters water, alongside one that never leaves it
+    f: () => live().some(m => m.dWc < CS) && live().some(m => m.dLc < CS),
   },
   { id: 'branch', name: 'Branching Out', d: 'Witness a new species form', f: () => S.species.length >= 2 },
   {
@@ -1380,6 +1386,12 @@ const BADGES = [
     name: 'Crowded Tree',
     d: 'Three species alive at once',
     f: () => S.species.filter(s => !s.died).length >= 3,
+  },
+  {
+    id: 'guard',
+    name: 'Changing of the Guard',
+    d: 'A newer species outlives primus',
+    f: () => S.species[0].died !== null && S.species.some(s => s.id && s.died === null),
   },
   { id: 'tree', name: 'Tree of Life', d: 'Six species over one run', f: () => S.species.length >= 6 },
 ];
