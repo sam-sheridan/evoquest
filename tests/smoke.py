@@ -42,7 +42,7 @@ with sync_playwright() as p:
         pg.click(f'[data-tab={tab}]')
         time.sleep(0.2)
     pg.click('[data-tab=stats]')
-    for metric in ['n', 'vL', 'vW', 'dWc', 'dLc', 'burnW', 'cap', 'fits', 'river']:
+    for metric in ['n', 'vL', 'vW', 'dWc', 'dLc', 'burnW', 'cap', 'dTc', 'river']:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
     pg.click('[data-tab=world]')

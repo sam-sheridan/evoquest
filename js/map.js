@@ -127,7 +127,8 @@ function renderTerrain() {
   V.dots = new Path2D();
   for (let i = 0; i < N; i++)
     if (T[i] === 2) {
-      const keep = 0.62,
+      // dots get denser towards the middle, where only smaller creatures can go
+      const keep = 0.3 + 0.32 * clamp((w.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1),
         x0 = (i % GW) * CS,
         y0 = ((i / GW) | 0) * CS;
       for (let yy = 1.6; yy < CS; yy += 3.2)

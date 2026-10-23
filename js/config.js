@@ -138,11 +138,10 @@ const TAIL = { min: 0.33, len: 1.1, first: 0.3 };
 // blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
 const ROUND = { swim: 0.1, walk: 0.1 };
 // mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
-//   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut for a middling
-//   mouth (x FOOD)
+//   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
 //   bonus: a claw gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
-const MOUTH = { share: 0.5, nut: 1.25, bonus: 0.25 };
+const MOUTH = { nut: 1.25, bonus: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)
 // features that are either there or not count extra towards a new species, since they make creatures look
 // different: having a tail at all, and having 6 legs rather than 4
@@ -157,7 +156,12 @@ const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less
 const BURN = { rest: 0.32, move: 0.81, size: 0.25 };
-const THICKET = 0.95; // the largest size that fits into thickets (size = body width x length, see README)
+// thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
+// 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
+// anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
+//   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
+//   is nuts (nuts: [share at the edge, share from deep in]) and the dots on the map get denser
+const THICKET = { edge: 16, depth: 33, deep: 48, nuts: [0.2, 0.8] };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

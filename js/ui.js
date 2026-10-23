@@ -115,7 +115,7 @@ function toast(m, k) {
 }
 let tab = 'sp',
   metric = 'n';
-// what the Stats chart can show: [key, label, decimals, unit]; shares (fits, river) are shown as %
+// what the Stats chart can show: [key, label, decimals, unit]; shares (river) are shown as %
 const METRICS = [
   ['n', 'Population', 0, ''],
   ['vL', 'Land speed', 0, ' px/s'],
@@ -124,7 +124,7 @@ const METRICS = [
   ['dLc', 'Walks from water', 0, ' px'],
   ['burnW', 'Energy use', 1, '/s'],
   ['cap', 'Energy store', 0, ''],
-  ['fits', 'Fits thickets', 0, '%'],
+  ['dTc', 'Into thickets', 0, ' px'],
   ['river', 'Crosses rivers', 0, '%'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
@@ -443,7 +443,7 @@ const DIFF = [
   ['mth', 'Mouth', 0.12, v => `${mouthTxt(v)} (${Math.round(v * 100)}% straw)`],
   ['leg', 'Legs', 0.12, v => Math.round(v * 100) + '%'],
   ['size', 'Size', 0.12, v => v.toFixed(2)],
-  ['fits', 'Fits thickets', 0.25, v => Math.round(v * 100) + '%'],
+  ['dTc', 'Reach into thickets', 25, v => Math.round(v) + ' px'],
   ['river', 'Crosses rivers', 0.25, v => Math.round(v * 100) + '%'],
   ['dhue', 'Colour', 20, v => (v >= 0 ? '+' : '') + Math.round(v) + '°'],
   ['round', 'Roundness', 0.2, v => v.toFixed(2)],
@@ -626,7 +626,7 @@ function syncUI() {
         <div><span>Burning</span><b>${c.dead ? '–' : c.burnNow.toFixed(2) + ' /s'}</b></div>
         <div><span>Age</span><b>${Math.round(c.age)} / ${LIFE} s</b><div class="meter"><i style="width:${Math.min(100, (c.age / LIFE) * 100)}%;background:var(--muted)"></i></div></div>
         <div><span>Width × length</span><b>${c.w.toFixed(1)} × ${c.h.toFixed(1)}</b></div>
-        <div><span>Size</span><b>${c.size.toFixed(2)}</b></div><div><span>Thickets</span><b>${c.fits ? 'Fits' : 'Too big'}</b></div>
+        <div><span>Size</span><b>${c.size.toFixed(2)}</b></div><div><span>Thickets</span><b>${thickTxt(c)[0].toUpperCase() + thickTxt(c).slice(1)}</b></div>
         <div><span>Legs</span><b>${c.legs} · ${legTxt(c.leg)}</b></div><div><span>Roundness</span><b>${c.round.toFixed(2)}</b></div>
         <div><span>Speed</span><b>land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
         <div><span>Tail</span><b>${tailTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
@@ -647,7 +647,7 @@ function syncUI() {
       <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Only small creatures fit (size ${THICKET} or less).</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A claw gets more from them than a straw does.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>

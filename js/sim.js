@@ -185,7 +185,7 @@ function allowed(c, i, t) {
     if (t === 4 && c.vW < RIVER) return false;
     return world.dLand[i] <= c.dW;
   }
-  if (t === 2 && !c.fits) return false;
+  if (t === 2 && world.dThick[i] > c.dT) return false;
   return world.dWater[i] <= c.dL;
 }
 // old creatures slow down over their last few seconds (OLD)
@@ -915,7 +915,7 @@ const KEYS = [
   'legs',
   'hab',
   'mth',
-  'fits',
+  'dTc',
   'river',
   'size',
   'round',
@@ -1130,7 +1130,7 @@ function split(sp, small, rest, reason, island) {
       mth: ['better at sipping algae through its straw-like mouth', 'better at cracking nuts with its claw'],
       leg: ['longer-legged and faster on land', 'shorter-legged and a better swimmer'],
       size: ['bigger and thriftier with energy', 'smaller and quicker on its feet'],
-      fits: ['small enough to slip into thickets', 'bigger and thriftier with energy'],
+      dTc: ['small enough to slip deeper into thickets', 'bigger and thriftier with energy'],
       river: ['better at crossing rivers', 'more settled on dry land'],
       dhue: ['a striking new colour', 'a striking new colour'],
       round: ['rounder and a better swimmer', 'blockier and a better walker'],
@@ -1195,8 +1195,8 @@ const BADGES = [
   {
     id: 'squeeze',
     name: 'Squeezer',
-    d: 'A species shrinks to fit into thickets',
-    f: () => !S.orig.fits && live().some(m => m.size <= THICKET),
+    d: 'A species gets small enough to reach the heart of the thickets',
+    f: () => S.orig.dT < world.tDeep && live().some(m => m.dTc >= world.tDeep),
   },
   {
     id: 'drift',

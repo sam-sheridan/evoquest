@@ -244,11 +244,14 @@ function genWorld(seed, att = 0) {
       t = world.type[i];
     if (t !== 1 && t !== 2) continue;
     let f = clamp((world.fert[i] - world.fLo) / (world.fHi - world.fLo), 0, 1);
-    if (t === 2) f = Math.min(1, f * 0.6 + 0.5);
+    // thicket food grows more thickly towards the middle, and more of it is nuts there
+    const deep = t === 2 ? clamp((world.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1) : 0;
+    if (t === 2) f = Math.min(1, f * 0.6 + 0.35 + 0.3 * deep);
     if (world.comp[i] !== world.main) f = Math.min(1, f + 0.35);
     if (rng() < f * f * 0.9 + 0.04) {
-      // some thicket food is nuts rather than berries
-      const kind = t === 2 && rng() < MOUTH.share ? 'n' : 'l';
+      // some thicket food is nuts rather than berries, most of it in the middle
+      const kind =
+        t === 2 && rng() < THICKET.nuts[0] + (THICKET.nuts[1] - THICKET.nuts[0]) * deep ? 'n' : 'l';
       world.sites.push({ x, y, i, kind, active: true, t: 0 });
       nl++;
     }
@@ -458,6 +461,12 @@ function buildTerrain() {
     w.temp[i] = 1 - lo / R.length;
   }
   w.dLand = distField(i => isLand(w.type[i]));
+  // how far each thicket cell is from the thicket's edge (16 px for an edge cell), which sets who can go there
+  w.dThick = distField(i => w.type[i] !== 2);
+  // the heart of the thickets: how far in the deepest tenth of thicket ground lies (for the Squeezer achievement)
+  const td = [];
+  for (let i = 0; i < N; i++) if (w.type[i] === 2) td.push(w.dThick[i]);
+  w.tDeep = td.length ? quant(td, 0.9) : 1e9;
   w.dWater = distField(i => isWater(w.type[i]));
   // sea depth: a blend of distance from shore and the sea floor, each as a rank among sea cells, so shallow
   // shelves follow the coasts and reach out over offshore banks; the shallowest share is the shelf

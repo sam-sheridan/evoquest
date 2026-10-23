@@ -68,7 +68,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | Control | What it does |
 |---|---|
 | **Species name** | Up to 20 characters. Also becomes the Latin genus (see [naming](#10-speciation-and-naming)). |
-| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more; only small bodies fit into thickets. |
+| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
 | **Legs** | Body trait, short to long (0–100%). Longer legs walk faster but swim slower. Moving fast burns much more energy, so long legs aren't free. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 33% there is no tail ("None · land only"); a tail shows and counts from 33%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from claw to straw. A claw gets more from nuts; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives how much it gets from each. |
@@ -80,7 +80,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few seconds it acts out eating, so
-you can see its mouth snap. It also shows the body in pixels, its size and whether it fits into thickets. The line
+you can see its mouth snap. It also shows the body in pixels, its size and how far into thickets it can go. The line
 under the sliders gives its size, number of legs, range and what its mouth gets from each food. The **chips** under
 the preview show:
 
@@ -122,8 +122,21 @@ what you can see.
 
 - **Size** = √(body width × body length) ÷ 17, from 0.48 (width and length 1) to 1.26 (both 7). Width and
   length do nothing else, so a 3 × 6 body and a 4.5 × 4 one are the same size and do equally well.
-- **Thickets.** Only a creature of size 0.95 or less (`THICKET`) fits into thickets: for example 4 × 4.5 (0.90)
-  fits, and 4.5 × 5 (0.97) doesn't.
+- **Thickets.** Thickets are tighter towards the middle, so size sets how far in a creature can go, measured from
+  the thicket's edge (an edge cell counts as 16 px in): 16 + 33 × ((1.26 − size) ÷ (size − 0.48))² px (`THICKET`).
+  This works like the tail's limits on land and water.
+
+  | Size | Goes into thickets |
+  |---|---|
+  | 1.26 (biggest) | 16 px (the edge cells only) |
+  | 1.1 | 18 px |
+  | 1.0 | 24 px |
+  | 0.9 | 40 px |
+  | 0.8 | 84 px |
+  | 0.7 or less | anywhere (no thicket is much deeper than 180 px) |
+
+  Half of a typical thicket lies within about 32 px of its edge and nine tenths within about 80 px, so a middling
+  creature reaches about half of it and only small ones its heart.
 - **Legs**: 4, or 6 from size 0.9 (`LEGS.sixFrom`). Six legs walk 5% faster and swim 5% slower, four the reverse
   (`LEGS.six`). Leg count follows size; there is no control for it.
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
@@ -203,8 +216,8 @@ freely and has to reach 33% before a tail starts to help it, so tails evolve fro
 **Randomise** gives about a third of designs no tail (0–30%) and the rest a clearly visible one (40–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 with 6 legs, fits into
-thickets, walks at about 34 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
+The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 with 6 legs, goes 40 px
+into thickets, walks at about 34 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
 
 ### Look traits: drift by chance
 
@@ -310,7 +323,7 @@ creatures are left at all.
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
 | Land | It is within its walking range of water (always true with no tail, 33% or less; a 50% tail still walks over 1,700 px from water). | Land speed |
-| Thicket | Its size is 0.95 or less, plus the land rule. | 85% of land speed |
+| Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
 | Rock | Never. | – |
@@ -373,7 +386,7 @@ re-plan at once.
 |---|---|
 | **Sea** | Everything below sea level: a shallow shelf near coasts and over banks, and deep water beyond (see [sea depth](#sea-depth)). |
 | **Land** | Everything above sea level. |
-| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Only small creatures fit (size 0.95 or less). |
+| **Thicket** | The densest part of a "thicket" noise pattern, on land (the share is set by the world type), weighted by region (see below). Tighter towards the middle: the bigger a creature, the less far in it can go (see [traits](#body-traits-shaped-by-the-world)). Denser dots on the map mean further in. |
 | **Rock** | The top part of a "rock" noise pattern, on land (the share is set by the world type), weighted by region. Impassable. Drawn as contoured grey plates. |
 | **River** | A meandering channel cut right across the map, coast to coast, at any angle. Strong current. |
 
@@ -466,8 +479,8 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets and on islands. |
-| **Nuts** (acorns) | Thicket | Half of the food sites in thickets grow nuts instead of berries (`MOUTH.share`). Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
+| **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
+| **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
 | **Algae** (green) | Shallow shelf and rivers | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf. Not in the outer margin. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
@@ -668,7 +681,7 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Coming Ashore | A species' average tail shrinks by 40 points |
 | Nutcracker | A species' average mouth shifts 40 points towards a claw |
 | Sipper | A species' average mouth shifts 40 points towards a straw |
-| Squeezer | A species shrinks to fit into thickets (only if it started too big) |
+| Squeezer | A species gets small enough to reach the heart of the thickets: as far in as the deepest tenth of this world's thicket (only if it started too big) |
 | New Look | Average colour drifts 60° from the original |
 | Branching Out | Witness a new species form |
 | Crowded Tree | Three species alive at once |
@@ -730,9 +743,10 @@ Collapse or expand it with the arrow. It has four tabs.
     or mouth traits.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
-    second walking flat out, without temperature or deep water), Energy store, Fits thickets or Crosses rivers (the
-    last two as the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
-    beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, so a few unlimited
+    second walking flat out, without temperature or deep water), Energy store, Into thickets (how far, in px) or
+    Crosses rivers (the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
+    beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, and thicket reach beyond
+    200 px counts as 200, so a few unlimited
     creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
     released design's value. A chart shows at most the last 20 minutes (`CHART_SPAN`). After that a **slider**
     appears under it: drag it left to look back through earlier time, and right to the end to follow the present
@@ -741,7 +755,7 @@ Collapse or expand it with the arrow. It has four tabs.
   stops following). The tab shows its:
   - generation, parent, offspring and meals
   - energy and burn rate, and age
-  - width and length, size and whether it fits into thickets
+  - width and length, size and how far into thickets it can go
   - number of legs and leg length, and roundness
   - land and water speed, tail and range
   - mouth, and how it feeds (how much it gets from nuts and algae compared with a berry)
@@ -823,7 +837,7 @@ The look is a scientific **field notebook / survey map**.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands by distance from shore (`BAND`). The shallow shelf isn't drawn
     separately, but the paler bands near coasts roughly follow it. Land is pale with darker fertile meadows. Thickets are green with
-    dots. Rock is grey contoured plates. Rivers are pale blue with a
+    dots, getting denser over the first 48 px from the edge, where the thicket gets too tight for bigger creatures. Rock is grey contoured plates. Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
     keep their stepped edges.
@@ -885,10 +899,10 @@ accident.
   is a jack of all trades, master of none.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
-  setting was replaced by leg length, the three thicket gap widths by one size limit, and nut cracking by a simple
+  setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
   energy bonus for claws. Width and length only matter through size, so long thin and short stubby designs are
-  both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept out of
-  thickets, long legs walk fast but swim slowly and burn energy, and the tail, roundness and leg count each trade
+  both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
+  edges of thickets, long legs walk fast but swim slowly and burn energy, and the tail, roundness and leg count each trade
   walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival). Colour is the one trait left to drift purely by chance.
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
@@ -916,7 +930,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How much offspring vary | `VAR` |
 | How leg length, leg count and size set speed | `LEGS` |
 | Energy burnt standing, moving, and by size | `BURN` |
-| Largest size that fits into thickets | `THICKET` |
+| How far into thickets each size goes, and where nuts and denser dots begin | `THICKET` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
@@ -933,7 +947,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
 | How much roundness helps swimming and blockiness walking | `ROUND` |
-| Nuts in thickets, nut energy, how much claws gain from nuts and straws from algae | `MOUTH` |
+| Nut energy, how much claws gain from nuts and straws from algae | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 

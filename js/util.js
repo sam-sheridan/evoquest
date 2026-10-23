@@ -19,6 +19,8 @@ const tailTxt = h => {
 // leg length in words
 const legTxt = l =>
   l < 0.2 ? 'Short' : l < 0.4 ? 'Fairly short' : l < 0.6 ? 'Medium' : l < 0.8 ? 'Fairly long' : 'Long';
+// how far into thickets a creature can go (past 200 px it reaches every thicket's middle)
+const thickTxt = c => (c.dT >= 200 ? 'anywhere in thickets' : `${Math.round(c.dT)} px into thickets`);
 // roundness in words
 const roundTxt = r => (r < 0.25 ? 'Blocky' : r < 0.5 ? 'Squarish' : r < 0.75 ? 'Rounded' : 'Round');
 // the mouth's name along the way from claw (0) to straw (1)
