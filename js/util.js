@@ -26,9 +26,9 @@ const legTxt = l =>
 const thickTxt = c => (c.dT >= 200 ? 'anywhere in thickets' : `${Math.round(c.dT)} px into thickets`);
 // roundness in words
 const roundTxt = r => (r < 0.25 ? 'Blocky' : r < 0.5 ? 'Squarish' : r < 0.75 ? 'Rounded' : 'Round');
-// the mouth's name along the way from claw (0) to straw (1)
+// the mouth's name along the way from beak (0) to straw (1)
 const mouthTxt = m =>
-  m < 0.2 ? 'Claw' : m < 0.4 ? 'Slim claw' : m < 0.62 ? 'Tweezers' : m < 0.88 ? 'Prongs' : 'Straw';
+  m < 0.2 ? 'Beak' : m < 0.4 ? 'Slim beak' : m < 0.62 ? 'Tweezers' : m < 0.88 ? 'Prongs' : 'Straw';
 
 /* storage */
 const KEY = 'evoquest.v4';

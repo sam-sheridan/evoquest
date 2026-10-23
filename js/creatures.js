@@ -2,7 +2,7 @@
    changes, and how a creature is drawn.
    Body traits (affect survival): w width and h length (together they set size), leg leg length (long legs walk
    faster, short ones swim faster), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
-   because it began as "habitat"), mth mouth (0 = claw, 1 = straw), round roundness (round swims a little faster,
+   because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims a little faster,
    blocky walks a little faster). Every ability (speed, energy, range, food) comes from these.
    Look traits (drift by chance): hue, lt (lightness). The number of legs comes from size. */
 
@@ -332,11 +332,11 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
 const MOUTH_SHAPE = {
   len: [4.4, 4.9, 5.3, 5.6, 5.8], // length, longer towards the straw
   root: [1.35, 1.15, 0.95, 0.8, 0.75], // half-width where it joins the body
-  bulge: [2.0, 1.3, 0.7, 0.25, 0], // how curved (claw-like) each jaw is
+  bulge: [2.0, 1.3, 0.7, 0.25, 0], // how curved (beak-like) each jaw is
   tipY: [0.08, 0.35, 0.6, 0.5, 0.28], // how far each jaw's tip sits from the centre line
   th: [0.05, 0.25, 0.4, 0.5, 0.56], // thickness of each jaw at its tip
   rest: [0.04, 0.1, 0.14, 0.08, 0], // resting opening angle: tweezers and prongs stay a little open
-  amp: [0.35, 0.22, 0.12, 0.06, 0], // how far the jaws swing: a big snap for the claw, a waggle for prongs
+  amp: [0.35, 0.22, 0.12, 0.06, 0], // how far the jaws swing: a big snap for the beak, a waggle for prongs
 };
 // the mouth's size goes with the body's
 const mouthScale = c => clamp(Math.sqrt(c.bw * c.bh) / 12.5, 0.7, 1.8);

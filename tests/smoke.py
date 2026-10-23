@@ -46,8 +46,11 @@ with sync_playwright() as p:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
     pg.click('[data-tab=world]')
+    # creature colours live in Settings
+    pg.click('#bSet')
     pg.click('#cmode [data-cm=species]')
     pg.click('#cmode [data-cm=body]')
+    pg.click('#bSet')
 
     # menus and info popovers
     for button in ['#bLog', '#bBadge', '#bSet']:

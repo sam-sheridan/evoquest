@@ -383,9 +383,9 @@ function drawChart() {
 const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
   ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
-  ['Leg length (px)', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
+  ['Leg length', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
   ['Leg number', (m, c) => m.legs.toFixed(1), 'legs', 0.6],
-  ['Tail length (px)', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
+  ['Tail length', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
 ];
@@ -404,10 +404,18 @@ function avgCreature(m) {
   return c;
 }
 let picQueue = [];
-const SP_FIRST = 116, // width of the row names column, px
-  SP_COL = 86; // width of every species column, px
+const SP_COL = 86; // width of every species column, px
+// the row names column is only as wide as its longest name, so the first species sits as far left as it can
+const labelWidth = labels => {
+  const g = (labelWidth.g ||= document.createElement('canvas').getContext('2d'));
+  g.font = '12.5px "IBM Plex Sans", system-ui, sans-serif';
+  return Math.ceil(Math.max(...labels.map(l => g.measureText(l).width))) + 10;
+};
+// grey: in the inspector (extinct species greyed out, no starting design column, as it never changes); at the end
+// of a run the starting design is shown first
 function speciesTable(grey) {
-  const cols = [{ name: 'Released', m: S.orig, key: 'r' }];
+  const start = { name: 'Starting design', m: S.orig, key: 'r' },
+    cols = grey ? [] : [start];
   // living species first, extinct ones at the far right
   const order = [
     ...S.species.filter(s => !s.died),
@@ -419,7 +427,8 @@ function speciesTable(grey) {
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
   }
   for (const k of cols) k.c = avgCreature(k.m);
-  const byKey = new Map(cols.map(k => [k.key, k]));
+  // primus is still compared with the starting design for highlighting, even when that isn't a column
+  const byKey = new Map([start, ...cols].map(k => [k.key, k]));
   // the one or two traits that differ most from the parent, if they differ notably
   for (const k of cols) {
     const p = byKey.get(k.parent);
@@ -449,18 +458,19 @@ function speciesTable(grey) {
     ['Time alive', k => (k.sp ? fmtT((k.sp.died ?? S.t) - k.sp.born) : '–')],
   ];
   // fixed column widths, so the table doesn't shift as the species change
-  return `<table class="sp" style="width:${SP_FIRST + SP_COL * cols.length}px"><colgroup><col style="width:${SP_FIRST}px">${cols
+  const first = labelWidth([...info.map(r => r[0]), ...SP_ROWS.map(r => r[0])]);
+  return `<table class="sp" style="width:${first + SP_COL * cols.length}px"><colgroup><col style="width:${first}px">${cols
     .map(() => `<col style="width:${SP_COL}px">`)
     .join('')}</colgroup><thead><tr><th></th>${cols
     .map(k =>
       k.sp
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
-        : `<th>Released</th>`
+        : `<th>Starting design</th>`
     )
     .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
     .map(
       (k, i) =>
-        `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'released design'}"></canvas></td>`
+        `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'starting design'}"></canvas></td>`
     )
     .join('')}</tr>${info
     .map(([l, f]) => `<tr><td>${l}</td>${cols.map(k => `<td${ext(k)}>${f(k)}</td>`).join('')}</tr>`)
@@ -582,6 +592,10 @@ addEventListener('keydown', () => {
   syncUI(true);
 });
 function syncUI() {
+  if (S)
+    document
+      .querySelectorAll('#cmode button')
+      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
   if (!S) return;
   const n = S.creatures.length,
     ls = S.species.filter(s => !s.died).length;
@@ -682,20 +696,16 @@ function syncUI() {
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
-    document
-      .querySelectorAll('#cmode button')
-      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
+    const n = S.count;
     $('#worldBody').innerHTML =
-      `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
+      `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div>
       <div><span>Land cover</span><b>${world.stats.land}%</b></div><div><span>Sea cover</span><b>${world.stats.sea}%</b></div>
-      <div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>
-<div><span>Landmasses</span><b>${world.stats.lands}</b></div>
-      <div><span>Craters</span><b>${world.stats.craters}</b></div>
-      <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
+      <div><span>Floods</span><b>${n.flood}</b></div><div><span>Droughts</span><b>${n.drought}</b></div>
+      <div><span>Earthquakes</span><b>${n.quake}</b></div><div><span>Meteor strikes</span><b>${n.meteor}</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A claw gets more from them than a straw does.</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>
        ${sw('#b9cfd7', '#151918')}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>

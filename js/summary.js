@@ -51,7 +51,7 @@ function showEnd(run) {
     .join(' &nbsp; ')}</p>
   <span class="lbl">Species</span>
   <div class="tw">${speciesTable(false)}</div>
-  <p class="hint">Highlighted: the traits that most set each species apart from the one it split from (primus from the released design).</p>
+  <p class="hint">Highlighted: the traits that most set each species apart from the one it split from (primus from the starting design).</p>
   <p class="hint">Body traits change because the world rewards some values over others. Look traits change only through random variation between parent and offspring, which is why related groups slowly end up looking different.</p>
   <span class="lbl">Family tree</span><div class="treewrap" style="margin-top:6px">${treeSVG(Math.min(780, innerWidth - 70))}</div>
   <div class="row" style="margin-top:16px"><button class="btn primary" id="eReplay">Watch replay</button><button class="btn" id="eSame">New species, same world</button><button class="btn" id="eNew">New species, new world</button></div>

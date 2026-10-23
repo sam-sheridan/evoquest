@@ -27,7 +27,7 @@ const MAXPOP = 400; // safety limit only, far above normal numbers (crowding kee
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 // choosing food: each point of energy a food gives this creature beyond a berry's counts as this many seconds less
-// travel, so a claw goes out of its way for nuts and a straw for algae
+// travel, so a beak goes out of its way for nuts and a straw for algae
 const FOOD_PREF = 1.5;
 const START = 20; // number of creatures released at the start
 // the founders are released already old enough to breed (MATURE plus up to this many seconds, spread so they don't
@@ -171,9 +171,9 @@ const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
 // roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
 // blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
 const ROUND = { swim: 0.1, walk: 0.1 };
-// mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
+// mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
 //   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
-//   bonus: a claw gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
+//   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.25 };
 const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)

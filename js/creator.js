@@ -147,7 +147,7 @@ function syncCreator() {
   $('#budget').innerHTML =
     `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, goes ${thickTxt(c)}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
     <br /><b>${rangeTxt(c)}.</b> Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
-    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
+    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A beak gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
     `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
     <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>

@@ -77,7 +77,7 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 | **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
 | **Legs** | Body trait, short to long (0–100%). Longer legs walk faster but swim slower. Moving fast burns much more energy, so long legs aren't free. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
-| **Mouth** | Body trait, from claw to straw. A claw gets more from nuts; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives how much it gets from each. |
+| **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the line under the sliders gives how much it gets from each. |
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
@@ -117,7 +117,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. Only matters through size. |
 | Legs (`leg`) | 0–1 | Leg length: 0 = short, 1 = long. Long legs walk faster, short ones swim faster. |
 | Tail (`hab`) | 0–1 | Below 0.15 (`TAIL.min`): no tail, fully land. From 0.15 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
-| Mouth (`mth`) | 0–1 | 0 = claw, 1 = straw (see [mouths](#mouths)). |
+| Mouth (`mth`) | 0–1 | 0 = beak, 1 = straw (see [mouths](#mouths)). |
 | Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes land and water speed by up to 10% (see below). |
 
 From these, the game works out:
@@ -194,19 +194,19 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Energy from a nut | Energy from algae |
 |---|---|---|---|
-| 0 (Claw) | a stout claw that snaps shut | 12.5 | 6 |
-| 0.25 (Slim claw) | a slimmer claw | 11.3 | 7 |
+| 0 (Beak) | a stout beak that snaps shut | 12.5 | 6 |
+| 0.25 (Slim beak) | a slimmer beak | 11.3 | 7 |
 | 0.5 (Tweezers) | straighter jaws that stay a little open | 10 | 8 |
 | 0.75 (Prongs) | two thin prongs with a small gap | 8.8 | 9 |
 | 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 7.5 | 10 |
 
-- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a claw gets 25% more than
+- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a beak gets 25% more than
   that, a straw 25% less (`MOUTH.bonus`).
-- **Algae** gives 1 + 0.25 × (2 × mouth − 1) times a berry's energy: a straw gets 25% more, a claw 25% less.
+- **Algae** gives 1 + 0.25 × (2 × mouth − 1) times a berry's energy: a straw gets 25% more, a beak 25% less.
 - **Berries** give every mouth the same 8.
 
-So a world full of thickets favours claws and a watery world favours straws, and the mouth evolves like any other
-body trait. Between the two ends, the claw stretches into tweezers, the tweezers straighten into prongs, and from
+So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
+body trait. Between the two ends, the beak stretches into tweezers, the tweezers straighten into prongs, and from
 0.75 the prongs close together into a single straw with a slight trumpet at the end. The mouth is always drawn in
 black ink. The jaws snap quickly
 while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
@@ -375,7 +375,7 @@ allowed into.
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
-  1.5 seconds less travel (`FOOD_PREF`). A claw gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
+  1.5 seconds less travel (`FOOD_PREF`). A beak gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
   a straw's algae (10) as 3 seconds closer. So creatures go out of their way for the food their mouth suits, which
   pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
@@ -521,7 +521,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 | Food | Where | Placement |
 |---|---|---|
 | **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
-| **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
+| **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
 | **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
@@ -691,7 +691,7 @@ Species never merge back together.
 | *natans* | more aquatic |
 | *terrestris* | more land-living |
 | *sorbens* | a more straw-like mouth ("sipping") |
-| *chelifer* | a more claw-like mouth ("claw-bearing") |
+| *rostratus* | a more beak-like mouth ("beaked") |
 | *longipes* | longer-legged |
 | *brevipes* | shorter-legged |
 | *magnus* | bigger |
@@ -725,7 +725,7 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Impact Survivor | Recover to 40 creatures after a meteor kills 5 or more |
 | Taking to the Water | A species' average tail grows by 40 points |
 | Coming Ashore | A species' average tail shrinks by 40 points |
-| Nutcracker | A species' average mouth shifts 40 points towards a claw |
+| Nutcracker | A species' average mouth shifts 40 points towards a beak |
 | Sipper | A species' average mouth shifts 40 points towards a straw |
 | Squeezer | A species gets small enough to reach the heart of the thickets: as far in as the deepest tenth of this world's thicket (only if it started too big) |
 | New Look | Average colour drifts 60° from the original |
@@ -750,7 +750,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Creature colour* (each creature in its own body colour, or in its species' tag colour), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -777,14 +777,15 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 Collapse or expand it with the arrow. It has four tabs.
 
 - **Species**
-  - **Table**: one column for the released design and one for every species, living ones first and extinct ones
+  - **Table**: one column for every species (the starting design isn't shown here, since it never changes; primus is
+    still compared with it for highlighting), living ones first and extinct ones
     at the far right, greyed out and marked †. Every column has the same fixed width, so the table doesn't shift as
     species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
     scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
-    one scale, at the same height and right-aligned above the values. Then: population (20 for the released
-    design; at the end of a run, each species' peak), time alive (how long the species has existed, or did), size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
-    (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
+    one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
+    each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
+    (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
     from are highlighted in orange (primus is compared with the released design). A trait counts only if it
     differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
@@ -821,10 +822,9 @@ Collapse or expand it with the arrow. It has four tabs.
   get that far into a thicket). Rock and the map's edge stop everyone, so nothing flashes for them. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
   select another creature, or it dies. *Control* is greyed out on phones and tablets, which usually have no arrow keys (pressing any key on an attached keyboard turns it back on), and while a testing speed above 1× is set (controlling
   only makes sense in real time), and choosing such a speed lets go of a controlled creature.
-- **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
-  landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
-  crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
-  a map key. All of them are measured from the map as it is now, so they change after every event.
+- **World**: world number, thicket cover (as a share of the land), land cover and sea cover (shares of the whole
+  map, measured as it is now; rivers and lakes make up the rest), how many floods, droughts, earthquakes and
+  meteor strikes there have been so far, and a map key.
 
 ### Map
 
@@ -842,7 +842,7 @@ When the last creature dies, the summary shows:
 - **Time alive, generations, peak population, ever born, species, achievements.**
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
-  (none greyed out, since all have died).
+  (none greyed out, since all have died), and the **starting design** as the first column.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
   runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
@@ -915,7 +915,7 @@ The look is a scientific **field notebook / survey map**.
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
     mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45
     to 5.2 px before the tail shortens them), and wider, shorter bars mean a creature that leans towards water.
-  - Mouth: one black mouthpart at the front, from a snapping claw to a slightly trumpeted straw (see
+  - Mouth: one black mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
     [mouths](#mouths)).
   - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
     further they are from the body.
@@ -954,7 +954,7 @@ accident.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
   setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
-  energy bonus for claws. Width and length only matter through size, so long thin and short stubby designs are
+  energy bonus for beaks. Width and length only matter through size, so long thin and short stubby designs are
   both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
   edges of thickets, long legs walk fast but swim slowly and burn energy, and the tail, roundness and leg count each trade
   walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
@@ -1002,7 +1002,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
 | How much roundness helps swimming and blockiness walking | `ROUND` |
-| Nut energy, how much claws gain from nuts and straws from algae | `MOUTH` |
+| Nut energy, how much beaks gain from nuts and straws from algae | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 
@@ -1075,7 +1075,7 @@ python3 tests/scenarios.py 6 15
 
   Results vary from run to run, so compare batches rather than single runs.
 - **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three
-  worlds each by default, with a mix of shapes) and five designs on each (middling, fully random, small clawed
+  worlds each by default, with a mix of shapes) and five designs on each (middling, fully random, small beaked
   walker, big long-legged walker, water creature), run several at a time. `python3 tests/study.py 45 4 3` makes 75
   runs of 45 minutes and takes about half an hour. Each run is saved as a line of JSON: populations at 10, 20 and 30
   minutes and at the end, time over 100, seasonal swing, new species with when and how each split happened,

@@ -54,7 +54,8 @@ function newGame(design, seed) {
     genus: genus(design.name), // Latin genus made from the species name
     species: [], // every species this run, living or extinct
     spT: 0,
-    colorMode: 'body', // map colours: 'body' or 'species'
+    colorMode: 'body', // creature colours: 'body' or 'species'
+    count: { flood: 0, drought: 0, quake: 0, meteor: 0 }, // world events so far, by kind (for the World tab)
   };
   S.sites = world.sites;
   world.sites.forEach(f => {
@@ -634,7 +635,7 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
-// how much energy the mouth gets from each food, as a multiple of FOOD: a claw gets more from nuts, a straw more
+// how much energy the mouth gets from each food, as a multiple of FOOD: a beak gets more from nuts, a straw more
 // from algae, and berries give every mouth the same
 const mouthGain = (c, kind) =>
   kind === 'n'
@@ -942,6 +943,7 @@ function worldEvent(kind, major, forced) {
   const old = snapMap();
   buildTerrain();
   startFade(old);
+  S.count[k]++;
   S.events++;
   S.lastEvent = S.t;
   logEv(msg);
@@ -1010,6 +1012,7 @@ function meteor(x, y, major) {
     world.sites.push(f);
   }
   parts.push({ x, y, t: 0, k: 'boom' });
+  S.count.meteor++;
   S.events++;
   S.lastEvent = S.t;
   const m = `${major ? 'Major meteor strike' : 'Meteor strike'}. ${k} creature${k === 1 ? '' : 's'} killed. A crater wall now rings the impact, with a small lake at its centre.`;
@@ -1255,7 +1258,7 @@ const EPI = [
   ['hab', 1, 'natans'],
   ['hab', -1, 'terrestris'],
   ['mth', 1, 'sorbens'],
-  ['mth', -1, 'chelifer'],
+  ['mth', -1, 'rostratus'],
   ['leg', 1, 'longipes'],
   ['leg', -1, 'brevipes'],
   ['size', 1, 'magnus'],
@@ -1342,7 +1345,7 @@ const BADGES = [
   {
     id: 'claw',
     name: 'Nutcracker',
-    d: 'A species shifts 40 points towards a claw',
+    d: 'A species shifts 40 points towards a beak',
     f: () => live().some(m => S.orig.mth - m.mth >= 0.4),
   },
   {
