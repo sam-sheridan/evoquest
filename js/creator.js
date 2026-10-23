@@ -112,6 +112,19 @@ $('#fName').oninput = e => {
   D.name = e.target.value;
 };
 let pvC = null;
+// the help popup (top right): how energy, breeding and each slider work
+$('#crHelpBtn').onclick = e => {
+  e.stopPropagation();
+  const p = $('#crHelp');
+  p.hidden = !p.hidden;
+  e.currentTarget.setAttribute('aria-expanded', String(!p.hidden));
+};
+document.addEventListener('click', e => {
+  if (!$('#crHelp').hidden && !e.target.closest('#crHelp')) {
+    $('#crHelp').hidden = true;
+    $('#crHelpBtn').setAttribute('aria-expanded', 'false');
+  }
+});
 function updP() {
   document.querySelectorAll('#creator input[type=range]').forEach(r => {
     const p = (r.value - r.min) / (r.max - r.min);
@@ -142,27 +155,32 @@ function syncCreator() {
   pvC = c;
   const b = moveBurn(c, c.vL),
     river = c.vW >= RIVER && c.dW >= 16,
-    // how far it goes from shore and from water: Never under one cell, Anywhere past 2000 px (as in rangeTxt)
-    far = (d, other) =>
-      d < CS ? 'Never' : other < CS ? 'Anywhere' : d > 2000 ? 'Anywhere' : `${Math.round(d)} px`;
+    // how far it goes from shore and from water: never under one cell, anywhere past 2000 px (as in rangeTxt)
+    far = (verb, d, other, from) =>
+      d < CS
+        ? `Never ${verb}s`
+        : other < CS || d > 2000
+          ? `${verb[0].toUpperCase() + verb.slice(1)}s anywhere`
+          : `${verb[0].toUpperCase() + verb.slice(1)}s ${Math.round(d)} px from ${from}`;
   // what the body does, roughly most important first; crossing rivers and thickets last
-  $('#pvStats').innerHTML = [
-    ['Land speed', `${Math.round(c.vL)} px/s`],
-    ['Water speed', `${Math.round(c.vW)} px/s`],
-    ['Energy store', Math.round(c.cap)],
-    ['Energy use', `${b.toFixed(2)}/s`],
-    ['Swims from shore', far(c.dW, c.dL)],
-    ['Walks from water', far(c.dL, c.dW)],
-    ['From nuts', `×${mouthGain(c, 'n').toFixed(2)}`],
-    ['From algae', `×${mouthGain(c, 'w').toFixed(2)}`],
-    ['Size', c.size.toFixed(2)],
-    ['Legs', c.legs],
-    ['Reach', `${c.reach.toFixed(0)} px`],
-    ['Into thickets', c.dT >= 200 ? 'Anywhere' : `${Math.round(c.dT)} px`],
-    ['Crosses rivers', river ? 'Yes' : 'No'],
-  ]
-    .map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`)
-    .join('');
+  $('#pvStats').innerHTML =
+    [
+      `Land ${Math.round(c.vL)} px/s`,
+      `Water ${Math.round(c.vW)} px/s`,
+      `Energy ${Math.round(c.cap)}`,
+      `Burns ${b.toFixed(2)}/s`,
+      far('swim', c.dW, c.dL, 'shore'),
+      far('walk', c.dL, c.dW, 'water'),
+      `Nuts ×${mouthGain(c, 'n').toFixed(2)}`,
+      `Algae ×${mouthGain(c, 'w').toFixed(2)}`,
+      `Size ${c.size.toFixed(2)}`,
+      `${c.legs} legs`,
+      `Reach ${c.reach.toFixed(0)} px`,
+      c.dT >= 200 ? 'Anywhere in thickets' : `${Math.round(c.dT)} px into thickets`,
+    ]
+      .map(t => `<span class="chip">${t}</span>`)
+      .join('') +
+    `<span class="chip ${river ? 'ok' : 'no'}">${river ? 'Crosses rivers' : 'Blocked by rivers'}</span>`;
   $('#pvWhy').innerHTML =
     `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();

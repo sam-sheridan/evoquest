@@ -152,20 +152,22 @@
       <div class="sheet">
         <div class="brand">
           <h1>Evo<span>Quest</span></h1>
+          <button class="btn qbtn" id="crHelpBtn" aria-label="How it works" aria-expanded="false">?</button>
+          <div id="crHelp" class="panelx" hidden>
+            <b>How it works</b>
+            <p>
+              Each creature has an energy bar. Food fills it; moving fast drains it quicker, and small bodies
+              burn more than big ones. Once a creature is 15 seconds old, eating with a nearly full bar gives
+              it one offspring with slightly varied traits. The more neighbours it has, the less likely it is
+              to breed. Everyone lives at most 90 seconds.
+            </p>
+            <p id="pvWhy"></p>
+          </div>
         </div>
         <div class="cgrid">
           <div>
             <canvas id="pv" width="520" height="390"></canvas>
-            <div class="kv pvstats" id="pvStats"></div>
-            <div class="explain">
-              <p>
-                Each creature has an energy bar. Food fills it; moving fast drains it quicker, and small
-                bodies burn more than big ones. Once a creature is 15 seconds old, eating with a nearly full
-                bar gives it one offspring with slightly varied traits. The more neighbours it has, the less
-                likely it is to breed. Everyone lives at most 90 seconds.
-              </p>
-              <p id="pvWhy"></p>
-            </div>
+            <div class="chips" id="pvStats"></div>
           </div>
           <div>
             <button class="btn" id="rnd" style="width: 100%; margin-bottom: 14px">Randomise</button>

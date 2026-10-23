@@ -86,12 +86,14 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar and the body's size in pixels. Every few
 seconds it acts out eating, so you can see its mouth snap. There is no text beside the headings or under the
-sliders. Under the preview, every stat the sliders change is listed, roughly most important first, with crossing
-rivers and thickets last: land speed, water speed (px/s), energy store, energy use (burnt per second walking flat
-out), how far it swims from shore and walks from water (in px, Never or Anywhere), what it gets from nuts and from
-algae (× a berry's worth), size, legs (4 or 6), reach (how close it must get to food to eat it), how far into
-thickets it goes (px or Anywhere) and whether it crosses rivers. Under that, the orange-edged note explains energy,
-breeding and lifespan, then how each slider trades one thing against another.
+sliders. Under the preview, a row of **tags** lists every stat the sliders change, roughly most important first,
+with thickets and rivers last: land and water speed (px/s), energy store, energy burnt per second walking flat out,
+how far it swims from shore and walks from water (or never, or anywhere), what it gets from nuts and from algae
+(× a berry's worth), size, number of legs, reach (how close it must get to food to eat it), how far into thickets it
+goes, and whether it crosses rivers (green) or is blocked by them (orange).
+
+The **?** button at the top right opens *How it works*: energy, breeding and lifespan, then how each slider trades
+one thing against another. Click anywhere else to close it.
 
 The creator **starts randomised**: every time it opens, it is as if *Randomise* had been pressed, including a new
 name. The exceptions are **Retry world** and **New world** on the end screen, which bring back the design that

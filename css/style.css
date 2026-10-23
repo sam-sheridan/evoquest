@@ -901,6 +901,32 @@ h3.sec {
   margin: 14px 0 6px;
   flex-wrap: wrap;
 }
+.qbtn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-weight: 600;
+  align-self: center;
+}
+/* the creator's help popup, under the ? button */
+#crHelp {
+  position: absolute;
+  z-index: 3;
+  top: 62px;
+  right: 20px;
+  width: min(380px, calc(100% - 40px));
+  padding: 12px 14px;
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#crHelp p {
+  margin: 8px 0 0;
+  color: var(--ink);
+}
+#creator .sheet {
+  position: relative;
+}
 .brand {
   display: flex;
   align-items: baseline;
@@ -943,6 +969,27 @@ h3.sec {
   max-width: 100%;
   display: block;
   border: 1px solid var(--line);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.chip {
+  border: 1px solid var(--line);
+  padding: 3px 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.chip.ok {
+  border-color: var(--good);
+  color: var(--good);
+}
+.chip.no {
+  border-color: var(--warn);
+  color: var(--warn);
 }
 .group {
   border-top: 1px solid var(--ink);
@@ -1156,26 +1203,6 @@ select {
   flex: none;
   border: 1px solid var(--ink);
   border-radius: 3px;
-}
-/* the creator's stats under the creature drawing */
-.pvstats {
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  gap: 8px 12px;
-  margin-top: 10px;
-}
-.explain p {
-  margin: 0;
-}
-.explain p + p {
-  margin-top: 8px;
-}
-.explain {
-  border-left: 2px solid var(--signal);
-  padding: 2px 0 2px 10px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ink);
-  margin: 12px 0 0;
 }
 .deaths {
   display: flex;
