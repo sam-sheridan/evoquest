@@ -525,6 +525,14 @@ table.sp td {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* the starting design's heading takes two lines, as it is too long for one column */
+table.sp th.sd {
+  white-space: normal;
+  line-height: 1.25;
+}
+table.sp thead th {
+  vertical-align: bottom;
+}
 table.sp th .latin {
   font-family: var(--sans);
   font-style: italic;
@@ -888,6 +896,10 @@ h3.sec {
   max-width: 820px;
   margin: 0 auto;
   padding: 20px;
+}
+.endacts {
+  margin: 14px 0 6px;
+  flex-wrap: wrap;
 }
 .brand {
   display: flex;

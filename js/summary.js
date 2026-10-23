@@ -34,11 +34,11 @@ function showEnd(run) {
   const dcol = { starvation: '#b5651d', 'old age': '#636d69', 'meteor strike': '#ff4f1a' };
   $('#endBody').innerHTML =
     `<div class="brand"><h1>Lineage extinct</h1><p class="latin">${esc(S.genus)} · world #${run.seed}</p></div>
-  <p class="hint">The ${esc(run.name)} lasted ${fmtT(run.dur)} and produced ${run.species} species.</p>
+  <div class="row endacts"><button class="btn primary" id="eReplay">Watch replay</button><button class="btn" id="eSame">Retry world</button><button class="btn" id="eNew">New world</button></div>
   <div class="statgrid">
    <div class="stat"><span class="lbl">Time alive</span><b>${fmtT(run.dur)}</b></div><div class="stat"><span class="lbl">Generations</span><b>${run.maxGen}</b></div>
    <div class="stat"><span class="lbl">Peak pop.</span><b>${run.peak}</b></div><div class="stat"><span class="lbl">Ever born</span><b>${run.born}</b></div>
-   <div class="stat"><span class="lbl">Species</span><b>${run.species}</b></div><div class="stat"><span class="lbl">Achievements</span><b>${run.badges.length}</b></div>
+   <div class="stat"><span class="lbl">Species</span><b>${run.species}</b></div><div class="stat"><span class="lbl">Achievements</span><b>${run.badges.length} / ${BADGES.length}</b></div>
   </div>
   <span class="lbl">How they died</span>
   <div class="deaths">${Object.entries(DB)
@@ -51,10 +51,8 @@ function showEnd(run) {
     .join(' &nbsp; ')}</p>
   <span class="lbl">Species</span>
   <div class="tw">${speciesTable(false)}</div>
-  <p class="hint">Highlighted: the traits that most set each species apart from the one it split from (primus from the starting design).</p>
-  <p class="hint">Body traits change because the world rewards some values over others. Look traits change only through random variation between parent and offspring, which is why related groups slowly end up looking different.</p>
   <span class="lbl">Family tree</span><div class="treewrap" style="margin-top:6px">${treeSVG(Math.min(780, innerWidth - 70))}</div>
-  <div class="row" style="margin-top:16px"><button class="btn primary" id="eReplay">Watch replay</button><button class="btn" id="eSame">New species, same world</button><button class="btn" id="eNew">New species, new world</button></div>
+  <span class="lbl" style="display:block;margin-top:16px">Achievements</span>${badgesHTML(run.badges)}
   <h3 class="sec" style="margin-top:20px">Past lineages</h3>${histHTML()}`;
   drawPics($('#endBody'));
   $('#end').hidden = false;
@@ -64,11 +62,11 @@ function showEnd(run) {
   };
   $('#eSame').onclick = () => {
     $('#end').hidden = true;
-    openCreator(S.seed);
+    openCreator(S.seed, S.design);
   };
   $('#eNew').onclick = () => {
     $('#end').hidden = true;
-    openCreator(null);
+    openCreator(null, S.design);
   };
   bindHist($('#endBody'));
 }

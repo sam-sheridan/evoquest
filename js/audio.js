@@ -302,11 +302,12 @@ setInterval(() => {
 
 function syncSettings() {
   $('#sSound').setAttribute('aria-pressed', String(sound));
-  // testing tools greyed out until unlocked; events also need a live run
+  // testing tools hidden until unlocked; events also need a live run
   const live = S && !S.over && !S.replay;
   for (const b of document.querySelectorAll('#sSpeed button, #sMajor')) b.disabled = !testUnlocked;
   for (const b of document.querySelectorAll('.testev button')) b.disabled = !testUnlocked || !live;
+  $('#testTools').hidden = !testUnlocked;
   $('#sPw').disabled = $('#sPwGo').disabled = testUnlocked;
-  if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction';
+  if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction (end run)';
   $('#bDoom').disabled = !live || !!S.doom;
 }

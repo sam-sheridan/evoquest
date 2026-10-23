@@ -205,7 +205,7 @@ $('#bDoom').onclick = () => {
   if (!S || S.over || S.replay || S.doom) return;
   if (performance.now() - doomAsk > 3000) {
     doomAsk = performance.now();
-    $('#bDoom').textContent = 'Click again to wipe them out';
+    $('#bDoom').textContent = 'Click again to confirm';
     setTimeout(syncSettings, 3100);
     return;
   }
@@ -424,9 +424,8 @@ function speciesTable(grey) {
     const s = k.sp ?? S.design;
     k.c = Object.assign(avgCreature(k.m), { hue: s.hue, sat: s.sat, lt: s.lt });
   }
-  // primus is still compared with the starting design for highlighting, even when that isn't a column
-  const byKey = new Map([start, ...cols].map(k => [k.key, k]));
-  // the one or two traits that differ most from the parent, if they differ notably
+  const byKey = new Map(cols.map(k => [k.key, k]));
+  // the one or two traits that differ most from the parent, if they differ notably (none on primus)
   for (const k of cols) {
     const p = byKey.get(k.parent);
     k.hl = p
@@ -462,7 +461,7 @@ function speciesTable(grey) {
     .map(k =>
       k.sp
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
-        : `<th>Starting design</th>`
+        : `<th class="sd">Starting<br>design</th>`
     )
     .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
     .map(
@@ -474,7 +473,10 @@ function speciesTable(grey) {
     .join('')}${SP_ROWS.map(
     ([l, f], i) =>
       `<tr><td>${l}</td>${cols
-        .map(k => `<td class="${k.ext ? 'ext ' : ''}${k.hl.includes(i) ? 'hl' : ''}">${f(k.m, k.c)}</td>`)
+        .map(
+          k =>
+            `<td class="${k.ext ? 'ext ' : ''}${k.hl.includes(i) ? 'hl" title="Differs most from the species it split from' : ''}">${f(k.m, k.c)}</td>`
+        )
         .join('')}</tr>`
   ).join('')}</tbody></table>`;
 }
@@ -493,12 +495,15 @@ function drawPics(root) {
     drawCreature(g, c, x, y, sc, 7, col(c), 0, false, 1.1 / sc);
   }
 }
+// every achievement, the earned ones in full and the rest greyed out (the popup and the end screen)
+const badgesHTML = mine =>
+  `<div class="badges">${BADGES.map(b => `<div class="badge ${mine.includes(b.id) ? 'got' : ''}"><b>${b.name}</b>${b.d}</div>`).join('')}</div>`;
 function renderBadges() {
   const all = BADGES,
     mine = S ? S.badges : [],
     got = all.filter(b => mine.includes(b.id)).length;
   $('#badgePop').innerHTML =
-    `<div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Achievements this run</b><span class="lbl">${got} / ${all.length}</span></div><div class="badges">${all.map(b => `<div class="badge ${mine.includes(b.id) ? 'got' : ''}"><b>${b.name}</b>${b.d}</div>`).join('')}</div>`;
+    `<div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Achievements this run</b><span class="lbl">${got} / ${all.length}</span></div>${badgesHTML(mine)}`;
   $('#bBadge').querySelector('small').textContent = got;
 }
 $('#bBadge').onclick = e => {
@@ -521,12 +526,12 @@ document.addEventListener('click', e => {
 });
 const INFO = {
   season:
-    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely. The clock's hand goes round once a year. The thermometer shows how cold or warm the whole world is this season; high ground is always colder than that, and lowland warmer.</p>
+    () => `<b>Seasons</b><p class="hint" style="margin:4px 0 8px">Each season lasts ${SEASON_LEN / 60} minutes and changes where food regrows quickly and which world events are likely. The thermometer shows how cold or warm the whole world is this season; high ground is always colder than that, and lowland warmer.</p>
   <table><thead><tr><th>Season</th><th>Food</th><th>Likely events</th></tr></thead><tbody>${SEASONS.map((s, k) => `<tr${k === S?.season ? ' style="background:var(--chip)"' : ''}><td><span class="tag" style="background:${s.col}"></span>${s.name}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Meadows and plains fast', 1: 'Plains dry out; meadows and islands thrive', 2: 'Thickets and islands fruit', 3: 'Slow everywhere, including water' }[k]}</td><td style="font-family:var(--sans);text-align:left">${{ 0: 'Floods', 1: 'Droughts', 2: 'Earthquakes', 3: 'Floods' }[k]}</td></tr>`).join('')}</tbody></table>`,
   event:
-    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">One comes every ${EVENTS.gap[0] / 60} minutes. For its last ${EVENTS.warn} seconds the warning sign flashes orange with the coming event's symbol, and it stays bright orange for a moment once the event happens.</p>
+    () => `<b>World events</b><p class="hint" style="margin:4px 0 8px">A world event happens once every ${EVENTS.gap[0] / 60} minutes. Watch out for the flashing symbol. Some events will have a bigger impact than usual.</p>
   <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears, islands may join, and rivers and sea channels can dry up.', quake: 'The land splits, usually with a new river, sometimes with a channel of sea.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
-  <p class="hint" style="margin:6px 0 0">About 1 in 10 events is major: floods and droughts move the sea further, earthquakes open two rivers, and meteors hit a wider area.</p>`,
+`,
 };
 function openInfo(which, btn) {
   const p = $('#infoPop');

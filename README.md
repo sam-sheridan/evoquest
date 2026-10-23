@@ -754,7 +754,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *Extinction (end run)* (press it twice, the second time when it says "Click again to confirm": one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** show only a password box until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the testing options appear until the page is reloaded, an orange cross means it's wrong and they stay hidden. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -781,8 +781,7 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 Collapse or expand it with the arrow. It has four tabs.
 
 - **Species**
-  - **Table**: one column for every species (the starting design isn't shown here, since it never changes; primus is
-    still compared with it for highlighting), living ones first and extinct ones
+  - **Table**: one column for every species (the starting design isn't shown here, since it never changes), living ones first and extinct ones
     at the far right, greyed out and marked †. Every column has the same fixed width, so the table doesn't shift as
     species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
     scrolls sideways while the row names stay in view. The first row
@@ -791,7 +790,8 @@ Collapse or expand it with the arrow. It has four tabs.
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
-    from are highlighted in orange (primus is compared with the released design). A trait counts only if it
+    from are highlighted in orange, with a tooltip saying so (there is no note under the table). Primus has no
+    highlights, since it didn't split from anything. A trait counts only if it
     differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
@@ -841,18 +841,22 @@ Collapse or expand it with the arrow. It has four tabs.
 
 ## 13. End of a run: summary, family tree, replay
 
-When the last creature dies, the summary shows:
+When the last creature dies, the summary shows, under the *Lineage extinct* heading:
 
-- **Time alive, generations, peak population, ever born, species, achievements.**
+- **Watch replay**, **Retry world** (the same world) and **New world** (a new random world), at the top. Retry and
+  New world both open the creator set to the design that just died, ready to change or release again.
+- **Time alive, generations, peak population, ever born, species, achievements** (earned out of the total, such as
+  3 / 16).
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
-  (none greyed out, since all have died), and the **starting design** as the first column.
+  (none greyed out, since all have died), and the **starting design** as the first column. Primus isn't
+  highlighted against it; compare the two columns by eye.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
   runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
-- **Watch replay**: the whole run played back at 12 recorded moments per second. A moment is recorded each
+- **Achievements**: every achievement, the ones earned this run in full and the rest greyed out.
+- **Watch replay** plays the whole run back at 12 recorded moments per second. A moment is recorded each
   second of game time, and the gap between recordings doubles on very long runs to save memory.
-- **New species, same world** or **New species, new world**.
 - **Past lineages**: your last 10 runs.
 
 Past runs (up to 30) are saved **in your browser on that device**, not online. Clearing browser data, or
