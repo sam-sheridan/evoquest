@@ -192,6 +192,11 @@ h3 {
   mask: radial-gradient(circle, transparent 10px, #000 10.5px);
 }
 /* the Control button turns black while you control the creature, like the toolbar buttons */
+#ctl:disabled {
+  color: var(--muted);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
 #ctl[aria-pressed='true'] {
   background: var(--ink);
   border-color: var(--ink);

@@ -415,16 +415,16 @@ re-plan at once.
 
 ### World types and shapes
 
-Each world secretly rolls a **type** from its world number. The player never sees it: the point is that you have
+Each world secretly rolls a **type** from its world number, each type equally likely. The player never sees it: the point is that you have
 no say in the world, and different worlds favour different designs. All the numbers are in `WORLD_TYPES`.
 
 | Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
-| **Classic** | 3 in 10 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
-| **Archipelago** | 2 in 10 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
-| **Supercontinent** | 2 in 10 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
-| **Highlands** | 1.5 in 10 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
-| **Forest** | 1.5 in 10 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
+| **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
+| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
+| **Supercontinent** | 1 in 5 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
+| **Highlands** | 1 in 5 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
+| **Forest** | 1 in 5 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
 
 Rivers: an 85% chance of one and a 55% chance of a second, except archipelagos (30%, never two), supercontinents
 (always one, 70% a second) and highlands (85%, 30%). Supercontinents have slightly fewer wetlands, highlands
@@ -467,7 +467,10 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
    Everywhere else is more open. Different regions favour different bodies (small bodies in thickets,
    swimmers in wetlands), which is meant to encourage different species in different parts of the map.
-6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for.
+6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for. No ground is
+   left sealed off by rock: a pocket walled in by rock (common on highlands worlds, up to 5% of their open land) gets
+   a pass 2 cells wide cut through to the nearest open ground, like a mountain valley, and a tiny one (under 6 cells)
+   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again.
 7. Rivers (chances above). Each runs coast to coast at a random angle and meanders along its length (two
    overlapping waves plus a little jitter), so splits aren't straight lines.
 8. **Food sites** are placed, in the numbers the world type sets (see [food](#7-food)).
@@ -805,7 +808,8 @@ Collapse or expand it with the arrow. It has four tabs.
   bump, and the stat that stops it turns orange in the tab (just its text, nothing added): **Range** (too far from shore or from water),
   **Speed** (allowed in the water but slower than the 14 px/s a river's current needs) or **Thickets** (too big to
   get that far into a thicket). Rock and the map's edge stop everyone, so nothing flashes for them. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
-  select another creature, or it dies.
+  select another creature, or it dies. *Control* is greyed out while a testing speed above 1× is set (controlling
+  only makes sense in real time), and choosing such a speed lets go of a controlled creature.
 - **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
   crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and

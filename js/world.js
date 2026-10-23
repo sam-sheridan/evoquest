@@ -252,7 +252,9 @@ function genWorld(seed, att = 0) {
   if (rng() < T.rivers[0]) world.channels.push(makeChannel(rng));
   if (rng() < T.rivers[1]) world.channels.push(makeChannel(rng));
   for (let k = 0; k < nSeas; k++) world.channels.push(makeChannel(rx, true));
-  buildTerrain();
+  buildTerrain(true);
+  openPockets();
+  renderTerrain();
   // a split world must have two decent landmasses (smaller ones will do on broken-up worlds); otherwise try
   // again with a variation of the same seed
   if (split && att < 5) {
@@ -344,6 +346,90 @@ function genWorld(seed, att = 0) {
   for (let k = Math.round(T.food[1] * LAKES.flood); k > 0 && low.length; k--)
     put(low[(rl2() * low.length) | 0]);
 }
+// no ground should be sealed off by rock where nothing can reach it: a pocket of land (or water) walled in by rock
+// gets a pass 2 cells wide cut through to the nearest open ground, and a tiny one (under 6 cells, all land) is
+// filled with rock. The change goes into the rock pattern itself, so later events can't seal it again.
+function openPockets() {
+  const w = world,
+    N = GW * GH,
+    // where each pass comes out, for the record
+    D4 = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ];
+  w.passes = [];
+  for (let round = 0; round < 6; round++) {
+    // everything but rock that can be reached from the open sea at the map's edge
+    const open = new Uint8Array(N),
+      st = [];
+    for (let i = 0; i < N; i++) if (border(i)) [open[i], st[st.length]] = [1, i];
+    while (st.length) {
+      const j = st.pop();
+      for (const [dx, dy] of D4) {
+        const x = (j % GW) + dx,
+          y = ((j / GW) | 0) + dy,
+          k = y * GW + x;
+        if (x < 0 || y < 0 || x >= GW || y >= GH || open[k] || w.type[k] === 3) continue;
+        open[k] = 1;
+        st.push(k);
+      }
+    }
+    const done = new Uint8Array(N);
+    let changed = false;
+    for (let i0 = 0; i0 < N; i0++) {
+      if (open[i0] || done[i0] || w.type[i0] === 3) continue;
+      // one sealed pocket
+      const pocket = [i0],
+        q = [i0];
+      done[i0] = 1;
+      while (q.length) {
+        const j = q.pop();
+        for (const [dx, dy] of D4) {
+          const x = (j % GW) + dx,
+            y = ((j / GW) | 0) + dy,
+            k = y * GW + x;
+          if (x < 0 || y < 0 || x >= GW || y >= GH || open[k] || done[k] || w.type[k] === 3) continue;
+          done[k] = 1;
+          pocket.push(k);
+          q.push(k);
+        }
+      }
+      changed = true;
+      if (pocket.length < 6 && pocket.every(j => isLand(w.type[j]))) {
+        for (const j of pocket) [w.rck[j], w.thk[j]] = [w.rThr + 0.02, Math.min(w.thk[j], w.tThr - 0.01)];
+        continue;
+      }
+      // the shortest way out through the rock, then widen it to 2 cells
+      const from = new Int32Array(N).fill(-2),
+        bq = [...pocket];
+      for (const j of pocket) from[j] = -1;
+      let exit = -1;
+      for (let h = 0; h < bq.length && exit < 0; h++) {
+        const j = bq[h];
+        for (const [dx, dy] of D4) {
+          const x = (j % GW) + dx,
+            y = ((j / GW) | 0) + dy,
+            k = y * GW + x;
+          if (x < 0 || y < 0 || x >= GW || y >= GH || from[k] !== -2) continue;
+          from[k] = j;
+          if (open[k]) {
+            exit = k;
+            break;
+          }
+          bq.push(k);
+        }
+      }
+      w.passes.push(exit);
+      for (let j = from[exit]; j >= 0 && from[j] !== -1; j = from[j])
+        for (const k of [j, j + 1, j + GW])
+          if (k < N && w.type[k] === 3) w.rck[k] = Math.min(w.rck[k], w.rThr - 0.02);
+    }
+    if (!changed) return;
+    buildTerrain(true);
+  }
+}
 function distPoly(px, py, pts) {
   let m = 1e9;
   for (let k = 0; k < pts.length - 1; k++) {
@@ -390,7 +476,8 @@ function distField(src) {
     }
   return d;
 }
-function buildTerrain() {
+// skipDraw: work out the terrain without redrawing the map (when several builds come in a row)
+function buildTerrain(skipDraw) {
   const w = world,
     N = GW * GH;
   w.level = quant(w.hgt, 1 - w.landFrac);
@@ -568,7 +655,7 @@ function buildTerrain() {
         : Math.min(h[i], w.level - 0.004);
   }
   for (let i = 0; i < N; i++) if (w.lS[i] > -1.5 && w.type[i] !== 0) w.fl[i] = w.level - w.lS[i] * 0.03;
-  renderTerrain();
+  if (!skipDraw) renderTerrain();
 }
 const cellI = (x, y) => ((y / CS) | 0) * GW + ((x / CS) | 0);
 const inside = (x, y) => x >= 0 && y >= 0 && x < W && y < GH * CS;
