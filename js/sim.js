@@ -740,6 +740,7 @@ function step(dt) {
     if (!c.dead) update(c, dt);
   }
   resolveClaims();
+  if (S.doom) doom(dt);
   if (S.newborns.length || C.some(c => c.dead)) {
     S.creatures = C.filter(c => !c.dead).concat(S.newborns);
     S.newborns = [];
@@ -779,7 +780,8 @@ function step(dt) {
     S.frameT = 0;
     record();
   }
-  if (!S.creatures.length) {
+  // (during Extinction, the end screen waits until its last meteor has fallen)
+  if (!S.creatures.length && !(S.doom && S.doom.t < DOOM.end)) {
     sample();
     record();
     endRun();
@@ -949,6 +951,39 @@ function meteor(x, y, major) {
   startShake('meteor', major);
   eventAlert('meteor');
   if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
+}
+// Extinction from Settings: one huge meteor lands among the creatures, a few small ones follow, and then every
+// creature left dies. It is a way to start again rather than a world event, so it leaves no craters.
+function doom(dt) {
+  const d = S.doom,
+    L = S.creatures.filter(c => !c.dead).concat(S.newborns),
+    strike = (x, y, r, k) => {
+      parts.push({ x, y, t: 0, k });
+      for (const c of L) if (!c.dead && Math.hypot(c.x - x, c.y - y) < r) kill(c, 'meteor strike');
+    };
+  if (!d.t) {
+    // the whistle and the shake both land with the impact, a second later
+    SFX.meteor(true);
+    startShake('meteor', true);
+  }
+  d.t += dt;
+  if (!d.hit && d.t >= DOOM.impact && L.length) {
+    d.hit = 1;
+    d.x = L.reduce((s, c) => s + c.x, 0) / L.length;
+    d.y = L.reduce((s, c) => s + c.y, 0) / L.length;
+    strike(d.x, d.y, DOOM.blast, 'mega');
+  }
+  // the small ones hit survivors, or land around the big impact if there are none
+  for (; d.hit && d.hit <= DOOM.small && d.t >= DOOM.impact + d.hit * DOOM.gap; d.hit++) {
+    const A = L.filter(c => !c.dead),
+      c = A[(rand() * A.length) | 0],
+      a = rand() * TAU,
+      r = 200 + rand() * 500;
+    if (c) strike(c.x, c.y, EVENTS.blast[0], 'boom');
+    else strike(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 0, 'boom');
+    SFX.thud();
+  }
+  if (d.t >= DOOM.end) for (const c of L) if (!c.dead) kill(c, 'meteor strike');
 }
 function logEv(m) {
   S.log.unshift({ t: S.t, m });

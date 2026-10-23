@@ -252,6 +252,23 @@ function renderScene(nowT) {
     }
   }
   for (const p of parts) {
+    if (p.k === 'mega') {
+      // Extinction's huge meteor: a flash that fades and a wide shockwave
+      const k = p.t / 2.2;
+      ctx.globalAlpha = 0.35 * (1 - k);
+      ctx.fillStyle = '#ff4f1a';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 80 + k * 700, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1 - k;
+      ctx.strokeStyle = '#ff4f1a';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 80 + k * 1100, 0, TAU);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      continue;
+    }
     const dur = p.k === 'boom' ? 1.2 : 0.6,
       k = p.t / dur;
     ctx.globalAlpha = 1 - k;
@@ -397,7 +414,7 @@ function frame(nowT) {
     if (S.fade.t > S.fade.dur) endFade();
   }
   for (const p of parts) p.t += dt;
-  parts = parts.filter(p => p.t < (p.k === 'boom' ? 1.2 : 0.6));
+  parts = parts.filter(p => p.t < (p.k === 'mega' ? 2.2 : p.k === 'boom' ? 1.2 : 0.6));
   render(nowT);
   if (!$('#creator').hidden) drawPreview(nowT / 1000);
   uiAcc += dt;

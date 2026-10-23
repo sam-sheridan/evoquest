@@ -195,18 +195,43 @@ $('#bFast').onclick = () => {
 document.querySelectorAll('#sSpeed button').forEach(
   b =>
     (b.onclick = () => {
-      if (!S) return;
+      if (!S || !testUnlocked) return;
       S.speed = +b.dataset.spd;
       if (S.speed > 1) fast.on = false;
       syncUI(true);
     })
 );
-$('#bNew').onclick = () => {
+// Extinction: asks once more, then a shower of meteors wipes out every species and the end screen follows
+let doomAsk = 0;
+$('#bDoom').onclick = () => {
+  if (!S || S.over || S.replay || S.doom) return;
+  if (performance.now() - doomAsk > 3000) {
+    doomAsk = performance.now();
+    $('#bDoom').textContent = 'Click again to wipe them out';
+    setTimeout(syncSettings, 3100);
+    return;
+  }
+  doomAsk = 0;
   $('#setPop').hidden = true;
   $('#bSet').classList.remove('on');
-  if (S && !S.over) S.paused = true;
-  openCreator(S ? S.seed : null, null, true);
+  S.paused = false;
+  S.doom = { t: 0 };
+  logEv('Extinction. A shower of meteors is wiping out every species.');
+  syncSettings();
   syncUI(true);
+};
+// the testing tools are locked until the password (TEST_PASSWORD) is entered: a tick when it's right, and the tools
+// unlock until the page is reloaded; a cross when it's wrong
+let testUnlocked = false;
+$('#pwForm').onsubmit = e => {
+  e.preventDefault();
+  testUnlocked = $('#sPw').value === TEST_PASSWORD;
+  $('#sPw').value = '';
+  $('#pwMark').className = 'pwmark ' + (testUnlocked ? 'ok' : 'no');
+  $('#pwMark').innerHTML = testUnlocked
+    ? '<svg viewBox="0 0 16 16" width="16" height="16" aria-label="Unlocked"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg viewBox="0 0 16 16" width="16" height="16" aria-label="Wrong password"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  syncSettings();
 };
 $('#bSet').onclick = e => {
   e.stopPropagation();
@@ -220,7 +245,6 @@ $('#bSet').onclick = e => {
     $(y).classList.remove('on');
   }
   syncSettings();
-  for (const b of document.querySelectorAll('.testev button')) b.disabled = !S || S.over || !!S.replay;
   $('#bSet').classList.toggle('on', !p.hidden);
 };
 // testing: fire a world event straight away (it replaces nothing: the scheduled event still comes on time)
@@ -230,7 +254,7 @@ $('#sMajor').onclick = e => {
 };
 for (const b of document.querySelectorAll('.testev button'))
   b.onclick = () => {
-    if (!S || S.over || S.replay) return;
+    if (!S || S.over || S.replay || !testUnlocked) return;
     worldEvent(b.dataset.ev, $('#sMajor').getAttribute('aria-pressed') === 'true', true);
     // the land may have changed, so the coming event is chosen again (its timing stays the same)
     S.nextKind = null;
@@ -375,9 +399,16 @@ function avgCreature(m) {
   return c;
 }
 let picQueue = [];
+const SP_FIRST = 116, // width of the row names column, px
+  SP_COL = 86; // width of every species column, px
 function speciesTable(grey) {
   const cols = [{ name: 'Released', m: S.orig, key: 'r' }];
-  for (const sp of S.species) {
+  // living species first, extinct ones at the far right
+  const order = [
+    ...S.species.filter(s => !s.died),
+    ...S.species.filter(s => s.died).sort((a, b) => a.died - b.died),
+  ];
+  for (const sp of order) {
     const m = spAvg(sp);
     if (!m) continue;
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
@@ -399,12 +430,23 @@ function speciesTable(grey) {
   // room above for the longest head and mouth, below for the longest tail
   const up = Math.max(...cols.map(k => k.c.bh / 2 + 7)),
     down = Math.max(...cols.map(k => k.c.bh / 2 + tailLen(k.c) + 3)),
-    sc = Math.min(2.6, 68 / (up + down)),
-    // the pictures are only as wide as the widest creature with its legs, so they sit right above the values
-    wide = Math.max(...cols.map(k => k.c.bw + 2 * (legLen(k.c) + 1.5))) * sc + 4;
-  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc, wide]);
+    across = Math.max(...cols.map(k => k.c.bw + 2 * (legLen(k.c) + 1.5))),
+    sc = Math.min(2.6, 68 / (up + down), (SP_COL - 14) / across);
+  // every picture is the column's width, with the creature drawn at the right so it sits above the values
+  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc, SP_COL - 10 - (across * sc) / 2 - 2]);
   const ext = k => (k.ext ? ' class="ext"' : '');
-  return `<table class="sp"><thead><tr><th></th>${cols
+  // population now (or at its peak, at the end of a run, when every species has died) and how long it has lived
+  const info = [
+    [
+      grey ? 'Population' : 'Peak population',
+      k => (k.sp ? (grey ? S.creatures.filter(c => c.sp === k.sp.id).length : k.sp.peak) : START),
+    ],
+    ['Time alive', k => (k.sp ? fmtT((k.sp.died ?? S.t) - k.sp.born) : '–')],
+  ];
+  // fixed column widths, so the table doesn't shift as the species change
+  return `<table class="sp" style="width:${SP_FIRST + SP_COL * cols.length}px"><colgroup><col style="width:${SP_FIRST}px">${cols
+    .map(() => `<col style="width:${SP_COL}px">`)
+    .join('')}</colgroup><thead><tr><th></th>${cols
     .map(k =>
       k.sp
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
@@ -415,7 +457,9 @@ function speciesTable(grey) {
       (k, i) =>
         `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'released design'}"></canvas></td>`
     )
-    .join('')}</tr>${SP_ROWS.map(
+    .join('')}</tr>${info
+    .map(([l, f]) => `<tr><td>${l}</td>${cols.map(k => `<td${ext(k)}>${f(k)}</td>`).join('')}</tr>`)
+    .join('')}${SP_ROWS.map(
     ([l, f], i) =>
       `<tr><td>${l}</td>${cols
         .map(k => `<td class="${k.ext ? 'ext ' : ''}${k.hl.includes(i) ? 'hl' : ''}">${f(k.m, k.c)}</td>`)
@@ -425,8 +469,8 @@ function speciesTable(grey) {
 // draw the average creatures into the table's picture row
 function drawPics(root) {
   for (const cv of root.querySelectorAll('canvas[data-pic]')) {
-    const [c, sc, y, h, w] = picQueue[+cv.dataset.pic],
-      s = Math.ceil(w);
+    const [c, sc, y, h, x] = picQueue[+cv.dataset.pic],
+      s = SP_COL - 10;
     cv.width = s * dpr;
     cv.height = Math.ceil(h) * dpr;
     cv.style.width = s + 'px';
@@ -434,7 +478,7 @@ function drawPics(root) {
     const g = cv.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     // the head points up and the tail down, the body at the same height in every column
-    drawCreature(g, c, s / 2, y, sc, 7, col(c), 0, false, 1.1 / sc);
+    drawCreature(g, c, x, y, sc, 7, col(c), 0, false, 1.1 / sc);
   }
 }
 // rank the traits that separate two groups, biggest difference first (scaled so traits are comparable)

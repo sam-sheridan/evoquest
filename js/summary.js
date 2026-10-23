@@ -120,9 +120,16 @@ function treeSVG(width) {
   const Y = {};
   order.forEach((s, i) => (Y[s.id] = top + i * rowH + 18));
   let out = `<svg width="${width}" height="${h}" viewBox="0 0 ${width} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">`;
-  for (let m = 0; m <= T; m += 60) {
+  // a marker every minute, or every few minutes on long runs so the labels don't overlap; from an hour on they
+  // read hh:mm:ss
+  const every = 60 * Math.max(1, Math.ceil(T / 60 / 15));
+  for (let m = 0; m <= T; m += every) {
     const x = X(m);
-    out += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="currentColor" stroke-opacity=".07"/><text x="${x + 2}" y="9" font-size="8" fill="#636d69">${m / 60}m</text>`;
+    const lab = m < 3600 ? m / 60 + 'm' : fmtT(m);
+    out += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="currentColor" stroke-opacity=".07"/>`;
+    // a label is left off if it wouldn't fit before the right edge
+    if (x + 2 + lab.length * 5 <= width)
+      out += `<text x="${x + 2}" y="9" font-size="8" fill="#636d69">${lab}</text>`;
   }
   for (const s of order) {
     const x0 = X(s.born),

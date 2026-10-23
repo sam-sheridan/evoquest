@@ -60,9 +60,11 @@ be changed, its name in `js/config.js` is shown like `this`.
 5. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
    become a new species with its own Latin name.
 6. **The run ends** only when every creature of every species has died. There is no win condition and no time
-   limit. You can also start a new species at any time from Settings.
+   limit. You can also end a run at any time with *Extinction* in Settings, which brings up the end screen, where
+   you can start a new species.
 
-Time in this README means game time. At 2× or 4× speed everything happens faster in real time.
+Time in this README means game time. At 2× or 4× speed everything happens faster in real time. Times in the game
+are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 
 ---
 
@@ -80,7 +82,6 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
 | **Release 25 specimens** | Starts the run. |
-| **Back to game** | Only shown if you opened the creator during a live run. Returns without changing anything. |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few seconds it acts out eating, so
 you can see its mouth snap. It also shows the body in pixels, its size and how far into thickets it can go. The line
@@ -720,7 +721,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *New species…* (opens the creator and pauses the run), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -747,11 +748,13 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 Collapse or expand it with the arrow. It has four tabs.
 
 - **Species**
-  - **Table**: one column for the released design and one for every species, extinct ones greyed out and marked
-    †. Numbers are shown to one decimal place. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
+  - **Table**: one column for the released design and one for every species, living ones first and extinct ones
+    at the far right, greyed out and marked †. Every column has the same fixed width, so the table doesn't shift as
+    species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
+    scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
-    one scale, at the same height and right-aligned above the values. Then:
-    size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
+    one scale, at the same height and right-aligned above the values. Then: population (25 for the released
+    design; at the end of a run, each species' peak), time alive (how long the species has existed, or did), size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
     (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
     from are highlighted in orange (primus is compared with the released design). A trait counts only if it
@@ -810,7 +813,8 @@ When the last creature dies, the summary shows:
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died).
-- **Family tree**: every species as a line through time. Branches show where each split from its parent. A
+- **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
+  runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
 - **Watch replay**: the whole run played back at 12 recorded moments per second. A moment is recorded each
   second of game time, and the gap between recordings doubles on very long runs to save memory.
@@ -831,7 +835,7 @@ All sound is generated live in the browser. There are no audio files.
 | **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going, at about the loudness of the zoomed-in beat's snare. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
-| **World event warning** | While the world event sign flashes, before an event, a soft high beep once a second, on every other flash (`WARN_BEEP`). Not while paused. |
+| **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
 | **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
 

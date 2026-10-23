@@ -60,13 +60,24 @@
       <div id="infoPop" class="panelx" hidden></div>
       <div id="setPop" class="panelx" hidden>
         <b>Settings</b>
-        <button class="btn" id="bNew" style="width: 100%; margin: 10px 0 12px; text-align: left">
-          New species…
+        <button class="btn" id="bDoom" style="width: 100%; margin: 10px 0 12px; text-align: left">
+          Extinction
         </button>
         <div class="setrow">
           <span>Sound</span>
           <div class="seg2"><button id="sSound">On</button></div>
         </div>
+        <div class="setrow"><span>Testing tools</span></div>
+        <form class="pwrow" id="pwForm">
+          <input
+            type="password"
+            id="sPw"
+            autocomplete="off"
+            placeholder="Password"
+            aria-label="Testing password"
+          /><button class="btn" id="sPwGo" type="submit">Unlock</button>
+          <span id="pwMark" class="pwmark" aria-live="polite"></span>
+        </form>
         <div class="setrow"><span>Testing: speed</span></div>
         <div class="spdset" id="sSpeed">
           <button class="btn" data-spd="1">1×</button><button class="btn" data-spd="2">2×</button
@@ -213,8 +224,7 @@
             </div>
             <div class="row">
               <button class="btn primary" id="go">Release 25 specimens</button
-              ><button class="btn" id="rnd">Randomise</button
-              ><button class="btn" id="cancel" hidden>Back to game</button>
+              ><button class="btn" id="rnd">Randomise</button>
             </div>
           </div>
         </div>

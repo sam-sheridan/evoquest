@@ -61,10 +61,19 @@ with sync_playwright() as p:
     # controls
     for button in ['#bFast', '#bPause', '#bPause']:
         pg.click(button)
-    # testing speeds live in Settings
+    # testing tools live in Settings, locked until the password is entered
     pg.click('#bSet')
+    locked = pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
+    pg.fill('#sPw', 'wrong')
+    pg.click('#sPwGo')
+    still_locked = pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
+    pg.fill('#sPw', '1234')
+    pg.click('#sPwGo')
     for spd in ['10', '1']:
         pg.click(f'#sSpeed [data-spd="{spd}"]')
+    pg.click('#sMajor')
+    pg.click('#sMajor')
+    lock_ok = locked and still_locked and not pg.evaluate("() => document.querySelector('#sSpeed button').disabled")
     pg.click('#sSound')
     pg.click('#sSound')
     pg.click('#bSet')
@@ -109,14 +118,19 @@ with sync_playwright() as p:
     time.sleep(0.3)
     pg.click('#go')
     time.sleep(0.5)
-    pg.click('#bSet')
-    pg.click('#bNew')
-    time.sleep(0.3)
-    pg.click('#cancel')
     alive = pg.evaluate('() => window.EvoQuestDebug.state.creatures.length')
+
+    # Extinction from Settings (asks twice), which should end the run with meteors
+    pg.click('#bSet')
+    pg.click('#bDoom')
+    pg.click('#bDoom')
+    pg.evaluate("() => { const q = window.EvoQuestDebug; for (let i = 0; i < 4000 && !q.state.over; i++) q.step(0.05); }")
+    time.sleep(0.5)
+    doomed = pg.evaluate("() => window.EvoQuestDebug.state.over && !document.querySelector('#end').hidden")
 
     browser.close()
 
-ok = summary_shown and alive > 0 and not errors
-print('PASS' if ok else 'FAIL', '| summary shown:', summary_shown, '| new run alive:', alive, '| page errors:', errors)
+ok = summary_shown and alive > 0 and lock_ok and doomed and not errors
+print('PASS' if ok else 'FAIL', '| summary shown:', summary_shown, '| new run alive:', alive, '| testing lock works:', lock_ok,
+      '| extinction ends the run:', doomed, '| page errors:', errors)
 sys.exit(0 if ok else 1)
