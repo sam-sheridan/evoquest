@@ -652,12 +652,12 @@ Every 5 seconds, each living species is checked. A species can only split if:
 Two kinds of split are looked for:
 
 1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
-   on. If the second-biggest group has at least 8 members and differs enough in traits from the biggest group
+   on. If the second-biggest group has at least 12 members (`SPC.min`) and differs enough in traits from the biggest group
    (more than `SPC.geo` = 0.22), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
    two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
    separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
-   cluster must have at least 8 members.
+   cluster must have at least 12 members.
 
 The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
 becomes a new species.
@@ -666,13 +666,15 @@ becomes a new species.
 (`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. That keeps
 runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
-**Trait difference** is measured across seven traits on comparable scales: width, length (each ÷ 10), legs,
-tail, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness (× 0.5). Width and length count
-separately here even though only size matters for survival, because they are what you see. Two features that are
-either there or not count extra (`SHOWS`), because they make creatures look different even when the trait behind
-them has barely moved: having a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15. So a population
-that has split into tailed and tailless creatures, or 4- and 6-legged ones, is closer to becoming two species. Look
-traits count too, so long separation alone can eventually be enough.
+**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.5,
+`SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour still drifts, and shows how long
+groups have been apart, but it never makes a new species, and width and length count only through size, so two
+groups that only look a little different stay one species. Two features that are either there or not count extra
+(`SHOWS`), because they change how creatures live and look even when the trait behind them has barely moved: having
+a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15.
+
+**No copies.** A group that would be within 0.2 of a species already alive (`SPC.same`) doesn't split off, so a
+species can't split into a copy of one that already exists.
 
 Species never merge back together.
 
