@@ -296,7 +296,7 @@ creatures are left at all.
 
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
-| Land | It is within its walking range of water (always true for a tail of 50% or less). | Land speed |
+| Land | It is within its walking range of water (always true with no tail, 33% or less; a 50% tail still walks over 1,700 px from water). | Land speed |
 | Thicket | Its narrowest side fits that thicket's gap (10, 13 or 16 px), plus the land rule. | 85% of land speed |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
@@ -596,7 +596,7 @@ becomes a new species.
 (`SPC.extra`). With 2 species alive, splits need 55% more difference, and with 3 alive, 110% more. That keeps
 runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
-**Trait difference** is measured across eight traits on comparable scales: width, length, speed (each
+**Trait difference** is measured across seven traits on comparable scales: width, length, speed (each
 ÷ 10), tail, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness (× 0.5). Look traits count too, so long
 separation alone can eventually be enough.
 
