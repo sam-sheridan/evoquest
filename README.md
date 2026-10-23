@@ -939,10 +939,11 @@ The look is a scientific **field notebook / survey map**.
     Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind.
   - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
     slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
-    ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights, and a ring of short strokes
-    just inside each edge points uphill, longer where the rock rises higher and darker on the shaded side (along the
-    coast they read as sea cliffs). In winter the tiers are snow. Pieces of rock under 6 cells are drawn as a
-    cluster of small stones instead (they still block movement). The rock's base is a darker stone colour than the
+    ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
+    to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second. A
+    ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
+    shaded side (along the coast they read as sea cliffs). In winter the tiers are snow. Pieces of rock under 6
+    cells are drawn as a cluster of small stones instead (they still block movement). The rock's base is a darker stone colour than the
     plains, and the tiers lighten towards the top. The hatching is a repeating image rather than drawn lines, so it
     adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
     get a plain fill of the same tone instead, as the fine lines would show as a check pattern.

@@ -254,7 +254,9 @@ const BAND_AT = [0.27, 0.58, 1];
 // rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are drawn as a cluster of
 // stones instead. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
 // edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
-// sets how steep its faces are. flat: faces rising less than this share of relief count as flat and stay plain.
+// sets how steep its faces are. minPeak: every rock's peak is lifted to at least this height (on the tiers' scale),
+// rising towards 1 for the tallest, so even low rocks get faces and a tier. flat: faces rising less than this
+// share of relief count as flat and stay plain.
 // hatch: gap (px) between hatching lines on shaded faces, measured across the lines; hatchFrom: the zoom (screen
 // pixels per world px) below which shaded faces get the plain hatchFlat colour instead, as finer lines would show
 // as a check pattern. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
@@ -265,6 +267,7 @@ const ROCKS = {
   straight: 5,
   mesh: 44,
   relief: 160,
+  minPeak: 0.5,
   flat: 0.14,
   hatch: 3.4,
   tiers: [0.33, 0.62],

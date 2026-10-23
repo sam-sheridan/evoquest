@@ -266,6 +266,15 @@ function rocks(w, rf) {
   let top = 1e-6;
   for (let i = 0; i < N; i++) if (T[i] === 3) top = Math.max(top, h[i]);
   for (let i = 0; i < N; i++) h[i] /= top;
+  // every rock gets some height: each piece is lifted so its peak reaches at least ROCKS.minPeak, while taller
+  // ranges keep their lead
+  for (const list of pieces) {
+    if (list.length < ROCKS.minCells) continue;
+    let peak = 1e-6;
+    for (const i of list) peak = Math.max(peak, h[i]);
+    const k = (ROCKS.minPeak + (1 - ROCKS.minPeak) * peak) / peak;
+    if (k > 1) for (const i of list) h[i] *= k;
+  }
   const hAt = (x, y) => {
     const fx = clamp(x / CS - 0.5, 0, GW - 1.001),
       fy = clamp(y / CS - 0.5, 0, GH - 1.001),
