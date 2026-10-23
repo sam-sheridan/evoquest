@@ -23,6 +23,24 @@ Read the relevant section before changing a mechanic.
   will take (for example "about 4–6 minutes"). Rough guide: smoke test under a minute, `scenarios.py 6 15` about
   3–5 minutes, `scenarios.py 6 30` about 6–10 minutes; running batches side by side speeds things up.
 
+- Removing, moving or rewording existing pieces can go straight into the preview without a draft; anything
+  with a new look (new icons, new drawing styles, new layouts) still gets drawn first. When Sam says "no need to
+  check with me", build straight into the preview.
+- Write screenshots and scratch scripts to the scratchpad, using absolute paths (screenshots saved into the repo
+  folder are ignored by git but get read back by mistake). Don't run prettier on `README.md` or `CLAUDE.md`: it
+  reflows the whole file.
+
+## Where things stand
+
+- Mechanics are beta-ready. The game was reworked in October 2026: one fixed colour per species (primus keeps the
+  creator's colour, each new species gets the most different one at its split), black or white eyes set per
+  species, a redesigned creator (stat tags that fill like bars, a ? help popup, a refresh button for Randomise)
+  and 15 achievements.
+- Still to do, roughly in order: the **map redesign** (a more natural look, more interesting water, thickets that
+  change over time), an **intro or tutorial** (the creator's ? popup is a possible starting point), and a
+  **sound redesign** (Sam will lead it).
+- Add the git tag `beta-1` (a permanent label on a version) only after the visual changes are done and Sam asks.
+
 ## How a batch of changes works
 
 Sam isn't comfortable with git yet, so Claude does all of it.
