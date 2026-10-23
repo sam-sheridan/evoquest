@@ -155,24 +155,31 @@ what you can see.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
   anywhere in water. Everything in between has two limits (`HAB.range` = 200):
-  - it swims at most 200 × (tail ÷ (1 − tail))² px from shore
+  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.first`), so every visible tail gets into
+    at least the first band of water
   - it walks at most 200 × ((1 − tail) ÷ tail)² px from water
 
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
   | 0–33% | 0 | never enters water | anywhere |
-  | 46% | 0.2 | 13 px | 3200 px (anywhere, in practice) |
-  | 53% | 0.3 | 37 px | 1089 px |
-  | 60% | 0.4 | 89 px | 450 px |
-  | 67% | 0.5 | 200 px | 200 px |
-  | 73% | 0.6 | 450 px | 89 px |
-  | 87% | 0.8 | 3200 px | 13 px |
+  | 34% | just above 0 | 16 px | anywhere |
+  | 46% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
+  | 53% | 0.3 | 53 px | 1089 px |
+  | 60% | 0.4 | 105 px | 450 px |
+  | 67% | 0.5 | 216 px | 200 px |
+  | 73% | 0.6 | 466 px | 89 px |
+  | 87% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
+
+  Water is always at least one cell (16 px) from land and land from water, so a limit under 16 px means never. Every
+  visible tail swims at least 16 px, so only a tailless creature never enters water, while a tail above about 85%
+  never leaves it. The creator and the specimen tab say "Never enters water" or "Never leaves water" for these.
 
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
 - **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to be willing to swim at least 16 px from shore (a tail of about 48% or more).
+  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 47% or
+  more is needed to swim that fast, depending on legs and roundness.
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
 
@@ -754,11 +761,12 @@ Collapse or expand it with the arrow. It has four tabs.
 - **Specimen**: tap any creature on the map to select it. The camera follows it automatically (dragging the map
   stops following). The tab shows its:
   - generation, parent, offspring and meals
-  - energy and burn rate, and age
-  - width and length, size and how far into thickets it can go
-  - number of legs and leg length, and roundness
-  - land and water speed, tail and range
-  - mouth, and how it feeds (how much it gets from nuts and algae compared with a berry)
+  - energy and age
+  - its stats: land and water speed, range (how far it goes from shore and from water), how far into thickets it
+    can go, mouth type and how it feeds (how much it gets from nuts and algae compared with a berry)
+
+  Its visible features (size, legs, tail, roundness) aren't listed: you can see them on the creature, and the
+  Species tab gives them for its whole species.
 
   The selected creature has orange corner brackets and a dashed line to its food target.
 
@@ -767,7 +775,9 @@ Collapse or expand it with the arrow. It has four tabs.
   speed, the ground it can and can't enter, energy, ageing, its 90-second lifespan and breeding. It moves only
   while a key is held and stands still otherwise (burning just its resting energy). It eats any food it reaches,
   then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
-  bump. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
+  bump, and the stat that stops it turns orange in the tab (just its text, nothing added): **Range** (too far from shore or from water),
+  **Speed** (allowed in the water but slower than the 14 px/s a river's current needs) or **Thickets** (too big to
+  get that far into a thicket). Rock and the map's edge stop everyone, so nothing flashes for them. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
   select another creature, or it dies.
 - **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
