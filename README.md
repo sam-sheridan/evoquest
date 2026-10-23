@@ -931,7 +931,8 @@ The look is a scientific **field notebook / survey map**.
     line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
     also the background beyond the map, so the map has no visible border.
   - Land is pale with darker fertile meadows. Thickets are woodland: a soft green floor with ink-drawn trees on
-    top, each a bumpy crown outline with a faint shadow. Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
+    top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
+    meadows and changing with the seasons (`TREES.colour`). Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
     scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
     thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
     112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
