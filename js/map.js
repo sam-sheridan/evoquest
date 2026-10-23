@@ -160,8 +160,13 @@ function trees(w) {
   let row = null;
   for (const t of list) {
     const y8 = Math.floor(t.y / 8);
-    if (!row || row.y8 !== y8) rows.push((row = { y8, crowns: new Path2D(), shade: new Path2D() }));
+    if (!row || row.y8 !== y8)
+      rows.push(
+        (row = { y8, crowns: new Path2D(), fills: TREES.alpha.map(() => new Path2D()), shade: new Path2D() })
+      );
+    // each crown's outline is inked, and its fill goes in one of a few groups, each a little more or less see-through
     crown(row.crowns, t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
+    crown(row.fills[(r() * TREES.alpha.length) | 0], t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
     // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
     // the ground
     if (r() > TREES.plain) {
@@ -451,8 +456,10 @@ function paintStipple(g) {
   g.lineWidth = 0.75;
   g.fillStyle = ['#cfe0b8', '#c9dcae', '#d6d4a0', '#cfd8c6'][se];
   for (const row of world.vec.trees.rows) {
-    g.globalAlpha = TREES.alpha;
-    g.fill(row.crowns);
+    TREES.alpha.forEach((a, k) => {
+      g.globalAlpha = a;
+      g.fill(row.fills[k]);
+    });
     g.globalAlpha = 1;
     g.stroke(row.crowns);
     g.stroke(row.shade);

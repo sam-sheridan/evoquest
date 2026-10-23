@@ -247,8 +247,9 @@ const BAND_AT = [0.27, 0.58, 1];
 // thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
 // [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
 // each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees.
-// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures)
-const TREES = { r: [5.5, 10.5], jitter: 2.5, per: [0.3, 1], mid: 112, plain: 0.3, alpha: 0.7 };
+// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures); each
+// tree takes one of these at random, so some look a little denser than others
+const TREES = { r: [5.5, 10.5], jitter: 2.5, per: [0.3, 1], mid: 112, plain: 0.3, alpha: [0.6, 0.7, 0.8] };
 
 /* ---- colours ---- */
 // Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers
