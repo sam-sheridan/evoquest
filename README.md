@@ -467,7 +467,10 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
    Everywhere else is more open. Different regions favour different bodies (small bodies in thickets,
    swimmers in wetlands), which is meant to encourage different species in different parts of the map.
-6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for.
+6. Thicket and rock are set as shares of the starting land, so each type gets the amount it asks for. No ground is
+   left sealed off by rock: a pocket walled in by rock (common on highlands worlds, up to 5% of their open land) gets
+   a pass 2 cells wide cut through to the nearest open ground, like a mountain valley, and a tiny one (under 6 cells)
+   is filled in. The pass is cut into the rock pattern itself, so later events can't seal it again.
 7. Rivers (chances above). Each runs coast to coast at a random angle and meanders along its length (two
    overlapping waves plus a little jitter), so splits aren't straight lines.
 8. **Food sites** are placed, in the numbers the world type sets (see [food](#7-food)).
