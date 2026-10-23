@@ -79,9 +79,38 @@ function newGame(design, seed) {
   const probe = { ...design };
   enforce(probe);
   compute(probe);
+  // the release spot: lots of food the design can eat nearby (RELEASE.near), and lots more it can reach from there
+  // without leaving the ground it's allowed on (RELEASE.reach), so it isn't put in a rich dead end such as a strip of
+  // shallows at the map's edge
+  const foodAt = new Map();
+  for (const f of world.sites)
+    if (allowed(probe, f.i, world.type[f.i])) foodAt.set(f.i, (foodAt.get(f.i) || 0) + 1);
+  const reachable = i0 => {
+    const x0 = i0 % GW,
+      y0 = (i0 / GW) | 0,
+      R = RELEASE.reach / CS,
+      seen = new Set([i0]),
+      st = [i0];
+    let n = 0;
+    while (st.length) {
+      const j = st.pop(),
+        x = j % GW,
+        y = (j / GW) | 0;
+      n += foodAt.get(j) || 0;
+      for (const [dx, dy] of NB) {
+        const xx = x + dx,
+          yy = y + dy,
+          k = yy * GW + xx;
+        if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || seen.has(k)) continue;
+        if ((xx - x0) ** 2 + (yy - y0) ** 2 > R * R || !allowed(probe, k, world.type[k])) continue;
+        seen.add(k);
+        st.push(k);
+      }
+    }
+    return n;
+  };
   const spot = comp => {
-    let best = null,
-      bs = -1;
+    const cand = [];
     for (let k = 0; k < 600; k++) {
       const x = rand() * W,
         y = rand() * H;
@@ -91,15 +120,19 @@ function newGame(design, seed) {
       if (probe.tail < 0.5 && world.comp[i] !== comp) continue;
       if (probe.tail >= 0.5 && world.dLand[i] > 48 && !(world.comp[i] === comp)) continue;
       let s = 0;
-      for (const f of world.sites) {
-        const dx = f.x - x,
-          dy = f.y - y;
-        if (dx * dx + dy * dy < 180 * 180 && allowed(probe, f.i, world.type[f.i])) s++;
+      for (const [j, n] of foodAt) {
+        const dx = ((j % GW) + 0.5) * CS - x,
+          dy = (((j / GW) | 0) + 0.5) * CS - y;
+        if (dx * dx + dy * dy < RELEASE.near ** 2) s += n;
       }
-      if (s > bs) {
-        bs = s;
-        best = [x, y];
-      }
+      cand.push({ x, y, i, s });
+    }
+    // only the most promising places are checked for how much they can reach
+    let best = null,
+      bs = -1;
+    for (const c of cand.sort((a, b) => b.s - a.s).slice(0, 30)) {
+      const s = c.s + RELEASE.weight * reachable(c.i);
+      if (s > bs) [bs, best] = [s, [c.x, c.y]];
     }
     return best || [W / 2, H / 2];
   };

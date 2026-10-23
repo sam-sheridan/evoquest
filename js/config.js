@@ -21,6 +21,9 @@ const MAXPOP = 400; // safety limit only, far above normal numbers (crowding kee
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
 const FOOD = 8; // energy gained from one piece of food
 const START = 25; // number of creatures released at the start
+// where they are released: the place with the most food they can eat within near px, plus weight x the food they
+// can reach within reach px without leaving ground they are allowed on
+const RELEASE = { near: 180, reach: 640, weight: 0.5 };
 // how steeply the sides of a sea channel drop, in height per cell; steep enough that the coast is crisp, while
 // the heights still vary smoothly so the coastline is drawn as a curve rather than grid steps
 const SEA_WALL = 0.03;

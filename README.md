@@ -46,8 +46,11 @@ be changed, its name in `js/config.js` is shown like `this`.
 ## 1. A run from start to finish
 
 1. **Design** a species in the creator. You set its name, body, look and which world to use.
-2. **Release.** 25 creatures (`START`) appear together on the main landmass. The release spot is chosen to
-   have as much food the design can reach as possible nearby. The founders start with 80% energy, ages spread
+2. **Release.** 25 creatures (`START`) appear together on the main landmass (or in the water near it, for a
+   design that lives in water). The release spot is chosen for the food the design can eat within 180 px, plus half
+   the food it can reach within 640 px without leaving ground it's allowed on (`RELEASE`). So a water design isn't
+   left in a rich but cut-off strip of shallows at the map's edge when a longer coast or a river network is on
+   offer. The founders start with 80% energy, ages spread
    between 0 and 20 seconds, and traits varied 1.5 times more than normal so selection has something to work on
    straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
