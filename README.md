@@ -911,9 +911,9 @@ The look is a scientific **field notebook / survey map**.
   mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
-  - Eyes: round white eyes with a black pupil looking forwards, the same on every body colour, so all members of a
-    species match. They scale with body size (`EYES`): smaller on small creatures, bigger on big ones. On narrow
-    bodies they move apart just enough not to overlap.
+  - Eyes: two small square eyes, black, or white on a dark species. The colour is set once per species from its
+    starting body lightness (white below `EYE_WHITE`, 40), so every member of a species has the same eyes even
+    though body lightness varies from creature to creature.
   - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves. They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the

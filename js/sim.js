@@ -72,6 +72,7 @@ function newGame(design, seed) {
     born: 0,
     died: null,
     reason: 'founding population',
+    lt: design.lt, // body lightness the species started with: sets its eye colour
     n: START,
     peak: START,
     streak: 0,
@@ -1288,6 +1289,7 @@ function split(sp, small, rest, reason, island) {
     born: S.t,
     died: null,
     reason,
+    lt: small.reduce((a, c) => a + c.lt, 0) / small.length,
     n: small.length,
     peak: small.length,
     streak: 0,

@@ -426,7 +426,7 @@ function speciesTable(grey) {
     if (!m) continue;
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
   }
-  for (const k of cols) k.c = avgCreature(k.m);
+  for (const k of cols) (k.c = avgCreature(k.m)).eyeLt = k.sp ? k.sp.lt : S.design.lt;
   // primus is still compared with the starting design for highlighting, even when that isn't a column
   const byKey = new Map([start, ...cols].map(k => [k.key, k]));
   // the one or two traits that differ most from the parent, if they differ notably
