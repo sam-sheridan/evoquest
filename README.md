@@ -169,6 +169,10 @@ what you can see.
   | 87% | 0.8 | 3200 px | 13 px |
   | 100% | 1 | anywhere | never leaves water |
 
+  Water is always at least one cell (16 px) from land, so a limit under 16 px means never: a tail below about 48%
+  never enters water, however it swims, and one above about 85% never leaves it. The creator and the specimen tab
+  say "Never enters water" or "Never leaves water" for these.
+
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
 - **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs

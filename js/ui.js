@@ -661,8 +661,9 @@ function syncUI() {
 // how much the mouth gets from each food, compared with a berry
 const mouthFeed = c => `nuts ×${mouthGain(c, 'n').toFixed(2)} · algae ×${mouthGain(c, 'w').toFixed(2)}`;
 function rangeTxt(c) {
-  if (c.tail <= 0) return 'Never enters water';
-  if (c.tail >= 1) return 'Never leaves water';
+  // water is always at least one cell (16 px) from land and the other way round, so a smaller limit means never
+  if (c.dW < CS) return 'Never enters water';
+  if (c.dL < CS) return 'Never leaves water';
   // past 2000 px the limit no longer matters on this map
   const sw = c.dW > 2000 ? 'Swims anywhere' : `Swims up to ${Math.round(c.dW)} px from shore`,
     wk = c.dL > 2000 ? 'walks anywhere' : `walks up to ${Math.round(c.dL)} px from water`;
