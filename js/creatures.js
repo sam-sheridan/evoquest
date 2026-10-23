@@ -27,7 +27,8 @@ function compute(c) {
   c.bh = 6 + c.h * 2.2;
   // width and length matter only through size: a long thin body and a short stubby one of the same size are alike
   c.size = Math.sqrt(c.bw * c.bh) / 17;
-  c.fits = c.size <= THICKET; // small enough for thickets
+  // how far into thickets it can go (px from the edge): the smallest anywhere, the biggest only the edge
+  c.dT = c.size <= 0.48 ? 1e9 : THICKET.edge + THICKET.depth * ((1.26 - c.size) / (c.size - 0.48)) ** 2;
   c.legs = c.size >= LEGS.sixFrom ? 6 : 4;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
@@ -54,6 +55,7 @@ function compute(c) {
   // walking flat out, without temperature or deep water
   c.dWc = Math.min(c.dW, 2000);
   c.dLc = Math.min(c.dL, 2000);
+  c.dTc = Math.min(c.dT, 200); // no thicket is much deeper than this
   c.burnW = moveBurn(c, c.vL);
   c.poly = shapePoly(c); // the body without its tail (legs are placed on this)
   c.anch = anchors(c);

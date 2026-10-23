@@ -142,7 +142,7 @@ function syncCreator() {
   pvC = c;
   const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
-    `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, ${c.fits ? 'fits into thickets' : 'too big for thickets'}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and only size ${THICKET} or less fits into thickets. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
+    `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, goes ${thickTxt(c)}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
     <br /><b>${rangeTxt(c)}.</b> Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
     <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
@@ -191,7 +191,7 @@ function drawPreview(t) {
   g.font = '12px "IBM Plex Mono", monospace';
   g.fillText('10 px', 40, 360);
   g.fillText(
-    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · size ${pvC.size.toFixed(2)} · ${pvC.fits ? 'fits into thickets' : 'too big for thickets'}`,
+    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · size ${pvC.size.toFixed(2)} · goes ${thickTxt(pvC)}`,
     40,
     378
   );
