@@ -234,16 +234,22 @@ under the surface with the back of the body, and the wake starts behind its tip.
 The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 with 6 legs, goes 40 px
 into thickets, walks at about 34 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
 
-### Look traits: drift by chance
+### Colour: one per species
 
-These have **no effect on survival**. They change only through random variation, so related groups slowly
-come to look different. That is the same "neutral drift" real biologists use to date how long ago species
-split.
+Colour has **no effect on survival**, and it doesn't evolve. Each species is a single colour, so species can be
+told apart on the map at a glance:
 
-| Trait | Range | Notes |
-|---|---|---|
-| Hue | 0–360° | Starts at your chosen colour. Saturation never changes. |
-| Lightness | 22–82% | |
+- **Primus** is the colour you chose in the creator.
+- **A new species** gets the one of the 7 creator colours that looks most unlike every species alive at that
+  moment (`newColour()`, using a weighted RGB distance). With at most 3 species alive there is always a clear
+  choice. Colours of extinct species can come back on long runs.
+- **Individuals** differ only in shade: each newborn is up to 4 lightness points lighter or darker than its
+  species' colour (`SHADE`), so a crowd doesn't look cloned. The shade doesn't build up over generations.
+- **At a split**, the new species' creatures blend from the old colour to the new one over 1.5 seconds
+  (`SPLIT_FADE`), round the colour wheel the short way so they stay bright rather than passing through grey.
+
+The same colour is used for the species everywhere: on the map, in the Species tab, the Stats chart, the family
+tree and the end screen.
 
 ### Inheritance
 
@@ -254,8 +260,6 @@ moves by a random amount up to:
 |---|---|
 | Width, length | ±0.8 (that is 0.5 × `VAR`, and `VAR` = 1.6) |
 | Legs, tail, mouth | ±8 percentage points (0.05 × `VAR`) |
-| Hue | ±6° |
-| Lightness | ±2.5 |
 | Roundness | ±0.08 (0.05 × `VAR`) |
 
 Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only.
@@ -669,8 +673,8 @@ hour-long test runs that lasted the hour, three in four had 1–3 new species (t
 than 3 alive at once, and most new species were still alive at the end of the hour.
 
 **Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.5,
-`SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour still drifts, and shows how long
-groups have been apart, but it never makes a new species, and width and length count only through size, so two
+`SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour never makes a new
+species (each new species is given its own), and width and length count only through size, so two
 groups that only look a little different stay one species. Two features that are either there or not count extra
 (`SHOWS`), because they change how creatures live and look even when the trait behind them has barely moved: having
 a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15.
@@ -729,7 +733,6 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Nutcracker | A species' average mouth shifts 40 points towards a beak |
 | Sipper | A species' average mouth shifts 40 points towards a straw |
 | Squeezer | A species gets small enough to reach the heart of the thickets: as far in as the deepest tenth of this world's thicket (only if it started too big) |
-| New Look | Average colour drifts 60° from the original |
 | Branching Out | Witness a new species form |
 | Crowded Tree | Three species alive at once |
 | Tree of Life | Six species over one run |
@@ -751,7 +754,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Fast forward (⏩) | Runs the game at 4×. It works like a battery holding up to 20 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run, with a count. |
-| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Creature colour* (each creature in its own body colour, or in its species' tag colour), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *Extinction* (press it twice: one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** are greyed out until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the tools unlock until the page is reloaded, an orange cross means it's wrong. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 
 ### Bottom left: season clock, temperature and world event sign
 
@@ -783,7 +786,7 @@ Collapse or expand it with the arrow. It has four tabs.
     at the far right, greyed out and marked †. Every column has the same fixed width, so the table doesn't shift as
     species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
     scrolls sideways while the row names stay in view. The first row
-    is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
+    is a drawing of each species' average creature (its average traits, in the species' colour), all at
     one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
@@ -911,9 +914,8 @@ The look is a scientific **field notebook / survey map**.
   mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
-  - Eyes: two small square eyes, black, or white on a dark species. The colour is set once per species from its
-    starting body lightness (white below `EYE_WHITE`, 40), so every member of a species has the same eyes even
-    though body lightness varies from creature to creature.
+  - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
+    every member of a species has the same eyes even though shades vary slightly from creature to creature.
   - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves. They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
@@ -941,8 +943,10 @@ accident.
   quarter of the land in the first 10 minutes) and groups in different areas stay apart.
 - **A bigger, oval, regional world.** The map is 1.5 times larger each way than it first was, land stays inside
   an oval, and regions differ in thicket, rock and wetland.
-- **Body traits are selected; look traits drift.** Colour does nothing for survival, so
-  their change shows pure chance and how long groups have been apart.
+- **Body traits are selected; colour marks the species.** Colour used to drift by chance, to show how long
+  groups had been apart, but the drift was slow and hard to see. Now each species has one fixed colour and a new
+  species gets a clearly different one, so species read at a glance and the split is a visible moment. This
+  also replaced the *Creature colour* setting (body colour or species colour), since the two are now the same.
 - **Leg count follows size, leg length evolves.** Small bodies have 4 legs and big ones 6, on the sides only,
   which keeps the front for the mouth and the back for the tail.
 - **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
@@ -962,7 +966,7 @@ accident.
   both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
   edges of thickets, long legs walk fast but swim slowly and burn energy, and the tail, roundness and leg count each trade
   walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
-  nothing for survival). Colour is the one trait left to drift purely by chance.
+  nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
 - **Meteors are rare (about 1 in 20 events)** and dramatic.

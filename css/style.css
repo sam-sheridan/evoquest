@@ -769,13 +769,6 @@ h3.sec {
 .setrow .seg2 button[aria-pressed='false']::after {
   content: 'Off';
 }
-/* the creature colour choice is two options, not on/off */
-.setrow #cmode button[aria-pressed='false']::after {
-  content: none;
-}
-.setrow #cmode button {
-  font-size: 12px;
-}
 /* the Major toggle keeps its label when off */
 .setrow .seg2 #sMajor[aria-pressed='false'] {
   font-size: 12px;

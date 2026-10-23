@@ -14,6 +14,22 @@ const fmtT = s => {
 const esc = s =>
   String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const col = c => `hsl(${c.hue} ${c.sat ?? 60}% ${c.lt}%)`;
+// an HSL colour as [r, g, b] (0-255), for mixing and comparing colours
+function hslRgb(h, s, l) {
+  ((s /= 100), (l /= 100));
+  const a = s * Math.min(l, 1 - l),
+    f = n => {
+      const k = (n + h / 30) % 12;
+      return 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)));
+    };
+  return [f(0), f(8), f(4)];
+}
+// how different two colours look (a weighted RGB distance, close enough to the eye for picking species colours)
+function colDist(a, b) {
+  const r = (a[0] + b[0]) / 2,
+    d = [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  return Math.sqrt((2 + r / 256) * d[0] ** 2 + 4 * d[1] ** 2 + (2 + (255 - r) / 256) * d[2] ** 2);
+}
 // the tail: none means a land creature, full a water creature
 const tailTxt = h => {
   const w = Math.round(h * 100);

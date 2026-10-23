@@ -54,7 +54,6 @@ function newGame(design, seed) {
     genus: genus(design.name), // Latin genus made from the species name
     species: [], // every species this run, living or extinct
     spT: 0,
-    colorMode: 'body', // creature colours: 'body' or 'species'
     count: { flood: 0, drought: 0, quake: 0, meteor: 0 }, // world events so far, by kind (for the World tab)
   };
   S.sites = world.sites;
@@ -67,12 +66,14 @@ function newGame(design, seed) {
   S.species.push({
     id: 0,
     epithet: 'primus',
-    tag: TAGS[0],
+    hue: design.hue, // the species' colour, the creator's choice for primus
+    sat: design.sat,
+    tag: col(design),
     parent: null,
     born: 0,
     died: null,
     reason: 'founding population',
-    lt: design.lt, // body lightness the species started with: sets its eye colour
+    lt: design.lt, // the species' lightness: also sets its eye colour
     n: START,
     peak: START,
     streak: 0,
@@ -1063,9 +1064,8 @@ function logEv(m) {
 }
 
 /* stats */
-const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
 // what counts towards a new species: only the body traits that change how a creature lives (size, legs, tail,
-// mouth, roundness, and having a tail or 6 legs at all). Colour drifts but never makes a species, and width and
+// mouth, roundness, and having a tail or 6 legs at all). Colour never makes a species, and width and
 // length count only through size, so look-alike groups don't become separate species
 const vec = c => [
   c.size * SPC.size,
@@ -1087,7 +1087,6 @@ const KEYS = [
   'river',
   'size',
   'round',
-  'dhue',
   'lt',
   'vL',
   'vW',
@@ -1102,12 +1101,10 @@ function summ(C) {
   KEYS.forEach(k => (m[k] = 0));
   if (!n) return m;
   for (const c of C) {
-    for (const k of KEYS) if (k !== 'river' && k !== 'dhue') m[k] += c[k];
+    for (const k of KEYS) if (k !== 'river') m[k] += c[k];
     m.river += c.vW >= RIVER && c.dW >= 16 ? 1 : 0;
-    m.dhue += S ? dHue(c) : 0;
   }
   for (const k of KEYS) m[k] /= n;
-  m.hue = S ? (S.design.hue + m.dhue + 360) % 360 : 0;
   return m;
 }
 function bySpecies() {
@@ -1267,6 +1264,17 @@ const EPI = [
   ['round', 1, 'rotundus'],
   ['round', -1, 'acutus'],
 ];
+// a new species' colour: the palette colour most unlike every living species'
+function newColour() {
+  const live = S.species.filter(s => s.died === null).map(s => hslRgb(s.hue, s.sat, s.lt));
+  let best = OKABE[0],
+    bd = -1;
+  for (const o of OKABE) {
+    const d = Math.min(...live.map(c => colDist(c, hslRgb(o[2], o[3], o[4]))));
+    if (d > bd) [best, bd] = [o, d];
+  }
+  return best;
+}
 function split(sp, small, rest, reason, island) {
   const a = summ(small),
     b = summ(rest);
@@ -1280,16 +1288,19 @@ function split(sp, small, rest, reason, island) {
   cand.push('novus', 'alter', 'tertius', 'remotus');
   let ep = cand.find(n => !used.has(n));
   if (!ep) ep = 'forma' + S.species.length;
+  const o = newColour();
   const ns = {
     at: { self: a, parent: b },
     id: S.species.length,
     epithet: ep,
-    tag: TAGS[S.species.length % TAGS.length],
+    hue: o[2],
+    sat: o[3],
+    lt: o[4],
+    tag: o[1],
     parent: sp.id,
     born: S.t,
     died: null,
     reason,
-    lt: small.reduce((a, c) => a + c.lt, 0) / small.length,
     n: small.length,
     peak: small.length,
     streak: 0,
@@ -1297,7 +1308,15 @@ function split(sp, small, rest, reason, island) {
   };
   S.species.push(ns);
   sp.lastSplit = S.t;
-  for (const c of small) c.sp = ns.id;
+  // the new species' creatures blend into its colour, each keeping its own shade
+  for (const c of small) {
+    c.from = [c.hue, c.sat, c.lt];
+    c.fromT = S.t;
+    c.lt = ns.lt + c.lt - sp.lt;
+    c.hue = ns.hue;
+    c.sat = ns.sat;
+    c.sp = ns.id;
+  }
   sp.n = rest.length;
   // no reason given: the Species tab shows how it differs
   const m = `Welcome the first ${S.genus} ${ep}.`;
@@ -1361,12 +1380,6 @@ const BADGES = [
     name: 'Squeezer',
     d: 'A species gets small enough to reach the heart of the thickets',
     f: () => S.orig.dT < world.tDeep && live().some(m => m.dTc >= world.tDeep),
-  },
-  {
-    id: 'drift',
-    name: 'New Look',
-    d: 'Average colour drifts 60° from the original',
-    f: () => Math.abs(S.hist.at(-1).all.dhue) >= 60,
   },
   { id: 'branch', name: 'Branching Out', d: 'Witness a new species form', f: () => S.species.length >= 2 },
   {

@@ -67,12 +67,6 @@
           <span>Sound</span>
           <div class="seg2"><button id="sSound">On</button></div>
         </div>
-        <div class="setrow">
-          <span>Creature colour</span>
-          <div class="seg2" role="group" aria-label="Creature colour" id="cmode">
-            <button data-cm="body">Body colour</button><button data-cm="species">By species</button>
-          </div>
-        </div>
         <div class="setrow"><span>Testing tools</span></div>
         <form class="pwrow" id="pwForm">
           <input
@@ -210,7 +204,9 @@
               <p class="budget" id="budget"></p>
             </div>
             <div class="group">
-              <div class="gh"><b>Look</b><small>no effect on survival, drifts by chance</small></div>
+              <div class="gh">
+                <b>Look</b><small>no effect on survival; each new species gets its own colour</small>
+              </div>
               <div class="field">
                 <span class="flabel">Colour</span>
                 <div class="hues" id="fHue"></div>

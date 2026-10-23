@@ -218,8 +218,11 @@ const OKABE = [
   ['Vermilion', '#D55E00', 26, 100, 42],
   ['Reddish purple', '#CC79A7', 327, 46, 64],
 ];
-// colours used to tag species in charts and the family tree
-const TAGS = ['#D55E00', '#0072B2', '#009E73', '#CC79A7', '#E69F00', '#56B4E9', '#F0E442', '#151918'];
+// each species is one colour: primus keeps the creator's colour, and a new species takes the palette colour most
+// unlike every living species'. Individuals differ only in shade, up to SHADE lightness points either way
+const SHADE = 4;
+// seconds a new species' creatures take to blend from the old colour to the new one
+const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
 
 /* ---- seasons and food ---- */

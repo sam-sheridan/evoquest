@@ -4,7 +4,7 @@
    faster, short ones swim faster), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
    because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims a little faster,
    blocky walks a little faster). Every ability (speed, energy, range, food) comes from these.
-   Look traits (drift by chance): hue, lt (lightness). The number of legs comes from size. */
+   Look: each species is one colour (hue, sat), and individuals vary only in shade (lt). The number of legs comes from size. */
 
 /* ---------- creatures ---------- */
 let nextId = 1;
@@ -206,9 +206,10 @@ function makeChild(p, x, y, spread = 1) {
     leg: jit(p.leg, 0.05 * VAR * spread),
     hab: jit(p.hab, 0.05 * VAR * spread),
     mth: jit(p.mth, 0.05 * VAR * spread),
-    hue: jit(p.hue, 6 * spread),
-    sat: p.sat,
-    lt: jit(p.lt, 2.5 * spread),
+    // colour comes from the species, with the creature's own slight shade
+    hue: (S?.species[p.sp] ?? p).hue,
+    sat: (S?.species[p.sp] ?? p).sat,
+    lt: (S?.species[p.sp] ?? p).lt + (rand() * 2 - 1) * SHADE,
     round: jit(p.round, 0.05 * VAR * spread),
     x,
     y,
@@ -322,8 +323,8 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     // eye colour is set once per species, from its starting lightness, so every member matches
     const ex = L * 0.52,
       half = Math.max(1.4, Math.min(c.bw * 0.22, 3.2)),
-      lt = c.eyeLt ?? S?.species[c.sp]?.lt ?? c.lt;
-    g.fillStyle = lt < EYE_WHITE && fill === col(c) ? '#fcfcfb' : INK;
+      lt = S?.species[c.sp]?.lt ?? c.lt;
+    g.fillStyle = lt < EYE_WHITE ? '#fcfcfb' : INK;
     for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
   }
   g.restore();

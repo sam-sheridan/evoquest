@@ -131,13 +131,6 @@ const METRICS = [
   ['river', 'Crosses rivers', 0, '%'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
-$('#cmode').onclick = e => {
-  const b = e.target.closest('[data-cm]');
-  if (b && S) {
-    S.colorMode = b.dataset.cm;
-    syncUI(true);
-  }
-};
 $('#metrics').onclick = e => {
   const b = e.target.closest('[data-m]');
   if (b) {
@@ -398,7 +391,7 @@ function spAvg(sp) {
 }
 // a creature built from average traits, for drawing and for leg and tail length
 function avgCreature(m) {
-  const c = { ...m, hue: m.hue, sat: S.design.sat, id: 0, dir: -Math.PI / 2, walk: 0.6, rest: 0 };
+  const c = { ...m, hue: S.design.hue, sat: S.design.sat, id: 0, dir: -Math.PI / 2, walk: 0.6, rest: 0 };
   enforce(c);
   compute(c);
   return c;
@@ -426,7 +419,11 @@ function speciesTable(grey) {
     if (!m) continue;
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
   }
-  for (const k of cols) (k.c = avgCreature(k.m)).eyeLt = k.sp ? k.sp.lt : S.design.lt;
+  // each picture is in its species' colour (the starting design's for that column)
+  for (const k of cols) {
+    const s = k.sp ?? S.design;
+    k.c = Object.assign(avgCreature(k.m), { hue: s.hue, sat: s.sat, lt: s.lt });
+  }
   // primus is still compared with the starting design for highlighting, even when that isn't a column
   const byKey = new Map([start, ...cols].map(k => [k.key, k]));
   // the one or two traits that differ most from the parent, if they differ notably
@@ -592,10 +589,6 @@ addEventListener('keydown', () => {
   syncUI(true);
 });
 function syncUI() {
-  if (S)
-    document
-      .querySelectorAll('#cmode button')
-      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
   if (!S) return;
   const n = S.creatures.length,
     ls = S.species.filter(s => !s.died).length;

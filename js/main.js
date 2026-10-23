@@ -204,14 +204,25 @@ function renderScene(nowT) {
     ctx.fillStyle = '#D9C21E';
     ctx.fill(bY);
   }
-  const lod = z * 17 > 12 ? z : 0, // creature detail level
-    spMode = S.colorMode === 'species';
+  const lod = z * 17 > 12 ? z : 0; // creature detail level
   const vis = S.creatures.filter(c => onScreen(c.x, c.y)).sort((a, b) => a.y - b.y);
   for (const c of vis) {
     const sc = Math.min(1, 0.4 + c.age * 2),
       hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
       tt = world.type[hi];
-    drawCreature(ctx, c, c.x, c.y, sc, lod, spMode ? S.species[c.sp].tag : col(c), t, isWater(tt), lw / sc);
+    // just after a split, the new species' creatures blend from the old colour into the new one, round the colour
+    // wheel the short way so they stay bright instead of passing through grey
+    const f = c.from && S.t - c.fromT < SPLIT_FADE ? (S.t - c.fromT) / SPLIT_FADE : 1,
+      [h0, s0, l0] = c.from ?? [],
+      fill =
+        f < 1
+          ? col({
+              hue: (h0 + (((c.hue - h0 + 540) % 360) - 180) * f + 360) % 360,
+              sat: s0 + (c.sat - s0) * f,
+              lt: l0 + (c.lt - l0) * f,
+            })
+          : col(c);
+    drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt), lw / sc);
   }
   if (det) drawStipple(det);
   else if (stale) ctx.drawImage(detail.can2, ...stale);
