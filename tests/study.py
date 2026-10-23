@@ -103,6 +103,8 @@ RUN = (
     deathBy: S.deathBy, pop10: pops[600] ?? 0, pop20: pops[1200] ?? 0, pop30: pops[1800] ?? 0, popEnd: S.over ? 0 : S.creatures.length,
     pctOver100: over[1] ? Math.round((100 * over[0]) / over[1]) : 0, seasonAverages: seasons.map(avg),
     newSpecies: S.species.length - 1, maxLiveSpecies: maxLive, splits, speciesTypes: types,
+    // every species' life: when it formed, when it died out (null if still alive at the end) and its peak
+    species: S.species.map(sp => ({ born: Math.round(sp.born), died: sp.died === null || (S.over && sp.died === S.t) ? null : Math.round(sp.died), peak: sp.peak })),
     explored10, drift, maxGen: S.maxGen, events: S.events, msPerStep: +((performance.now() - t0) / Math.max(1, steps)).toFixed(2),
   };
 }"""
