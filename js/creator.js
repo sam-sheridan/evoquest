@@ -7,7 +7,7 @@ let D = {
   w: 4,
   h: 4.5,
   leg: 0.5,
-  hab: 0.2,
+  hab: 0.1,
   mth: 0.5,
   hue: 41,
   sat: 100,
@@ -95,7 +95,7 @@ function randomDesign() {
     h: +r(1.5, 6.5).toFixed(1),
     leg: +r(0, 1).toFixed(2),
     // about a third are land creatures with no tail; the rest have a clearly visible tail
-    hab: +(rand() < 0.35 ? r(0, 0.3) : r(0.4, 0.9)).toFixed(2),
+    hab: +(rand() < 0.35 ? r(0, 0.13) : r(0.25, 0.9)).toFixed(2),
     mth: +r(0, 1).toFixed(2),
     hue: o[2],
     sat: o[3],
@@ -247,6 +247,7 @@ $('#go').onclick = () => {
     h: D.h,
     leg: D.leg,
     hab: D.hab,
+    v: 2, // tails count from TAIL.min (see upgrade)
     mth: D.mth,
     hue: D.hue,
     sat: D.sat,

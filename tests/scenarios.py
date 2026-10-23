@@ -24,13 +24,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS = int(sys.argv[1]) if len(sys.argv) > 1 else 4
 MINUTES = float(sys.argv[2]) if len(sys.argv) > 2 else 12
 
-# tails count from 33% (TAIL.min), so these are the old habitat values moved onto that scale: 0.33 + 0.67 x old
+# tails count from 15% (TAIL.min): 0.15 + 0.85 x the effective tail
 DESIGNS = [
     ('default', {}),
-    ('aquatic', {'hab': 0.73}),
+    ('aquatic', {'hab': 0.66}),
     ('small and long-legged', {'leg': 0.8, 'w': 2, 'h': 2.5}),
     ('big and short-legged', {'leg': 0.2, 'w': 6, 'h': 6}),
-    ('long and thin', {'hab': 0.56, 'w': 2.5, 'h': 5}),
+    ('long and thin', {'hab': 0.44, 'w': 2.5, 'h': 5}),
     ('long legs', {'leg': 0.75}),
 ]
 
@@ -85,7 +85,7 @@ with sync_playwright() as p:
         name, design = DESIGNS[r % len(DESIGNS)]
         seed = 1000 + r * 37
         pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true }")
-        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, leg: 0.5, hab: 0.46, mth: 0.5, round: 0.5, ...{json.dumps(design)} }})")
+        pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, leg: 0.5, hab: 0.32, mth: 0.5, round: 0.5, ...{json.dumps(design)} }})")
         pg.evaluate(f"""() => {{ const sel = document.querySelector('#fWorld');
             sel.innerHTML += `<option value="{seed}">test</option>`; sel.value = '{seed}'; }}""")
         pg.click('#go')

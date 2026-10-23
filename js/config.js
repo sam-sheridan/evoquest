@@ -134,7 +134,7 @@ const HAB = { range: 200, first: 16 };
 // to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
 // full one, so a tail appears as a short proper tail rather than a spike (both drawing only)
-const TAIL = { min: 0.33, len: 1.1, first: 0.3 };
+const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
 // roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
 // blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
 const ROUND = { swim: 0.1, walk: 0.1 };
