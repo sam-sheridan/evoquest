@@ -941,7 +941,8 @@ The look is a scientific **field notebook / survey map**.
   - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
     slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
-    to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second. A
+    to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
+    Meteor crater walls take their height from the crater's ring, rising to its crest. A
     ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
     shaded side (along the coast they read as sea cliffs). In winter the tiers are snow. The rock's base is a darker
     stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather

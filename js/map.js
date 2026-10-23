@@ -243,7 +243,9 @@ function rocks(w, rf) {
     inRock = (x, y) => g.isPointInPath(R.outline, x, y, 'evenodd');
   // height inside the rock, softened: 0 at the edge, 1 at the highest point
   let h = new Float32Array(N);
-  for (let i = 0; i < N; i++) h[i] = Math.max(0, w.rck[i] - thr + 0.01);
+  // (a crater wall takes its height from the crater's ring, rising to its crest)
+  for (let i = 0; i < N; i++)
+    h[i] = Math.max(0, w.rck[i] - thr + 0.01, T[i] === 3 && w.cS[i] > 0 ? 0.01 + w.cS[i] * 0.02 : 0);
   for (let k = 0; k < 2; k++) h = soften(h);
   let top = 1e-6;
   for (let i = 0; i < N; i++) if (T[i] === 3) top = Math.max(top, h[i]);
@@ -273,7 +275,10 @@ function rocks(w, rf) {
     vx = new Float32Array(nx * ny),
     vy = new Float32Array(nx * ny),
     vz = new Float32Array(nx * ny),
-    near = (x, y) => w.rck[cellI(clamp(x, 0, W - 1), clamp(y, 0, H - 1))] > thr - 0.03;
+    near = (x, y) => {
+      const i = cellI(clamp(x, 0, W - 1), clamp(y, 0, H - 1));
+      return w.rck[i] > thr - 0.03 || T[i] === 3 || w.cS[i] > -1;
+    };
   for (let k = 0; k < nx * ny; k++) {
     vx[k] = (k % nx) * sp + (rnd() - 0.5) * sp * 0.7;
     vy[k] = ((k / nx) | 0) * sp + (rnd() - 0.5) * sp * 0.7;
@@ -761,6 +766,8 @@ function paintRock(g, se) {
   g.clip(world.vec.land);
   g.save();
   g.clip(R.outline, 'evenodd');
+  g.fillStyle = ROCKS.face[0];
+  g.fill(R.outline, 'evenodd');
   R.face.forEach((p, k) => {
     g.fillStyle = ROCKS.face[k];
     g.fill(p);
