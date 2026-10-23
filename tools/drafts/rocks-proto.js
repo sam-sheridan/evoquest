@@ -260,9 +260,10 @@
     // ---- faceted relief: a jittered triangle mesh, each face shaded by which way it faces ----
     C.tone = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
     C.ridge = new Path2D();
+    C.toneH = [0, 1, 2].map(() => [0, 1, 2].map(() => new Path2D()));
     C.hatchF = new Path2D();
     C.crack = new Path2D();
-    const sp = P.style === 'A' ? 44 : 34,
+    const sp = 'BC'.includes(P.style) ? 34 : 44,
       nx = Math.ceil(W / sp) + 1,
       ny = Math.ceil(H / sp) + 1,
       vx = new Float32Array(nx * ny),
@@ -296,7 +297,14 @@
         cy = (vy[a] + vy[b] + vy[c]) / 3;
       if (!isRock(cx, cy) && !isRock(vx[a], vy[a]) && !isRock(vx[b], vy[b]) && !isRock(vx[c], vy[c])) return;
       const s = shadeOf(a, b, c),
-        t = s > 0.52 ? 0 : s > 0.4 ? 1 : 2;
+        zs = [vz[a], vz[b], vz[c]],
+        flat = Math.max(...zs) - Math.min(...zs) < P.flat * P.relief,
+        t = flat || s > 0.52 ? 0 : s > 0.4 ? 1 : 2,
+        hb = Math.min(2, Math.floor(((zs[0] + zs[1] + zs[2]) / 3 / P.relief) * 3));
+      C.toneH[t][hb].moveTo(vx[a], vy[a]);
+      C.toneH[t][hb].lineTo(vx[b], vy[b]);
+      C.toneH[t][hb].lineTo(vx[c], vy[c]);
+      C.toneH[t][hb].closePath();
       const p = C.tone[t];
       if (t === 2) hatchTri(C.hatchF, [vx[a], vy[a]], [vx[b], vy[b]], [vx[c], vy[c]], 0.9, P.hatchGap);
       p.moveTo(vx[a], vy[a]);
@@ -355,7 +363,7 @@
     // ---- hachures: short strokes running downhill, closer together on steep and shaded slopes ----
     C.hach = new Path2D();
     C.hachD = new Path2D();
-    if (P.style !== 'A') {
+    if ('BC'.includes(P.style)) {
       // rows of strokes: start on evenly spaced height levels and run downhill towards the next level
       const hv = i => h[i] / hMax;
       for (let lv = 0.06; lv < 1; lv += P.lvl)
@@ -430,6 +438,86 @@
           }
         }
       }
+    // summits: a small ink peak mark on each high point
+    C.summit = new Path2D();
+    {
+      const pk = [];
+      for (let y = 1; y < GH - 1; y++)
+        for (let x = 1; x < GW - 1; x++) {
+          const i = y * GW + x,
+            v = h[i];
+          if (T[i] !== 3 || v / hMax < 0.45) continue;
+          let top = true;
+          for (let dy = -2; dy <= 2 && top; dy++)
+            for (let dx = -2; dx <= 2; dx++) {
+              const xx = x + dx,
+                yy = y + dy;
+              if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;
+              if (h[yy * GW + xx] > v) {
+                top = false;
+                break;
+              }
+            }
+          if (top && !pk.some(([px2, py2]) => Math.hypot(px2 - x, py2 - y) < 6)) pk.push([x, y]);
+        }
+      for (const [x, y] of pk) {
+        const cx = (x + 0.5) * CS,
+          cy = (y + 0.5) * CS;
+        C.summit.moveTo(cx - 4.5, cy + 3);
+        C.summit.lineTo(cx, cy - 4.5);
+        C.summit.lineTo(cx + 4.5, cy + 3);
+        C.summit.closePath();
+      }
+    }
+    // skirt: one ring of short strokes just inside each rock's edge, longer where the rock rises higher
+    C.tick = new Path2D();
+    const tctx = document.createElement('canvas').getContext('2d');
+    C.tickD = new Path2D();
+    for (const l of C.loops) {
+      let carry = 0;
+      for (let k = 0; k < l.length; k++) {
+        const [ax, ay] = l[k],
+          [bx, by] = l[(k + 1) % l.length],
+          seg = Math.hypot(bx - ax, by - ay);
+        if (seg < 1) continue;
+        let nx2 = -(by - ay) / seg,
+          ny2 = (bx - ax) / seg;
+        const mx = (ax + bx) / 2,
+          my = (ay + by) / 2;
+        const inRock = (x, y) => tctx.isPointInPath(C.outline, x, y, 'evenodd');
+        if (!inRock(mx + nx2 * 4, my + ny2 * 4)) [nx2, ny2] = [-nx2, -ny2];
+        if (!inRock(mx + nx2 * 4, my + ny2 * 4)) continue;
+        for (let d = carry; d < seg; d += P.tick) {
+          const x = ax + ((bx - ax) * d) / seg,
+            y = ay + ((by - ay) * d) / seg,
+            rise = Hs(x + nx2 * 14, y + ny2 * 14),
+            len = clamp(4 + rise * 22, 4, 13),
+            shade = -nx2 - ny2 > 0.3,
+            p = shade ? C.tickD : C.tick;
+          p.moveTo(x + nx2 * 1.5, y + ny2 * 1.5);
+          p.lineTo(x + nx2 * len, y + ny2 * len);
+        }
+        carry = (((carry - seg) % P.tick) + P.tick) % P.tick;
+      }
+    }
+    // tiers: angular inner outlines at two heights
+    C.tiers = [0.33, 0.62].map(lv => {
+      const p = new Path2D();
+      for (const l of trace(i => h[i] / hMax, lv)) {
+        let m = 0,
+          md = -1;
+        l.forEach((q, k) => {
+          const d = Math.hypot(q[0] - l[0][0], q[1] - l[0][1]);
+          if (d > md) [md, m] = [d, k];
+        });
+        const sl = simplify(l.slice(0, m + 1), P.tol).concat(simplify(l.slice(m), P.tol).slice(1, -1));
+        if (sl.length < 3 || Math.abs(area(sl)) < 400) continue;
+        p.moveTo(...sl[0]);
+        for (const q of sl) p.lineTo(...q);
+        p.closePath();
+      }
+      return p;
+    });
   }
   const TONE = ['#e2dccf', '#cdc5b5', '#b3a998', '#978d7c'];
   function drawRocks(g) {
@@ -441,20 +529,54 @@
     g.clip(C.outline, 'evenodd');
     g.lineCap = 'round';
     g.lineJoin = 'round';
-    if (P.style === 'A') {
+    if ('AEF'.includes(P.style)) {
       C.tone.forEach((p, k) => {
         g.fillStyle = ['#e4ded2', '#d6cebf', '#c9c0ae'][k];
         g.fill(p);
       });
+    }
+    if (P.style === 'D') {
+      const DT = [
+        ['#d9d2c4', '#e3ddd1', '#eee9e0'],
+        ['#c9c0ae', '#d4ccbc', '#dfd8cb'],
+        ['#b8ae9b', '#c4bba9', '#d0c8b8'],
+      ];
+      C.toneH.forEach((row, t) =>
+        row.forEach((p, hb) => {
+          g.fillStyle = DT[t][hb];
+          g.fill(p);
+        })
+      );
+    }
+    if (P.style === 'F') {
+      for (const p of C.tiers) {
+        g.fillStyle = 'rgba(255,253,248,.22)';
+        g.fill(p, 'evenodd');
+      }
+    }
+    if ('ADEF'.includes(P.style)) {
       g.strokeStyle = 'rgba(40,36,30,.5)';
       g.lineWidth = 0.7;
       g.stroke(C.hatchF);
+    }
+    if (P.style === 'F') {
+      g.strokeStyle = 'rgba(40,36,30,.55)';
+      g.lineWidth = 0.9;
+      for (const p of C.tiers) g.stroke(p);
+    }
+    if (P.style === 'E') {
+      g.strokeStyle = 'rgba(40,36,30,.6)';
+      g.lineWidth = 0.85;
+      g.stroke(C.tick);
+      g.strokeStyle = 'rgba(30,26,22,.85)';
+      g.lineWidth = 1.1;
+      g.stroke(C.tickD);
     }
     if (P.style === 'C') {
       g.fillStyle = 'rgba(120,108,90,.28)';
       g.fill(C.tone[2]);
     }
-    if (P.style !== 'A') {
+    if ('BC'.includes(P.style)) {
       g.strokeStyle = 'rgba(40,36,30,.5)';
       g.lineWidth = 0.7;
       g.stroke(C.hach);
@@ -478,6 +600,10 @@
     g.strokeStyle = 'rgba(21,25,24,.75)';
     g.lineWidth = 1.2;
     g.stroke(world.vec.coast);
+    if (P.style === 'D') {
+      g.fillStyle = '#4a4238';
+      g.fill(C.summit);
+    }
     g.fillStyle = '#d9d2c4';
     g.fill(C.stone);
     g.fillStyle = '#a79d8b';
@@ -486,7 +612,7 @@
     g.lineWidth = 0.8;
     g.stroke(C.stoneI);
   }
-  Object.assign(P, { minCells: 6, tol: 5, relief: 160, hs: 5.5, lvl: 0.11, loose: 0.22, hatchGap: 3.4 }, window.PROTO2 || {});
+  Object.assign(P, { minCells: 6, tol: 5, relief: 160, hs: 5.5, lvl: 0.11, loose: 0.22, hatchGap: 3.4, flat: 0.14, tick: 5 }, window.PROTO2 || {});
   const orig = paintTerrain;
   window.paintTerrain = function (g) {
     const V = world.vec,
