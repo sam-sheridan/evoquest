@@ -145,11 +145,24 @@ const REGIONS = { strength: 1.3 };
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
-// sea depth: shelf is the share of the sea that is shallow shelf (by distance from shore and the sea floor);
-// algae grows only there, thinning out with distance from shore (algaeFade px). In deep water, creatures burn up
-// to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae that waits,
-// dormant, in the deep water just beyond the shelf, growing once a drought pulls the shallows out to it
-const SEA = { shelf: 0.3, algaeFade: 80, deepCost: 0.8, drought: 0.4 };
+// sea depth: shelf is the share of the open sea that is shallow shelf (a little less once the margin is deepened). Depth blends distance from shore with the
+// sea floor's depth; floor is the sea floor's share, so shallows reach out over banks and into bays rather than
+// ringing every coast evenly. The sea deepens over the last margin cells before the map's oval edge, so the open
+// ocean round the map is always deep. smooth: how many times depth is softened, which rounds off its shapes.
+// Lakes are always shallow. Algae grows in algae beds on the shelf: patches set by a mottled pattern, favouring the
+// shallowest water (bedShallow), where pattern + bedShallow x (shelf - depth) is at least bed. In deep water,
+// creatures burn up to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae
+// that waits, dormant, in the deep water just beyond the shelf, growing once a drought pulls the shallows out to it
+const SEA = {
+  shelf: 0.3,
+  floor: 0.65,
+  margin: 24,
+  smooth: 2,
+  bed: 0.66,
+  bedShallow: 0.9,
+  deepCost: 0.8,
+  drought: 0.4,
+};
 const TEMP = {
   cold: 0.3,
   hot: 0.8,
@@ -197,14 +210,20 @@ const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
 //   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
-//   is nuts (nuts: [share at the edge, share from deep in]) and the dots on the map get denser
+//   is nuts (nuts: [share at the edge, share from deep in]) and the trees on the map get bigger and closer together
 const THICKET = { edge: 16, depth: 33, deep: 48, nuts: [0.2, 0.8] };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
 const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
-const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf']; // sea depth bands, shallow to deep
+// sea depth bands, shallowest to deepest, and the depths where each deeper band starts (the second is the shelf's edge,
+// drawn dashed). The deepest colour is also the background beyond the map
+const BAND = ['#dbe7e7', '#cbdde1', '#bfd4da', '#b5ccd4', '#adc6cf'];
+const BAND_AT = [0.16, SEA.shelf, 0.55, 0.8];
+// thicket trees: crown radius in px [at the edge, deep in], plus up to jitter px more, and trees per cell [at the
+// edge, deep in], plus up to extra more, so the edge has a few small bushes and the middle big, packed trees
+const TREES = { r: [5.5, 10.5], jitter: 2.5, per: [0.2, 0.42], extra: 0.15 };
 
 /* ---- colours ---- */
 // Okabe–Ito palette: a widely used colour set designed to stay distinguishable for colour-blind viewers
