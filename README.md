@@ -721,7 +721,7 @@ Collapse or expand it with the arrow. It has four tabs.
   - **Table**: one column for the released design and one for every species, extinct ones greyed out and marked
     †. Numbers are shown to one decimal place. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
-    one scale and centred at the same height. Then:
+    one scale, at the same height and right-aligned above the values. Then:
     size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
     (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split

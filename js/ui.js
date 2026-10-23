@@ -399,8 +399,10 @@ function speciesTable(grey) {
   // room above for the longest head and mouth, below for the longest tail
   const up = Math.max(...cols.map(k => k.c.bh / 2 + 7)),
     down = Math.max(...cols.map(k => k.c.bh / 2 + tailLen(k.c) + 3)),
-    sc = Math.min(2.6, 68 / (up + down));
-  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc]);
+    sc = Math.min(2.6, 68 / (up + down)),
+    // the pictures are only as wide as the widest creature with its legs, so they sit right above the values
+    wide = Math.max(...cols.map(k => k.c.bw + 2 * (legLen(k.c) + 1.5))) * sc + 4;
+  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc, wide]);
   const ext = k => (k.ext ? ' class="ext"' : '');
   return `<table class="sp"><thead><tr><th></th>${cols
     .map(k =>
@@ -423,8 +425,8 @@ function speciesTable(grey) {
 // draw the average creatures into the table's picture row
 function drawPics(root) {
   for (const cv of root.querySelectorAll('canvas[data-pic]')) {
-    const [c, sc, y, h] = picQueue[+cv.dataset.pic],
-      s = 76;
+    const [c, sc, y, h, w] = picQueue[+cv.dataset.pic],
+      s = Math.ceil(w);
     cv.width = s * dpr;
     cv.height = Math.ceil(h) * dpr;
     cv.style.width = s + 'px';
