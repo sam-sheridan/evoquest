@@ -729,9 +729,9 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 
 ### Bottom left: season clock, temperature and world event sign
 
-- The **season clock**: the year as a strip of four seasons, read left to right, each in its colour with its symbol
-  above it (a flower for spring, sun for summer, leaf for autumn, snowflake for winter). The current season is in
-  full colour and the others pale, and a marker slides along the strip through the year.
+- The **season clock**: the year as a ring of four seasons, going round clockwise from the top, each in its colour
+  (the current one in full colour, the others pale). A dot travels round the ring through the year, and the current
+  season's symbol sits in the middle: a flower for spring, sun for summer, leaf for autumn, snowflake for winter.
 - The current season's **name**.
 - A **thermometer** for the whole world's temperature this season: the season's shift plus the world type's
   offset, around a mild middle. Hover over it to see it in words (cold, cool, mild, warm or hot). High ground is always colder than this, and

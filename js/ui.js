@@ -57,22 +57,24 @@ const SEASON_ICON = [
 // around a mild middle; high ground is always colder than this and lowland warmer
 const worldTemp = () => 0.5 + world.tOff + TEMP.season[S.season],
   tempWord = v => (v < 0.3 ? 'cold' : v < 0.45 ? 'cool' : v < 0.58 ? 'mild' : v < 0.72 ? 'warm' : 'hot');
-// the season clock: the year as a strip of four seasons, read left to right, each with its icon above it (the
-// current one in full colour), and a marker that slides along it
-const STRIP = { seg: 28, icon: 0.8 }; // width of one season (px) and the size of its icon (1 = 16 px)
+// the season clock: the year as a ring of four seasons, going round clockwise from the top (the current one in full
+// colour, the others pale), with the current season's symbol in the middle and a dot that travels round the year
+const RING = { r: 19, band: 7 }; // radius of the ring's band and its thickness, px
 function syncClock(sp) {
   const el = $('#hud'),
     k = S.season,
-    { seg, icon } = STRIP;
+    { r, band } = RING,
+    at = a => `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
   el.hidden = false;
   let st = '';
   for (let q = 0; q < 4; q++) {
-    const on = q === k;
-    st += `<g transform="translate(${q * seg + seg / 2} 9) scale(${icon})" style="color:${on ? INK : '#8b948f'}">${SEASON_ICON[q]}</g>`;
-    st += `<rect x="${q * seg + 1}" y="21" width="${seg - 2}" height="9" rx="1.5" fill="${SEASONS[q].col}" fill-opacity="${on ? 1 : 0.28}" stroke="${INK}" stroke-opacity="${on ? 1 : 0.25}" stroke-width=".8"/>`;
+    const a0 = (q * Math.PI) / 2 + 0.04,
+      a1 = ((q + 1) * Math.PI) / 2 - 0.04;
+    st += `<path d="M${at(a0)}A${r} ${r} 0 0 1 ${at(a1)}" fill="none" stroke="${SEASONS[q].col}" stroke-width="${band}" stroke-opacity="${q === k ? 1 : 0.28}"/>`;
   }
-  const mx = (k + sp) * seg;
-  st += `<line x1="${mx}" y1="19" x2="${mx}" y2="32" stroke="${INK}" stroke-width="1.8"/><path d="M${mx} 32.5l-3.6 4.4h7.2z" fill="${INK}"/>`;
+  const [dx, dy] = at(((k + sp) * Math.PI) / 2).split(' ');
+  st += `<circle cx="${dx}" cy="${dy}" r="4.2" fill="var(--panel)" stroke="${INK}" stroke-width="1.8"/>`;
+  st += `<g style="color:${INK}">${SEASON_ICON[k]}</g>`;
   $('#clkPie').innerHTML = st;
   const v = worldTemp(),
     f = clamp((v - 0.2) / 0.6, 0, 1),
