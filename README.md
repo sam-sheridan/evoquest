@@ -712,18 +712,28 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 
 ### Bottom right: inspector
 
-Collapse or expand it with the arrow. It has three tabs.
+Collapse or expand it with the arrow. It has four tabs.
 
-- **Traits**
+- **Species**
   - **Map colours**: colour creatures by their own body colour, or by species tag.
-  - **Chart**: pick Population, Size, Legs, Tail, Mouth (as % of the way to a straw) or Roundness. One line per species. For
-    population, a thin black line shows the total. The dashed line is the starting value. A chart shows at most
-    the last 20 minutes (`CHART_SPAN`). After that a **slider** appears under it: drag it left to look back
-    through earlier time, and right to the end to follow the present again.
-  - **Table**: compares the released design with the three biggest living species: width, length, size, legs,
-    tail, mouth and roundness, then what they add up to (land and water speed, and the share that fits into
-    thickets and crosses rivers). Values noticeably up or down from the release are highlighted. Body traits and
-    look traits are grouped separately.
+  - **Table**: one column for the released design and one for every species, extinct ones greyed out and marked
+    †. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
+    is a drawing of each species' average creature (its average traits, with the colour it has drifted to). Then:
+    size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
+    (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
+    instead. In each species' column, the one or two traits that most set it apart from the species it split
+    from are highlighted in orange (primus is compared with the released design). A trait counts only if it
+    differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
+    or mouth traits.
+- **Stats**
+  - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
+    second walking flat out, without temperature or deep water), Energy store, Fits thickets or Crosses rivers (the
+    last two as the share of a species that can). One line per species, of the species' average. Distances
+    beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, so a few unlimited
+    creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
+    released design's value. A chart shows at most the last 20 minutes (`CHART_SPAN`). After that a **slider**
+    appears under it: drag it left to look back through earlier time, and right to the end to follow the present
+    again.
 - **Specimen**: tap any creature on the map to select it. The camera follows it automatically (dragging the map
   stops following). The tab shows its:
   - generation, parent, offspring and meals
@@ -762,8 +772,8 @@ When the last creature dies, the summary shows:
 
 - **Time alive, generations, peak population, ever born, species, achievements.**
 - **How they died**: a bar split by starvation, old age and meteor strike.
-- **Trait table**: the released design compared with the last survivors (width, length, size, legs, tail, mouth
-  and roundness), split into "shaped by the world" and "drifted by chance".
+- **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
+  (none greyed out, since all have died).
 - **Family tree**: every species as a line through time. Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
 - **Watch replay**: the whole run played back at 12 recorded moments per second. A moment is recorded each

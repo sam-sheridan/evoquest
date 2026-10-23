@@ -29,11 +29,6 @@ function endRun() {
   syncUI(true);
 }
 function showEnd(run) {
-  const m0 = S.orig;
-  const last = [...S.hist].reverse().find(h => h.total);
-  const mL = last ? last.all : m0;
-  const f = (v, d = 1) => v.toFixed(d),
-    sg = v => (v >= 0 ? '+' : '') + v;
   const DB = S.deathBy,
     tot = Object.values(DB).reduce((a, b) => a + b, 0) || 1;
   const dcol = { starvation: '#b5651d', 'old age': '#636d69', 'meteor strike': '#ff4f1a' };
@@ -54,22 +49,14 @@ function showEnd(run) {
     .filter(([, v]) => v)
     .map(([k, v]) => `<span style="color:${dcol[k]}">■</span> ${k} ${Math.round((v / tot) * 100)}%`)
     .join(' &nbsp; ')}</p>
-  <div class="tw"><table><thead><tr><th>Trait</th><th>Released</th><th>Last survivors</th><th>Change</th></tr></thead><tbody>
-   <tr class="grp"><td colspan="4">Shaped by the world</td></tr>
-   <tr><td>Width</td><td>${f(m0.w)}</td><td>${f(mL.w)}</td><td>${sg(f(mL.w - m0.w))}</td></tr>
-   <tr><td>Length</td><td>${f(m0.h)}</td><td>${f(mL.h)}</td><td>${sg(f(mL.h - m0.h))}</td></tr>
-   <tr><td>Size</td><td>${f(m0.size, 2)}</td><td>${f(mL.size, 2)}</td><td>${sg(f(mL.size - m0.size, 2))}</td></tr>
-   <tr><td>Legs</td><td>${Math.round(m0.leg * 100)}%</td><td>${Math.round(mL.leg * 100)}%</td><td>${sg(Math.round((mL.leg - m0.leg) * 100))} pts</td></tr>
-   <tr><td>Tail</td><td>${Math.round(m0.hab * 100)}%</td><td>${Math.round(mL.hab * 100)}%</td><td>${sg(Math.round((mL.hab - m0.hab) * 100))} pts</td></tr>
-   <tr><td>Mouth (% straw)</td><td>${Math.round(m0.mth * 100)}%</td><td>${Math.round(mL.mth * 100)}%</td><td>${sg(Math.round((mL.mth - m0.mth) * 100))} pts</td></tr>
-   <tr><td>Roundness</td><td>${f(m0.round, 2)}</td><td>${f(mL.round, 2)}</td><td>${sg(f(mL.round - m0.round, 2))}</td></tr>
-   <tr class="grp"><td colspan="4">Drifted by chance</td></tr>
-   <tr><td>Colour</td><td><span class="tag" style="background:hsl(${m0.hue} ${S.design.sat}% ${m0.lt}%)"></span></td><td><span class="tag" style="background:hsl(${mL.hue} ${S.design.sat}% ${mL.lt}%)"></span></td><td>${Math.round(Math.abs(mL.dhue))}°</td></tr>
-  </tbody></table></div>
+  <span class="lbl">Species</span>
+  <div class="tw">${speciesTable(false)}</div>
+  <p class="hint">Highlighted: the traits that most set each species apart from the one it split from (primus from the released design).</p>
   <p class="hint">Body traits change because the world rewards some values over others. Look traits change only through random variation between parent and offspring, which is why related groups slowly end up looking different.</p>
   <span class="lbl">Family tree</span><div class="treewrap" style="margin-top:6px">${treeSVG(Math.min(780, innerWidth - 70))}</div>
   <div class="row" style="margin-top:16px"><button class="btn primary" id="eReplay">Watch replay</button><button class="btn" id="eSame">New species, same world</button><button class="btn" id="eNew">New species, new world</button></div>
   <h3 class="sec" style="margin-top:20px">Past lineages</h3>${histHTML()}`;
+  drawPics($('#endBody'));
   $('#end').hidden = false;
   $('#eReplay').onclick = () => {
     $('#end').hidden = true;

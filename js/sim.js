@@ -153,7 +153,7 @@ function newGame(design, seed) {
     detail.ok = false;
   }
   sample();
-  selectTab('pop');
+  selectTab('sp');
   syncUI(true);
 }
 // does the ground suit this food? berries and nuts need land or thicket, algae shallow water (rivers or the sea's
@@ -898,7 +898,26 @@ function logEv(m) {
 /* stats */
 const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
 const vec = c => [c.w / 10, c.h / 10, c.leg, c.hab, c.mth * MOUTH_SPLIT, dHue(c) / 60, c.round * 0.5];
-const KEYS = ['w', 'h', 'leg', 'hab', 'mth', 'fits', 'river', 'size', 'round', 'dhue', 'lt', 'vL', 'vW'];
+const KEYS = [
+  'w',
+  'h',
+  'leg',
+  'legs',
+  'hab',
+  'mth',
+  'fits',
+  'river',
+  'size',
+  'round',
+  'dhue',
+  'lt',
+  'vL',
+  'vW',
+  'dWc',
+  'dLc',
+  'burnW',
+  'cap',
+];
 function summ(C) {
   const n = C.length,
     m = { n };

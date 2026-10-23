@@ -103,18 +103,26 @@
     <section id="sheet" hidden>
       <div class="card">
         <div class="tabs" role="tablist">
-          <button role="tab" data-tab="pop" aria-selected="true">Traits</button>
+          <button role="tab" data-tab="sp" aria-selected="true">Species</button>
+          <button role="tab" data-tab="stats" aria-selected="false">Stats</button>
           <button role="tab" data-tab="one" aria-selected="false">Specimen</button>
           <button role="tab" data-tab="world" aria-selected="false">World</button>
           <button class="grab" id="grab" aria-label="Collapse inspector"></button>
         </div>
-        <div class="panel" id="p-pop">
-          <div class="row" style="justify-content: space-between; margin-bottom: 8px">
+        <div class="panel" id="p-sp">
+          <div class="row" style="justify-content: space-between; margin-bottom: 4px">
             <span class="lbl">Map colours</span>
             <div class="seg2" role="group" aria-label="Map colours" id="cmode">
               <button data-cm="body">Body colour</button><button data-cm="species">By species</button>
             </div>
           </div>
+          <div class="tw" id="spTable"></div>
+          <p class="hint">
+            <span id="spMore" hidden>Scroll sideways to see every species. </span>Highlighted: the traits that
+            most set each species apart from the one it split from (primus from the released design).
+          </p>
+        </div>
+        <div class="panel" id="p-stats" hidden>
           <div class="metrics" id="metrics"></div>
           <canvas class="chart" id="chart"></canvas>
           <input
@@ -126,12 +134,6 @@
             aria-label="Move back through the chart"
             hidden
           />
-          <div class="tw">
-            <table>
-              <thead id="thead"></thead>
-              <tbody id="ttab"></tbody>
-            </table>
-          </div>
         </div>
         <div class="panel" id="p-one" hidden></div>
         <div class="panel" id="p-world" hidden></div>
