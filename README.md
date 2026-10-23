@@ -952,8 +952,8 @@ The look is a scientific **field notebook / survey map**.
   out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). From a mid zoom inwards (`DETAIL`: 0.65 screen pixels per world px), the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
   map at full sharpness, so the map doesn't go blurry. From that zoom inwards, creatures stay under the trees,
-  which are partly see-through, some a little more than others (`TREES.alpha`), so creatures and food show
-  through them.
+  which are partly see-through (`TREES.alpha`): 40% of trees are the most see-through, 35% a bit more solid,
+  20% more solid again and 5% almost fully solid, so creatures and food show through most of them.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so

@@ -166,7 +166,10 @@ function trees(w) {
       );
     // each crown's outline is inked, and its fill goes in one of a few groups, each a little more or less see-through
     crown(row.crowns, t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
-    crown(row.fills[(r() * TREES.alpha.length) | 0], t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
+    let pick = r(),
+      k = 0;
+    while (k < TREES.alpha.length - 1 && pick >= TREES.alpha[k][1]) pick -= TREES.alpha[k++][1];
+    crown(row.fills[k], t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
     // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
     // the ground
     if (r() > TREES.plain) {
@@ -456,7 +459,7 @@ function paintStipple(g) {
   g.lineWidth = 0.75;
   g.fillStyle = ['#cfe0b8', '#c9dcae', '#d6d4a0', '#cfd8c6'][se];
   for (const row of world.vec.trees.rows) {
-    TREES.alpha.forEach((a, k) => {
+    TREES.alpha.forEach(([a], k) => {
       g.globalAlpha = a;
       g.fill(row.fills[k]);
     });
