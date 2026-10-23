@@ -127,7 +127,7 @@ function renderTerrain() {
   V.dots = new Path2D();
   for (let i = 0; i < N; i++)
     if (T[i] === 2) {
-      const keep = w.gap[i] === 10 ? 0.9 : w.gap[i] === 13 ? 0.62 : 0.4,
+      const keep = 0.62,
         x0 = (i % GW) * CS,
         y0 = ((i / GW) | 0) * CS;
       for (let yy = 1.6; yy < CS; yy += 3.2)

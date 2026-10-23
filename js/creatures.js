@@ -1,17 +1,21 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
-   Body traits (affect survival): w width, h length, spd speed, hab tail (0 = none, a land creature; 1 = full,
-   a water creature; called hab because it began as "habitat"), mth mouth (0 = claw, 1 = straw), round roundness
-   (round swims a little faster, blocky walks a little faster).
-   Look traits (drift by chance): hue, lt (lightness). Legs come from body length. */
+   Body traits (affect survival): w width and h length (together they set size), leg leg length (long legs walk
+   faster, short ones swim faster), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
+   because it began as "habitat"), mth mouth (0 = claw, 1 = straw), round roundness (round swims a little faster,
+   blocky walks a little faster). Every ability (speed, energy, range, food) comes from these.
+   Look traits (drift by chance): hue, lt (lightness). The number of legs comes from size. */
 
 /* ---------- creatures ---------- */
-// Body (functional): w width, h height, spd speed, hab tail 0 = land … 1 = water, mth mouth 0 = claw … 1 = straw, round 0 = blocky … 1 = round.  Look (neutral): hue, lt.
 let nextId = 1;
+// designs saved before mouths or leg length existed: a middling mouth, and legs from the old speed number
+function upgrade(d) {
+  return { mth: 0.5, leg: d.spd != null ? clamp((d.spd - 1) / 9, 0, 1) : 0.5, ...d };
+}
 function enforce(c) {
   c.w = clamp(c.w, 1, 7);
   c.h = clamp(c.h, 1, 7);
-  c.spd = clamp(c.spd, 1, 10);
+  c.leg = clamp(c.leg, 0, 1);
   c.hab = clamp(c.hab, 0, 1);
   c.mth = clamp(c.mth ?? 0.5, 0, 1);
   c.round = clamp(c.round, 0, 1);
@@ -21,15 +25,25 @@ function enforce(c) {
 function compute(c) {
   c.bw = 6 + c.w * 2.2;
   c.bh = 6 + c.h * 2.2;
-  c.thick = Math.min(c.bw, c.bh);
+  // width and length matter only through size: a long thin body and a short stubby one of the same size are alike
   c.size = Math.sqrt(c.bw * c.bh) / 17;
-  const sm = 1.6 / (0.6 + c.size),
-    base = c.spd * 6 * sm;
+  c.fits = c.size <= THICKET; // small enough for thickets
+  c.legs = c.size >= LEGS.sixFrom ? 6 : 4;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
-  const rk = 2 * c.round - 1; // -1 blocky … 1 round
-  c.vL = base * (1 - 0.85 * c.tail) * (1 - ROUND.walk * rk);
-  c.vW = base * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
+  // speed: bigger bodies are slower; long legs, 6 legs and a blocky body walk faster; short legs, 4 legs, a tail
+  // and a round body swim faster
+  const base = (LEGS.base * 1.5) / (0.6 + c.size),
+    rk = 2 * c.round - 1, // -1 blocky … 1 round
+    six = c.legs === 6 ? LEGS.six : -LEGS.six;
+  c.vL =
+    base *
+    (LEGS.land[0] + (LEGS.land[1] - LEGS.land[0]) * c.leg) *
+    (1 + six) *
+    (1 - 0.85 * c.tail) *
+    (1 - ROUND.walk * rk);
+  c.vW =
+    base * (1 + LEGS.water * (1 - 2 * c.leg)) * (1 - six) * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, HAB.range px each way at 50%
   c.dW = c.tail >= 1 ? 1e9 : HAB.range * (c.tail / (1 - c.tail)) ** 2;
@@ -40,8 +54,9 @@ function compute(c) {
   c.anch = anchors(c);
   c.p2 = pathOf(outline(c, 0, 0)); // the body with its tail, still (see drawCreature for the swaying one)
 }
-// energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added
-const moveBurn = (c, v) => 0.4 * c.size + 0.9 * c.size * (v / 30) ** 2;
+// energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added:
+// moving fast costs a lot, and bigger bodies burn less
+const moveBurn = (c, v) => (BURN.rest + BURN.move * (v / 30) ** 2) * (1 + BURN.size * (0.9 - c.size));
 // deep water costs more for creatures that aren't fully aquatic
 function burn(c, v) {
   const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
@@ -101,18 +116,16 @@ function sideAt(P, x) {
 }
 // legs in pairs along the sides only (none at the front or back), the front pair splayed forwards and the back
 // pair backwards. They stay on the full-width part of the body (not where it curves into the tail) and clear of the
-// mouth. A long body (length from LEG6) has 6 legs if there is room for them there, otherwise 4.
+// mouth. A creature of size LEGS.sixFrom or more has 6 legs, a smaller one 4.
 function anchors(c) {
   const L = c.bh / 2,
     P = outline(c, 0, 0),
     r = 5 * mouthScale(c), // no leg closer than this to the root of the mouth
-    wd = 2 + c.tail * 1.6, // leg bar width (see drawCreature)
     A = [];
   let xb = -0.55 * L,
     xf = 0.4 * L;
   while (xb < 0 && sideAt(P, xb) < 0.6 * (c.bw / 2)) xb += 0.2;
   while (xf > xb + 0.3 * L && Math.hypot(L - xf, sideAt(P, xf)) < r) xf -= 0.2;
-  c.legs = c.h >= LEG6 && xf - xb >= 3.2 * wd ? 6 : 4;
   const m = c.legs / 2;
   for (let k = 0; k < m; k++) {
     const x = xf + ((xb - xf) * k) / (m - 1),
@@ -172,7 +185,7 @@ function makeChild(p, x, y, spread = 1) {
     sp: p.sp,
     w: jit(p.w, 0.5 * VAR * spread),
     h: jit(p.h, 0.5 * VAR * spread),
-    spd: jit(p.spd, 0.5 * VAR * spread),
+    leg: jit(p.leg, 0.05 * VAR * spread),
     hab: jit(p.hab, 0.05 * VAR * spread),
     mth: jit(p.mth, 0.05 * VAR * spread),
     hue: jit(p.hue, 6 * spread),
@@ -203,8 +216,8 @@ function makeChild(p, x, y, spread = 1) {
   return c;
 }
 
-// Survey-glyph style: pale body, ink outline, legs as short ink bars all round like map ticks.
-// Longer bars mean more speed on land; wider, shorter bars mean a creature that leans towards water.
+// Survey-glyph style: pale body, ink outline, legs as short ink bars along the sides like map ticks.
+// Longer bars mean longer legs; wider, shorter bars mean a creature that leans towards water.
 function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   const L = c.bh / 2,
     Wd = c.bw / 2;
@@ -238,7 +251,7 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
   if (detail) drawMouth(g, c, L, t);
   g.strokeStyle = INK;
   if (detail) {
-    const Lg = (2.2 + c.spd * 0.25) * (1 - c.tail * 0.4) * (swim ? 0.7 : 1),
+    const Lg = (2.45 + c.leg * 2.75) * (1 - c.tail * 0.4) * (swim ? 0.7 : 1),
       wd = 2 + c.tail * 1.6;
     g.lineCap = 'butt';
     g.lineWidth = wd;

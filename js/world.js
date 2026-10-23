@@ -102,6 +102,7 @@ function genWorld(seed, att = 0) {
       [9, 0.6],
       [21, 0.4],
     ]),
+    // once set thicket gap widths; no longer used, but still made so every world number keeps its layout
     fg = field(rng, [[8, 1]]),
     // regions: broad patterns that make some areas thicket country, some rocky, some low and wet
     rT = field(rng, [
@@ -124,8 +125,7 @@ function genWorld(seed, att = 0) {
     hgt = new Float32Array(N),
     thk = new Float32Array(N),
     rck = new Float32Array(N),
-    fert = new Float32Array(N),
-    gapN = new Float32Array(N);
+    fert = new Float32Array(N);
   // a strait splits the world into two landmasses at the start; it is shallow enough that droughts can close it
   const vert = rng() < 0.7,
     ang = (vert ? Math.PI / 2 : 0) + (rng() - 0.5) * 0.7,
@@ -174,7 +174,6 @@ function genWorld(seed, att = 0) {
       thk[i] = ft(u, v) + bt * 0.9;
       rck[i] = fr(u, v) + br * 0.9;
       fert[i] = ff(u, v);
-      gapN[i] = fg(u, v) - bt * 0.8; // thicket country also has the narrowest gaps
     }
   // relief: ridged hills are added to the land, growing with height above the starting sea level so coasts stay
   // where they are; wetlands: in wet regions the land is then flattened down to just above that sea level, with
@@ -204,9 +203,7 @@ function genWorld(seed, att = 0) {
     thk,
     rck,
     fert,
-    gapN,
     type: new Uint8Array(N),
-    gap: new Uint8Array(N),
     comp: new Int16Array(N),
     fl: new Float32Array(N),
     dLand: null,
@@ -221,8 +218,6 @@ function genWorld(seed, att = 0) {
     rThr: quant(onLand(rck), 1 - T.rock),
     fLo: quant(fert, 0.1),
     fHi: quant(fert, 0.92),
-    gLo: quant(gapN, 0.34),
-    gHi: quant(gapN, 0.67),
   };
   if (rng() < T.rivers[0]) world.channels.push(makeChannel(rng));
   if (rng() < T.rivers[1]) world.channels.push(makeChannel(rng));
@@ -249,7 +244,7 @@ function genWorld(seed, att = 0) {
       t = world.type[i];
     if (t !== 1 && t !== 2) continue;
     let f = clamp((world.fert[i] - world.fLo) / (world.fHi - world.fLo), 0, 1);
-    if (t === 2) f = Math.min(1, f * 0.6 + (world.gap[i] === 10 ? 0.65 : world.gap[i] === 13 ? 0.5 : 0.35));
+    if (t === 2) f = Math.min(1, f * 0.6 + 0.5);
     if (world.comp[i] !== world.main) f = Math.min(1, f + 0.35);
     if (rng() < f * f * 0.9 + 0.04) {
       // some thicket food is nuts rather than berries
@@ -346,7 +341,6 @@ function buildTerrain() {
       else if (w.rck[i] >= w.rThr) t = 3;
     }
     w.type[i] = t;
-    w.gap[i] = w.gapN[i] < w.gLo ? 10 : w.gapN[i] < w.gHi ? 13 : 16;
   }
   // rivers are cut cell by cell into land and thicket
   for (const ch of w.channels) {

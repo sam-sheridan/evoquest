@@ -138,13 +138,23 @@ const TAIL = { min: 0.33, len: 1.1, first: 0.3 };
 // blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
 const ROUND = { swim: 0.1, walk: 0.1 };
 // mouths: each creature's mouth runs from a snapping claw (0) through tweezers and prongs to a sucking straw (1).
-//   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut (x FOOD)
-//   crack: seconds a creature spends cracking a nut [claw, straw], on top of the usual pause after eating
-//   algae: how much the mouth changes the energy from algae: a straw gets 1 + algae times as much, a claw
-//   1 - algae; berries suit any mouth (the tail doesn't change what food gives)
-const MOUTH = { share: 0.5, nut: 1.5, crack: [0.5, 8], algae: 0.25 };
-const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (habitat counts 1)
-const LEG6 = 4; // body length (h) from which a creature has 6 legs rather than 4
+//   share: share of the food in thickets that is nuts rather than berries; nut: energy from a nut for a middling
+//   mouth (x FOOD)
+//   bonus: a claw gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
+//   berries give every mouth the same (the tail doesn't change what food gives)
+const MOUTH = { share: 0.5, nut: 1.25, bonus: 0.25 };
+const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)
+// speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
+// base px/s; bigger bodies are slower, smaller ones faster.
+//   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
+//   share faster and the longest this share slower (medium legs make no difference)
+//   six: 6 legs walk this share faster and swim this share slower, 4 legs the reverse; sixFrom: the size from which a
+//   creature has 6 legs rather than 4
+const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
+// energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
+// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less
+const BURN = { rest: 0.32, move: 0.81, size: 0.25 };
+const THICKET = 0.95; // the largest size that fits into thickets (size = body width x length, see README)
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
@@ -264,4 +274,4 @@ const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups 
 // ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
-const SPC = { geo: 0.22, eco: 0.4, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.55 }; // tuned with home ranges: about 0-2 new species per 15 minutes
+const SPC = { geo: 0.22, eco: 0.4, ratio: 3.1, streak: 4, age: 90, cool: 110, extra: 0.7 }; // tuned with home ranges: about 0-2 new species per 15 minutes

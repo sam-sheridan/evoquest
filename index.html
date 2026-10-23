@@ -149,10 +149,10 @@
             <canvas id="pv" width="520" height="390"></canvas>
             <div class="chips" id="pvChips"></div>
             <p class="explain">
-              Each creature has an energy bar. Food fills it; being big or fast drains it quicker. Once a
-              creature is 15 seconds old, eating with a nearly full bar gives it one offspring with slightly
-              varied traits. The more neighbours it has, the less likely it is to breed. Everyone lives at
-              most 90 seconds.
+              Each creature has an energy bar. Food fills it; moving fast drains it quicker, and small bodies
+              burn more than big ones. Once a creature is 15 seconds old, eating with a nearly full bar gives
+              it one offspring with slightly varied traits. The more neighbours it has, the less likely it is
+              to breed. Everyone lives at most 90 seconds.
             </p>
           </div>
           <div>
@@ -174,8 +174,8 @@
               </div>
               <div class="two">
                 <div class="field">
-                  <label for="fS">Speed<output id="oS"></output></label
-                  ><input type="range" id="fS" min="1" max="10" step="0.1" />
+                  <label for="fL">Legs<output id="oL"></output></label
+                  ><input type="range" id="fL" min="0" max="100" step="1" />
                 </div>
                 <div class="field">
                   <label for="fHab">Tail<output id="oHab"></output></label
