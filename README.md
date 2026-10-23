@@ -732,20 +732,19 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Achievement | How to earn it |
 |---|---|
 | First Year | Survive all four seasons (10 minutes) |
-| Old Lineage | Lineage lasts 20 minutes |
-| Ancient Line | Lineage lasts 45 minutes |
-| Dynasty | Reach generation 30 |
-| Deep Time | Reach generation 80 |
-| Weathered | Survive 8 world events |
-| Against the Odds | Still going 60 s after a major world event |
-| Impact Survivor | Recover to 40 creatures after a meteor kills 5 or more |
+| Old Lineage | Lineage lasts 30 minutes |
+| Ancient Line | Lineage lasts an hour |
+| Dynasty | Reach generation 100 (runs reach about generation 65–85 in an hour, so this takes a long run) |
+| Weathered | Survive 10 world events |
+| Against the Odds | Population grows to 20 after falling to 5 or lower (checked every 2 seconds, so a very brief dip can be missed) |
+| Trauma Bonding | Survive at least one of each world event: flood, drought, earthquake and meteor |
+| Re-productive | One creature has 5 offspring (most have 0–2; in 10-minute test runs about 1 creature in 6 runs reached 5) |
 | Taking to the Water | A species' average tail grows by 40 points |
 | Coming Ashore | A species' average tail shrinks by 40 points |
-| Nutcracker | A species' average mouth shifts 40 points towards a beak |
-| Sipper | A species' average mouth shifts 40 points towards a straw |
-| Squeezer | A species gets small enough to reach the heart of the thickets: as far in as the deepest tenth of this world's thicket (only if it started too big) |
 | Branching Out | Witness a new species form |
+| Land and Sea | An entirely land species (on average it never enters water) and an entirely water species (on average it never leaves water) alive at once |
 | Crowded Tree | Three species alive at once |
+| Changing of the Guard | A newer species outlives primus |
 | Tree of Life | Six species over one run |
 
 ---
@@ -857,7 +856,7 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
 - **Watch replay**, **Retry world** (the same world) and **New world** (a new random world), at the top. Retry and
   New world both open the creator set to the design that just died, ready to change or release again.
 - **Time alive, generations, peak population, ever born, species, achievements** (earned out of the total, such as
-  3 / 16).
+  3 / 15).
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died), and the **starting design** as the first column. Primus isn't

@@ -631,10 +631,6 @@ function buildTerrain(skipDraw) {
   w.dLand = distField(i => isLand(w.type[i]));
   // how far each thicket cell is from the thicket's edge (16 px for an edge cell), which sets who can go there
   w.dThick = distField(i => w.type[i] !== 2);
-  // the heart of the thickets: how far in the deepest tenth of thicket ground lies (for the Squeezer achievement)
-  const td = [];
-  for (let i = 0; i < N; i++) if (w.type[i] === 2) td.push(w.dThick[i]);
-  w.tDeep = td.length ? quant(td, 0.9) : 1e9;
   w.dWater = distField(i => isWater(w.type[i]));
   // sea depth: a blend of distance from shore and the sea floor, each as a rank among sea cells, so shallow
   // shelves follow the coasts and reach out over offshore banks; the shallowest share is the shelf

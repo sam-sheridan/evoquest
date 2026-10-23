@@ -949,7 +949,6 @@ function worldEvent(kind, major, forced) {
   S.events++;
   S.lastEvent = S.t;
   logEv(msg);
-  if (major) S.majorAt = S.t;
   SFX[k] && SFX[k](major);
   if (k === 'quake') startShake('quake', major);
   eventAlert(k);
@@ -1019,11 +1018,9 @@ function meteor(x, y, major) {
   S.lastEvent = S.t;
   const m = `${major ? 'Major meteor strike' : 'Meteor strike'}. ${k} creature${k === 1 ? '' : 's'} killed. A crater wall now rings the impact, with a small lake at its centre.`;
   logEv(m);
-  if (major) S.majorAt = S.t;
   SFX.meteor(major);
   startShake('meteor', major);
   eventAlert('meteor');
-  if (k >= 5) S.meteorHit = (S.meteorHit || 0) + 1;
 }
 // Extinction from Settings: one huge meteor lands among the creatures, a few small ones follow, and then every
 // creature left dies. It is a way to start again rather than a world event, so it leaves no craters.
@@ -1334,22 +1331,27 @@ const BADGES = [
     d: `Survive all four seasons (${(SEASON_LEN * 4) / 60} minutes)`,
     f: () => S.t >= SEASON_LEN * 4,
   },
-  { id: 't20', name: 'Old Lineage', d: 'Lineage lasts 20 minutes', f: () => S.t >= 1200 },
-  { id: 't45', name: 'Ancient Line', d: 'Lineage lasts 45 minutes', f: () => S.t >= 2700 },
-  { id: 'g30', name: 'Dynasty', d: 'Reach generation 30', f: () => S.maxGen >= 30 },
-  { id: 'g80', name: 'Deep Time', d: 'Reach generation 80', f: () => S.maxGen >= 80 },
-  { id: 'ev8', name: 'Weathered', d: 'Survive 8 world events', f: () => S.events >= 8 },
+  { id: 't30', name: 'Old Lineage', d: 'Lineage lasts 30 minutes', f: () => S.t >= 1800 },
+  { id: 't60', name: 'Ancient Line', d: 'Lineage lasts an hour', f: () => S.t >= 3600 },
+  { id: 'g100', name: 'Dynasty', d: 'Reach generation 100', f: () => S.maxGen >= 100 },
+  { id: 'ev10', name: 'Weathered', d: 'Survive 10 world events', f: () => S.events >= 10 },
   {
-    id: 'maj',
+    id: 'rally',
     name: 'Against the Odds',
-    d: 'Still going 60 s after a major world event',
-    f: () => S.majorAt != null && S.t - S.majorAt >= 60,
+    d: 'Population grows to 20 after falling to 5 or lower',
+    f: () => (S.lowPop ||= S.creatures.length <= 5) && S.creatures.length >= 20,
   },
   {
-    id: 'met',
-    name: 'Impact Survivor',
-    d: 'Recover after a meteor kills 5 or more',
-    f: () => S.meteorHit > 0 && S.creatures.length >= 40,
+    id: 'storms',
+    name: 'Trauma Bonding',
+    d: 'Survive a flood, a drought, an earthquake and a meteor',
+    f: () => Object.values(S.count).every(n => n > 0),
+  },
+  {
+    id: 'kids',
+    name: 'Re-productive',
+    d: 'One creature has 5 offspring',
+    f: () => S.creatures.some(c => c.births >= 5),
   },
   {
     id: 'fins',
@@ -1363,30 +1365,25 @@ const BADGES = [
     d: "A species' tail shrinks by 40 points",
     f: () => live().some(m => S.orig.hab - m.hab >= 0.4),
   },
-  {
-    id: 'claw',
-    name: 'Nutcracker',
-    d: 'A species shifts 40 points towards a beak',
-    f: () => live().some(m => S.orig.mth - m.mth >= 0.4),
-  },
-  {
-    id: 'straw',
-    name: 'Sipper',
-    d: 'A species shifts 40 points towards a straw',
-    f: () => live().some(m => m.mth - S.orig.mth >= 0.4),
-  },
-  {
-    id: 'squeeze',
-    name: 'Squeezer',
-    d: 'A species gets small enough to reach the heart of the thickets',
-    f: () => S.orig.dT < world.tDeep && live().some(m => m.dTc >= world.tDeep),
-  },
   { id: 'branch', name: 'Branching Out', d: 'Witness a new species form', f: () => S.species.length >= 2 },
+  {
+    id: 'both',
+    name: 'Land and Sea',
+    d: 'An entirely land species and an entirely water species alive at once',
+    // a species that, on average, never enters water, alongside one that never leaves it
+    f: () => live().some(m => m.dWc < CS) && live().some(m => m.dLc < CS),
+  },
   {
     id: 'three',
     name: 'Crowded Tree',
     d: 'Three species alive at once',
     f: () => S.species.filter(s => !s.died).length >= 3,
+  },
+  {
+    id: 'guard',
+    name: 'Changing of the Guard',
+    d: 'A newer species outlives primus',
+    f: () => S.species[0].died !== null && S.species.some(s => s.id && s.died === null),
   },
   { id: 'tree', name: 'Tree of Life', d: 'Six species over one run', f: () => S.species.length >= 6 },
 ];
