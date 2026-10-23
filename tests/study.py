@@ -116,7 +116,7 @@ def pick_worlds(pg, per_type):
         const r = rollWorld(s), L = (got[r.kind] ||= []);
         if (L.length >= per) continue;
         const shapes = L.map(x => x.shape);
-        if (shapes.includes(r.shape) && L.length < 3 && shapes.length < 3 && Math.random() < 0.8) continue;
+        if (shapes.includes(r.shape) && L.length < 3 && shapes.length < 3 && s % 5 !== 0) continue; // the same worlds every time
         L.push(r); out.push({ seed: s, kind: r.kind, shape: r.shape }); }
       return out; }""",
         per_type,
