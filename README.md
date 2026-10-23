@@ -342,8 +342,11 @@ creatures are left at all.
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
 | Rock | Never. | – |
 
-A creature that ends up somewhere it isn't allowed (for example, land flooded under it) is **stranded**. It
-moves at 7 px/s and can cross anything except rock until it gets back to allowed ground.
+A creature that ends up somewhere it isn't allowed (for example, land flooded under it, or a water creature left on
+dry land by a drought) is **stranded**. It moves at 7 px/s and can cross anything except rock until it gets back to
+allowed ground. It heads for the quickest food it can eat; if there is none within its planning range (22 seconds of
+travel, only about 150 px at that crawl), it makes for the nearest ground it is allowed on, however far. It can
+still starve on the way, especially in deep water, where a creature with no tail burns 80% more.
 
 ### Choosing food
 

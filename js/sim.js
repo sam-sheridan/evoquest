@@ -412,6 +412,34 @@ function dijkstra(c) {
   }
   return strand;
 }
+// a stranded creature with no food in reach heads for the nearest ground it's allowed on, however far: searches
+// outwards (through anything but rock) and returns that cell, with the way back to the creature in pv, or -1
+function shore(c) {
+  pgen++;
+  const s = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
+  let head = 0,
+    tail = 0;
+  HA[tail++] = s;
+  pst[s] = pgen;
+  pv[s] = -1;
+  while (head < tail) {
+    const i = HA[head++];
+    if (allowed(c, i, world.type[i])) return i;
+    const x = i % GW,
+      y = (i / GW) | 0;
+    for (const [dx, dy] of NB) {
+      const xx = x + dx,
+        yy = y + dy;
+      if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;
+      const j = yy * GW + xx;
+      if (pst[j] === pgen || world.type[j] === 3) continue;
+      pst[j] = pgen;
+      pv[j] = i;
+      HA[tail++] = j;
+    }
+  }
+  return -1;
+}
 function lineOk(c, x0, y0, x1, y1, strand) {
   const d = Math.hypot(x1 - x0, y1 - y0),
     n = Math.max(1, Math.ceil(d / 5));
@@ -440,19 +468,21 @@ function plan(c) {
   setTarget(c, best);
   c.blk = 0;
   if (!best) c.rt = 1.2 + rand();
-  if (!goal) {
+  // stranded with no food in reach: make for the nearest safe ground instead
+  const safe = !goal && strand ? shore(c) : -1;
+  if (!goal && safe < 0) {
     c.path = null;
     return;
   }
   const raw = [];
-  let j = goal.i;
+  let j = goal ? goal.i : safe;
   while (j !== -1 && raw.length < 400) {
     raw.push([((j % GW) + 0.5) * CS, (((j / GW) | 0) + 0.5) * CS]);
     j = pv[j];
   }
   raw.reverse();
   raw.shift();
-  raw.push([goal.x, goal.y]);
+  raw.push(goal ? [goal.x, goal.y] : [((safe % GW) + 0.5) * CS, (((safe / GW) | 0) + 0.5) * CS]);
   const path = [];
   let cx = c.x,
     cy = c.y,
