@@ -188,8 +188,9 @@ const SHOWS = { tail: 0.25, legs: 0.15 };
 //   creature has 6 legs rather than 4
 const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
-// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less
-const BURN = { rest: 0.32, move: 0.81, size: 0.5 };
+// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
+// stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
+const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
 // thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.

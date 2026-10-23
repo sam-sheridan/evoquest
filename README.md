@@ -266,13 +266,14 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)²) × (1 + 0.5 × (0.9 − size)), plus temperature,
-  and more in deep water (`BURN`).
+- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)² × (1 + 0.9 − size)) × (1 + 0.5 × (0.9 − size)), plus
+  temperature, and more in deep water (`BURN`). The middle part (`BURN.stride`) makes moving cheaper for big bodies,
+  like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     long legs.
   - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 2.3 a second and the biggest about 0.8.
+    about 2.9 a second and the biggest about 0.6.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
     for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
     and big ones least (about 0.65 times).

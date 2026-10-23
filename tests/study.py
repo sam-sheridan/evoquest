@@ -1,6 +1,6 @@
 """Long balance study: many long runs across every world type and several kinds of design, run side by side.
 
-Usage:  python3 tests/study.py [minutes] [workers] [worlds per type] [results file]
+Usage:  python3 tests/study.py [minutes] [workers] [worlds per type] [results file] [designs]
         e.g.  python3 tests/study.py 45 4 3 study.jsonl      (75 runs of 45 minutes, four at a time)
 
 For each world type it picks worlds with a mix of shapes, and on every world it releases five designs: a middling
@@ -25,6 +25,7 @@ MINUTES = float(sys.argv[1]) if len(sys.argv) > 1 else 45
 WORKERS = int(sys.argv[2]) if len(sys.argv) > 2 else 4
 PER_TYPE = int(sys.argv[3]) if len(sys.argv) > 3 else 3
 OUT = sys.argv[4] if len(sys.argv) > 4 else os.path.join(ROOT, 'study.jsonl')
+ONLY = sys.argv[5].split(',') if len(sys.argv) > 5 else None  # run only these designs (comma-separated names)
 
 DESIGNS = {
     'middling': {'w': 4, 'h': 4.5, 'leg': 0.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         time.sleep(1)
         worlds = pick_worlds(pg, PER_TYPE)
         b.close()
-    jobs = [{**w, 'design': d} for w in worlds for d in DESIGNS]
+    jobs = [{**w, 'design': d} for w in worlds for d in DESIGNS if not ONLY or d in ONLY]
     print(f'{len(jobs)} runs of {MINUTES:g} minutes on {len(worlds)} worlds, {WORKERS} at a time', flush=True)
     open(OUT, 'w').close()
     t = time.time()
