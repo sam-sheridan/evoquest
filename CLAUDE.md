@@ -40,8 +40,9 @@ Read the relevant section before changing a mechanic.
   (each world's old shelf width, plus wider stretches and offshore banks at their own depths), lakes sit in smooth
   hollows, and thickets are ink-drawn trees. Sam tried a painted, realistic look first and rejected it as too
   computer-generated: keep the hand-drawn, field-notebook style, which matches the line-drawn creatures.
-- Still to do, roughly in order: the rest of the **map redesign** (thickets that change over time), an **intro or
-  tutorial** (the creator's ? popup is a possible starting point), and a **sound redesign** (Sam will lead it).
+- Still to do, roughly in order: **rocks** (the next part of the map redesign), an **intro or tutorial** (the
+  creator's ? popup is a possible starting point), and a **sound redesign** (Sam will lead it). Thickets stay as
+  they are: Sam decided against thickets that change over time.
 - Add the git tag `beta-1` (a permanent label on a version) only after the visual changes are done and Sam asks.
 
 ## How a batch of changes works
