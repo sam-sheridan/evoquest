@@ -25,7 +25,7 @@ with sync_playwright() as p:
     # creator: randomise (to exercise the button), then release a sturdy design on a known world, so the run
     # doesn't die out early and leave the end screen covering the controls
     pg.click('#rnd')
-    pg.evaluate("() => window.EvoQuestDebug.setDesign({ w: 2, h: 2.5, leg: 0.8, hab: 0.2 })")
+    pg.evaluate("() => window.EvoQuestDebug.setDesign({ w: 2, h: 2.5, leg: 0.8, hab: 0.1 })")
     pg.evaluate("""() => { const sel = document.querySelector('#fWorld');
         sel.innerHTML += '<option value="1074">test</option>'; sel.value = '1074'; }""")
     pg.click('#go')

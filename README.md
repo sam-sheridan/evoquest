@@ -70,7 +70,7 @@ Time in this README means game time. At 2× or 4× speed everything happens fast
 | **Species name** | Up to 20 characters. Also becomes the Latin genus (see [naming](#10-speciation-and-naming)). |
 | **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
 | **Legs** | Body trait, short to long (0–100%). Longer legs walk faster but swim slower. Moving fast burns much more energy, so long legs aren't free. |
-| **Tail** | Body trait, none (a land creature) to full (a water creature). Below 33% there is no tail ("None · land only"); a tail shows and counts from 33%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
+| **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from claw to straw. A claw gets more from nuts; a straw gets more from algae. The label names the shape (Claw, Slim claw, Tweezers, Prongs, Straw) and the line under the sliders gives how much it gets from each. |
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
 | **Colour** | One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
@@ -111,7 +111,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Width (`w`) | 1–7 | Body width in pixels = 6 + 2.2 × width. Only matters through size. |
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. Only matters through size. |
 | Legs (`leg`) | 0–1 | Leg length: 0 = short, 1 = long. Long legs walk faster, short ones swim faster. |
-| Tail (`hab`) | 0–1 | Below 0.33 (`TAIL.min`): no tail, fully land. From 0.33 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
+| Tail (`hab`) | 0–1 | Below 0.15 (`TAIL.min`): no tail, fully land. From 0.15 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
 | Mouth (`mth`) | 0–1 | 0 = claw, 1 = straw (see [mouths](#mouths)). |
 | Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes land and water speed by up to 10% (see below). |
 
@@ -141,7 +141,7 @@ what you can see.
   (`LEGS.six`). Leg count follows size; there is no control for it.
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
   smallest and 26 at the biggest.
-- **Effective tail** = (tail − 0.33) ÷ 0.67, and 0 below 0.33. Everything below uses this, so 33% and below
+- **Effective tail** = (tail − 0.15) ÷ 0.85, and 0 below 0.15. Everything below uses this, so 15% and below
   behave exactly alike, as a creature with no tail.
 - **Land speed** = base × (0.4 + 1.2 × legs) × (1 ± 0.05 for 6 or 4 legs) × (1 − 0.85 × tail) ×
   (1 − 0.1 × (2 × roundness − 1)). Leg length takes walking from 0.4 to 1.6 times the base (`LEGS.land`).
@@ -161,24 +161,24 @@ what you can see.
 
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
-  | 0–33% | 0 | never enters water | anywhere |
-  | 34% | just above 0 | 16 px | anywhere |
-  | 46% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
-  | 53% | 0.3 | 53 px | 1089 px |
-  | 60% | 0.4 | 105 px | 450 px |
-  | 67% | 0.5 | 216 px | 200 px |
-  | 73% | 0.6 | 466 px | 89 px |
-  | 87% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
+  | 0–15% | 0 | never enters water | anywhere |
+  | 16% | just above 0 | 16 px | anywhere |
+  | 32% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
+  | 41% | 0.3 | 53 px | 1089 px |
+  | 49% | 0.4 | 105 px | 450 px |
+  | 58% | 0.5 | 216 px | 200 px |
+  | 66% | 0.6 | 466 px | 89 px |
+  | 83% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
 
   Water is always at least one cell (16 px) from land and land from water, so a limit under 16 px means never. Every
-  visible tail swims at least 16 px, so only a tailless creature never enters water, while a tail above about 85%
+  visible tail swims at least 16 px, so only a tailless creature never enters water, while a tail above about 81%
   never leaves it. The creator and the specimen tab say "Never enters water" or "Never leaves water" for these.
 
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
 - **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 47% or
+  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
   more is needed to swim that fast, depending on legs and roundness.
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
@@ -208,19 +208,22 @@ while the creature eats and open and close gently the rest of the time. Mouths, 
 when zoomed in.
 
 Designs from before mouths existed (saved past lineages) start with a mouth of 0.5, and designs from before leg
-length existed get legs from their old speed setting (speed 1 = short, 10 = long).
+length existed get legs from their old speed setting (speed 1 = short, 10 = long). Designs saved when tails counted
+from 33% have their tail moved onto today's scale, so a tailless design stays tailless and a tail looks as it did.
 
 ### Tails
 
 The tail is the visible form of the old habitat setting. The body's straight sides curve smoothly in to a slim
 tail that tapers to a point, with no corner where body and tail meet. Only the slim part sways, starting gently
 where the curve-in ends. A bigger tail is longer (up to
-1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (33% or less) the back of the body is
-rounded off like the front. Just above 33% the tail appears at once as a short but proper tail, 30% of the full
-length (`TAIL.first`), rather than a thin spike, and grows from there. Because the bottom third of the scale has no effect, a land lineage drifts there
-freely and has to reach 33% before a tail starts to help it, so tails evolve from scratch only when the water pays.
+1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (15% or less) the back of the body is
+rounded off like the front. Just above 15% the tail appears at once as a short but proper tail, 30% of the full
+length (`TAIL.first`), rather than a thin spike, and grows from there. The bottom 15% of the scale has no effect, so a
+tailless parent can't have a tailed child in one step (a child's tail moves at most 8 points), but a land lineage
+near water can drift up to 15% within a run and start using a tail when the water pays. (Tails used to count from
+33%, which a lineage starting at 0% would take 30–40 minutes of drifting to reach.)
 
-**Randomise** gives about a third of designs no tail (0–30%) and the rest a clearly visible one (40–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
+**Randomise** gives about a third of designs no tail (0–13%) and the rest a visible one (25–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
 The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 with 6 legs, goes 40 px
@@ -329,7 +332,7 @@ creatures are left at all.
 
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
-| Land | It is within its walking range of water (always true with no tail, 33% or less; a 50% tail still walks over 1,700 px from water). | Land speed |
+| Land | It is within its walking range of water (always true with no tail, 15% or less; a 40% tail still walks over 1,000 px from water). | Land speed |
 | Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |

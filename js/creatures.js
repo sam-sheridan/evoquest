@@ -8,9 +8,14 @@
 
 /* ---------- creatures ---------- */
 let nextId = 1;
-// designs saved before mouths or leg length existed: a middling mouth, and legs from the old speed number
+// designs saved before mouths or leg length existed: a middling mouth, and legs from the old speed number. Designs
+// saved before version 2, when tails counted from 33%, have their tail moved onto today's scale (TAIL.min), so a
+// tail looks and works as it did and a tailless design stays tailless
 function upgrade(d) {
-  return { mth: 0.5, leg: d.spd != null ? clamp((d.spd - 1) / 9, 0, 1) : 0.5, ...d };
+  d = { mth: 0.5, leg: d.spd != null ? clamp((d.spd - 1) / 9, 0, 1) : 0.5, ...d };
+  if (d.v !== 2 && d.hab != null)
+    d.hab = d.hab < 0.33 ? (d.hab / 0.33) * TAIL.min : TAIL.min + (1 - TAIL.min) * ((d.hab - 0.33) / 0.67);
+  return { ...d, v: 2 };
 }
 function enforce(c) {
   c.w = clamp(c.w, 1, 7);
