@@ -110,12 +110,6 @@
           <button class="grab" id="grab" aria-label="Collapse inspector"></button>
         </div>
         <div class="panel" id="p-sp">
-          <div class="row" style="justify-content: space-between; margin-bottom: 4px">
-            <span class="lbl">Map colours</span>
-            <div class="seg2" role="group" aria-label="Map colours" id="cmode">
-              <button data-cm="body">Body colour</button><button data-cm="species">By species</button>
-            </div>
-          </div>
           <div class="tw" id="spTable"></div>
           <p class="hint">
             <span id="spMore" hidden>Scroll sideways to see every species. </span>Highlighted: the traits that
@@ -136,7 +130,15 @@
           />
         </div>
         <div class="panel" id="p-one" hidden></div>
-        <div class="panel" id="p-world" hidden></div>
+        <div class="panel" id="p-world" hidden>
+          <div class="row" style="justify-content: space-between; margin-bottom: 10px">
+            <span class="lbl">Map colours</span>
+            <div class="seg2" role="group" aria-label="Map colours" id="cmode">
+              <button data-cm="body">Body colour</button><button data-cm="species">By species</button>
+            </div>
+          </div>
+          <div id="worldBody"></div>
+        </div>
       </div>
     </section>
 

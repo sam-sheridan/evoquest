@@ -122,7 +122,7 @@ const METRICS = [
   ['vW', 'Water speed', 0, ' px/s'],
   ['dWc', 'Swims from shore', 0, ' px'],
   ['dLc', 'Walks from water', 0, ' px'],
-  ['burnW', 'Energy use', 2, '/s'],
+  ['burnW', 'Energy use', 1, '/s'],
   ['cap', 'Energy store', 0, ''],
   ['fits', 'Fits thickets', 0, '%'],
   ['river', 'Crosses rivers', 0, '%'],
@@ -299,6 +299,7 @@ function drawChart() {
   lo -= sp * 0.08;
   hi += sp * 0.08;
   lo = Math.max(0, lo);
+  if (pct) hi = Math.min(hi, 100); // a share never goes over 100%
   const X = t => pad.l + ((w - pad.l - pad.r) * (t - t0)) / span,
     Y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
   g.font = '10px "IBM Plex Mono", monospace';
@@ -352,10 +353,10 @@ function drawChart() {
 // end of a run, when every species has died)
 const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
-  ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
-  ['Leg length', (m, c) => legLen(c).toFixed(1) + ' px', 'leg', 0.12],
+  ['Size', (m, c) => m.size.toFixed(1), 'size', 0.06],
+  ['Leg length (px)', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
   ['Leg number', (m, c) => m.legs.toFixed(1), 'legs', 0.6],
-  ['Tail length', (m, c) => (c.tail > 0 ? Math.round(tailLen(c)) + ' px' : 'None'), 'hab', 0.12],
+  ['Tail length (px)', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
 ];
@@ -394,10 +395,12 @@ function speciesTable(grey) {
           .map(d => d[0])
       : [];
   }
-  // one drawing scale for every picture, so sizes compare fairly
-  const reach = Math.max(...cols.map(k => k.c.bh + tailLen(k.c) + 14)),
-    sc = Math.min(2.6, 68 / reach);
-  picQueue = cols.map(k => [k.c, sc]);
+  // one drawing scale for every picture, so sizes compare fairly, and every body centred at the same height:
+  // room above for the longest head and mouth, below for the longest tail
+  const up = Math.max(...cols.map(k => k.c.bh / 2 + 7)),
+    down = Math.max(...cols.map(k => k.c.bh / 2 + tailLen(k.c) + 3)),
+    sc = Math.min(2.6, 68 / (up + down));
+  picQueue = cols.map(k => [k.c, sc, up * sc, (up + down) * sc]);
   const ext = k => (k.ext ? ' class="ext"' : '');
   return `<table class="sp"><thead><tr><th></th>${cols
     .map(k =>
@@ -405,7 +408,7 @@ function speciesTable(grey) {
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
         : `<th>Released</th>`
     )
-    .join('')}</tr></thead><tbody><tr class="pic"><td>Average<br />creature</td>${cols
+    .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
     .map(
       (k, i) =>
         `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'released design'}"></canvas></td>`
@@ -420,14 +423,15 @@ function speciesTable(grey) {
 // draw the average creatures into the table's picture row
 function drawPics(root) {
   for (const cv of root.querySelectorAll('canvas[data-pic]')) {
-    const [c, sc] = picQueue[+cv.dataset.pic],
+    const [c, sc, y, h] = picQueue[+cv.dataset.pic],
       s = 76;
-    cv.width = cv.height = s * dpr;
-    cv.style.width = cv.style.height = s + 'px';
+    cv.width = s * dpr;
+    cv.height = Math.ceil(h) * dpr;
+    cv.style.width = s + 'px';
+    cv.style.height = Math.ceil(h) + 'px';
     const g = cv.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // centre the body and tail together: the head points up, the tail down
-    const y = s / 2 + ((tailLen(c) - 0) * sc) / 2 - 2;
+    // the head points up and the tail down, the body at the same height in every column
     drawCreature(g, c, s / 2, y, sc, 7, col(c), 0, false, 1.1 / sc);
   }
 }
@@ -575,9 +579,6 @@ function syncUI() {
   updScale();
   if ($('#sheet').classList.contains('closed') || $('#sheet').hidden) return;
   if (tab === 'sp') {
-    document
-      .querySelectorAll('#cmode button')
-      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
     // keep the table's sideways scroll while it refreshes
     const box = $('#spTable'),
       x = box.scrollLeft;
@@ -632,7 +633,10 @@ function syncUI() {
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
-    $('#p-world').innerHTML =
+    document
+      .querySelectorAll('#cmode button')
+      .forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cm === S.colorMode)));
+    $('#worldBody').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Season</span><b>${SEASONS[S.season].name} · ${Math.max(0, Math.round(S.nextSeason - S.t))} s left</b></div>
       <div><span>Land cover</span><b>${world.stats.land}%</b></div><div><span>Sea cover</span><b>${world.stats.sea}%</b></div>
       <div><span>Next event</span><b>${S.over ? '–' : '~' + Math.max(0, Math.round(S.nextEvent - S.t)) + ' s'}</b></div>

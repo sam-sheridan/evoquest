@@ -45,7 +45,7 @@ with sync_playwright() as p:
     for metric in ['n', 'vL', 'vW', 'dWc', 'dLc', 'burnW', 'cap', 'fits', 'river']:
         pg.click(f'[data-m={metric}]')
         time.sleep(0.1)
-    pg.click('[data-tab=sp]')
+    pg.click('[data-tab=world]')
     pg.click('#cmode [data-cm=species]')
     pg.click('#cmode [data-cm=body]')
 

@@ -453,7 +453,7 @@ h3 {
 }
 canvas.chart {
   width: 100%;
-  height: 130px;
+  height: 200px;
   display: block;
 }
 .tw {
@@ -541,9 +541,12 @@ table.sp tr.pic td:first-child {
   font-size: 11px;
   line-height: 1.3;
 }
+table.sp tr.pic td {
+  text-align: center;
+}
 table.sp canvas {
   display: block;
-  margin-left: auto;
+  margin: 0 auto;
 }
 table.sp .ext {
   opacity: 0.45;

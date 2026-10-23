@@ -715,11 +715,11 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 Collapse or expand it with the arrow. It has four tabs.
 
 - **Species**
-  - **Map colours**: colour creatures by their own body colour, or by species tag.
   - **Table**: one column for the released design and one for every species, extinct ones greyed out and marked
-    †. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
-    is a drawing of each species' average creature (its average traits, with the colour it has drifted to). Then:
-    size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
+    †. Numbers are shown to one decimal place. When there are too many to fit, the table scrolls sideways while the row names stay in view. The first row
+    is a drawing of each species' average creature (its average traits, with the colour it has drifted to), all at
+    one scale and centred at the same height. Then:
+    size, leg length (px, as drawn), leg number (an average, such as 4.7), tail length (px, or None), mouth
     (Claw to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
     from are highlighted in orange (primus is compared with the released design). A trait counts only if it
@@ -728,7 +728,7 @@ Collapse or expand it with the arrow. It has four tabs.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
     second walking flat out, without temperature or deep water), Energy store, Fits thickets or Crosses rivers (the
-    last two as the share of a species that can). One line per species, of the species' average. Distances
+    last two as the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
     beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, so a few unlimited
     creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
     released design's value. A chart shows at most the last 20 minutes (`CHART_SPAN`). After that a **slider**
@@ -752,7 +752,7 @@ Collapse or expand it with the arrow. It has four tabs.
   then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
   bump. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
   select another creature, or it dies.
-- **World**: world number, current season and time left, sea cover, time to the next event, number of
+- **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of
   landmasses (ignoring specks under 20 cells), land cover and sea cover (shares of the whole map; rivers and
   crater lakes make up the rest), craters still above the sea, thicket and rock cover as a share of the land, and
   a map key. All of them are measured from the map as it is now, so they change after every event.
