@@ -117,10 +117,10 @@ let tab = 'pop',
   metric = 'n';
 const METRICS = [
   ['n', 'Population'],
-  ['spd', 'Speed'],
+  ['size', 'Size'],
+  ['leg', 'Legs'],
   ['hab', 'Tail'],
   ['mth', 'Mouth'],
-  ['thick', 'Narrowest'],
   ['round', 'Roundness'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
@@ -273,7 +273,7 @@ function drawChart() {
     slider.style.setProperty('--p', `calc(${v * 100}% - ${v * 12 - 6}px)`); // the track fills up to the thumb
   }
   g.clearRect(0, 0, w, h);
-  const pct = metric === 'hab' || metric === 'mth',
+  const pct = metric === 'hab' || metric === 'mth' || metric === 'leg',
     mul = pct ? 100 : 1;
   const series = S.species
     .map(sp => ({ sp, pts: HS.filter(e => e.sp[sp.id]).map(e => [e.t, e.sp[sp.id][metric] * mul]) }))
@@ -283,7 +283,7 @@ function drawChart() {
   let vals = [o];
   series.forEach(s => s.pts.forEach(p => seen(p[0]) && vals.push(p[1])));
   if (tot) tot.forEach(p => seen(p[0]) && vals.push(p[1]));
-  const small = metric === 'round';
+  const small = metric === 'round' || metric === 'size';
   let lo = Math.min(...vals),
     hi = Math.max(...vals);
   if (hi - lo < 1e-6) {
@@ -345,7 +345,7 @@ function drawChart() {
 
 function cell(v, o, d = 1, suf = '') {
   const x = v - o,
-    thr = suf === '%' ? 0.05 : d === 2 ? 0.04 : 0.15,
+    thr = suf === '%' ? 0.05 : suf === ' px/s' ? 1.5 : d === 2 ? 0.04 : 0.15,
     cls = Math.abs(x) < thr ? '' : x > 0 ? 'up' : 'down';
   return `<td class="${cls}">${suf === '%' ? Math.round(v * 100) + '%' : v.toFixed(d) + suf}</td>`;
 }
@@ -353,10 +353,9 @@ function cell(v, o, d = 1, suf = '') {
 const DIFF = [
   ['hab', 'Tail', 0.12, v => Math.round(v * 100) + '%'],
   ['mth', 'Mouth', 0.12, v => `${mouthTxt(v)} (${Math.round(v * 100)}% straw)`],
-  ['spd', 'Speed', 1.2, v => v.toFixed(1)],
-  ['w', 'Width', 1.2, v => v.toFixed(1)],
-  ['h', 'Length', 1.2, v => v.toFixed(1)],
-  ['thick', 'Narrowest side', 2.5, v => v.toFixed(1) + ' px'],
+  ['leg', 'Legs', 0.12, v => Math.round(v * 100) + '%'],
+  ['size', 'Size', 0.12, v => v.toFixed(2)],
+  ['fits', 'Fits thickets', 0.25, v => Math.round(v * 100) + '%'],
   ['river', 'Crosses rivers', 0.25, v => Math.round(v * 100) + '%'],
   ['dhue', 'Colour', 20, v => (v >= 0 ? '+' : '') + Math.round(v) + '°'],
   ['round', 'Roundness', 0.2, v => v.toFixed(2)],
@@ -511,11 +510,14 @@ function syncUI() {
     const R1 = [
       ['Width', 'w'],
       ['Length', 'h'],
-      ['Narrowest side', 'thick', 1, ' px'],
-      ['Speed', 'spd'],
+      ['Size', 'size', 2],
+      ['Legs', 'leg', 0, '%'],
       ['Tail', 'hab', 0, '%'],
       ['Mouth (straw)', 'mth', 0, '%'],
       ['Roundness', 'round', 2],
+      ['Land speed', 'vL', 0, ' px/s'],
+      ['Water speed', 'vW', 0, ' px/s'],
+      ['Fits thickets', 'fits', 0, '%'],
       ['Crosses rivers', 'river', 0, '%'],
     ];
     const row = ([l, k, d = 1, suf = '']) =>
@@ -557,16 +559,11 @@ function syncUI() {
         <div><span>Burning</span><b>${c.dead ? '–' : c.burnNow.toFixed(2) + ' /s'}</b></div>
         <div><span>Age</span><b>${Math.round(c.age)} / ${LIFE} s</b><div class="meter"><i style="width:${Math.min(100, (c.age / LIFE) * 100)}%;background:var(--muted)"></i></div></div>
         <div><span>Width × length</span><b>${c.w.toFixed(1)} × ${c.h.toFixed(1)}</b></div>
-        <div><span>Narrowest side</span><b>${c.thick.toFixed(1)} px</b></div><div><span>Thicket gaps</span><b>${
-          [10, 13, 16]
-            .filter(g => c.thick <= g)
-            .map(g => g + 'px')
-            .join(' ') || 'none'
-        }</b></div>
-        <div><span>Speed</span><b>${c.spd.toFixed(1)} · land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
+        <div><span>Size</span><b>${c.size.toFixed(2)}</b></div><div><span>Thickets</span><b>${c.fits ? 'Fits' : 'Too big'}</b></div>
+        <div><span>Legs</span><b>${c.legs} · ${legTxt(c.leg)}</b></div><div><span>Roundness</span><b>${c.round.toFixed(2)}</b></div>
+        <div><span>Speed</span><b>land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
         <div><span>Tail</span><b>${tailTxt(c.hab)}</b></div><div><span>Range</span><b>${rangeTxt(c)}</b></div>
         <div><span>Mouth</span><b>${mouthTxt(c.mth)} · ${Math.round(c.mth * 100)}% straw</b></div><div><span>Feeding</span><b>${mouthFeed(c)}</b></div>
-        <div><span>Look</span><b>${Math.round(c.legs)} legs · round ${c.round.toFixed(2)}</b></div>
       </div>`;
   } else {
     const sw = (f, s, ex = '') =>
@@ -580,8 +577,8 @@ function syncUI() {
       <div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div><div><span>Rock cover</span><b>${world.stats.rock}% of land</b></div></div>
       <div class="legend">
        ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean a narrower gap: 10, 13 or 16 px.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. Richer than a berry, but a claw cracks them far quicker than a straw.</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Only small creatures fit (size ${THICKET} or less).</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A claw gets more from them than a straw does.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>
        ${sw('#b9cfd7', '#151918')}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
@@ -591,9 +588,8 @@ function syncUI() {
 `;
   }
 }
-// how the mouth suits each food: nut cracking time and how much it gets from algae
-const mouthFeed = c =>
-  `cracks a nut in ${crackTime(c).toFixed(1)} s · algae ×${(1 + MOUTH.algae * (2 * c.mth - 1)).toFixed(2)}`;
+// how much the mouth gets from each food, compared with a berry
+const mouthFeed = c => `nuts ×${mouthGain(c, 'n').toFixed(2)} · algae ×${mouthGain(c, 'w').toFixed(2)}`;
 function rangeTxt(c) {
   if (c.tail <= 0) return 'Never enters water';
   if (c.tail >= 1) return 'Never leaves water';

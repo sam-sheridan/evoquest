@@ -6,7 +6,7 @@ let D = {
   name: 'Blorbs',
   w: 4,
   h: 4.5,
-  spd: 5,
+  leg: 0.5,
   hab: 0.2,
   mth: 0.5,
   hue: 41,
@@ -30,7 +30,7 @@ $('#fHue').onclick = e => {
 for (const [id, key, k] of [
   ['#fW', 'w', 1],
   ['#fH', 'h', 1],
-  ['#fS', 'spd', 1],
+  ['#fL', 'leg', 0.01],
   ['#fHab', 'hab', 0.01],
   ['#fMth', 'mth', 0.01],
   ['#fR', 'round', 1],
@@ -93,7 +93,7 @@ function randomDesign() {
     name: nm,
     w: +r(1.5, 6.5).toFixed(1),
     h: +r(1.5, 6.5).toFixed(1),
-    spd: +r(2, 9).toFixed(1),
+    leg: +r(0, 1).toFixed(2),
     // about a third are land creatures with no tail; the rest have a clearly visible tail
     hab: +(rand() < 0.35 ? r(0, 0.3) : r(0.4, 0.9)).toFixed(2),
     mth: +r(0, 1).toFixed(2),
@@ -127,13 +127,13 @@ function syncCreator() {
     });
   $('#fW').value = D.w;
   $('#fH').value = D.h;
-  $('#fS').value = D.spd;
+  $('#fL').value = Math.round(D.leg * 100);
   $('#fHab').value = Math.round(D.hab * 100);
   $('#fMth').value = Math.round(D.mth * 100);
   $('#fR').value = D.round;
   $('#oW').textContent = D.w.toFixed(1);
   $('#oH').textContent = D.h.toFixed(1);
-  $('#oS').textContent = D.spd.toFixed(1);
+  $('#oL').textContent = legTxt(D.leg);
   $('#oHab').textContent = tailTxt(D.hab);
   $('#oMth').textContent = mouthTxt(D.mth);
   $('#oR').textContent = D.round.toFixed(2);
@@ -142,8 +142,9 @@ function syncCreator() {
   pvC = c;
   const b = moveBurn(c, c.vL);
   $('#budget').innerHTML =
-    `<b>${rangeTxt(c)}.</b> A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
-    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw cracks nuts quickly; a straw gets more from algae. Berries suit any mouth.`;
+    `<b>Size ${c.size.toFixed(2)}, ${c.legs} legs, ${c.fits ? 'fits into thickets' : 'too big for thickets'}.</b> Width and length only matter through size: a bigger body is slower but burns less energy, and only size ${THICKET} or less fits into thickets. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower.
+    <br /><b>${rangeTxt(c)}.</b> Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster.
+    <br /><b>${mouthTxt(c.mth)}: ${mouthFeed(c)}.</b> A claw gets more from nuts; a straw gets more from algae. Berries suit any mouth.`;
   $('#pvChips').innerHTML =
     `<span class="chip">Land ${Math.round(c.vL)} px/s</span><span class="chip">Water ${Math.round(c.vW)} px/s</span>
     <span class="chip ${c.vW >= RIVER && c.dW >= 16 ? 'ok' : 'no'}">${c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers'}</span>
@@ -190,19 +191,14 @@ function drawPreview(t) {
   g.font = '12px "IBM Plex Mono", monospace';
   g.fillText('10 px', 40, 360);
   g.fillText(
-    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · fits ${
-      [10, 13, 16]
-        .filter(x => pvC.thick <= x)
-        .map(x => x + ' px')
-        .join(', ') || 'no'
-    } thicket gaps`,
+    `${pvC.bw.toFixed(1)} × ${pvC.bh.toFixed(1)} px · size ${pvC.size.toFixed(2)} · ${pvC.fits ? 'fits into thickets' : 'too big for thickets'}`,
     40,
     378
   );
 }
 function openCreator(seed, design, canCancel) {
-  if (design && design.spd !== undefined && design.sat !== undefined)
-    D = { ...D, mth: 0.5, ...design, w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
+  if (design && design.w !== undefined && design.sat !== undefined)
+    D = { ...D, ...upgrade(design), w: Math.min(design.w, 7), h: Math.min(design.h, 7) };
   else randomDesign();
   const opts = [`<option value="">New random world</option>`];
   const seen = new Set();
@@ -249,7 +245,7 @@ $('#go').onclick = () => {
     name: D.name,
     w: D.w,
     h: D.h,
-    spd: D.spd,
+    leg: D.leg,
     hab: D.hab,
     mth: D.mth,
     hue: D.hue,

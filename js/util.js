@@ -16,6 +16,9 @@ const tailTxt = h => {
   const w = Math.round(h * 100);
   return h < TAIL.min ? 'None · land only' : w >= 100 ? 'Full · water only' : `${w}%`;
 };
+// leg length in words
+const legTxt = l =>
+  l < 0.2 ? 'Short' : l < 0.4 ? 'Fairly short' : l < 0.6 ? 'Medium' : l < 0.8 ? 'Fairly long' : 'Long';
 // the mouth's name along the way from claw (0) to straw (1)
 const mouthTxt = m =>
   m < 0.2 ? 'Claw' : m < 0.4 ? 'Slim claw' : m < 0.62 ? 'Tweezers' : m < 0.88 ? 'Prongs' : 'Straw';
