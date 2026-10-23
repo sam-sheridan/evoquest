@@ -155,29 +155,31 @@ const REGIONS = { strength: 1.3 };
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
 // which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
 //   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
-// sea depth is measured as how far from land (px) the water would be on a plain coast. shelf: the depth where the
-// shallow shelf ends and deep water starts. Every coast has at least the plain taper; along some stretches the
-// shallows reach further out, up to 1 + widen times as far, where a broad pattern is between wide[0] and wide[1]
-// and above. Shallow banks rise out at sea where another pattern goes over bank[0], tapering bank[1] px of depth
-// per unit of the pattern. Neither gets shallower than top: from top[0] px (the outer band) where a third pattern
-// is below topAt[0], to top[1] px (the shallowest band) where it is above topAt[1]. Both fade out over edgeFade
-// cells inside the map's sea margin, so the open ocean round the map is always deep. Lakes are always shallow.
-// Algae grows only on the shelf, thinning out with distance from shore (algaeFade px). In deep water, creatures
-// burn up to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae that
-// waits, dormant, in the deep water just beyond the shelf (up to beyond px deeper), growing once a drought pulls
-// the shallows out to it
+// sea depth is measured in shelf widths: 1 is where the shallow shelf ends and deep water starts on a plain coast.
+// Each world's plain shelf is as wide as the nearest shelf share of its open sea at the start, as the shelf was
+// before the map redesign, but never under minWidth px. Every coast has at least that tapering shelf; along some
+// stretches the shallows reach further out, up to 1 + widen times as far, where a broad pattern is between wide[0]
+// and wide[1] and above. Shallow banks rise out at sea where another pattern goes over bank[0], tapering bank[1]
+// shelf widths of depth per unit of the pattern. Neither gets shallower than top: from top[0] (in the outer band)
+// where a third pattern is below topAt[0], to top[1] (the shallowest band) where it is above topAt[1]. Both fade out
+// over edgeFade cells inside the map's sea margin, so the open ocean round the map is always deep. Lakes are always
+// shallow. Algae grows only on the shelf, thinning out with distance from shore (algaeFade px). In deep water,
+// creatures burn up to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae
+// that waits, dormant, in the deep water just beyond the shelf (up to beyond shelf widths past its edge), growing
+// once a drought pulls the shallows out to it
 const SEA = {
-  shelf: 110,
-  widen: 2,
+  shelf: 0.3,
+  minWidth: 110,
+  widen: 1.2,
   wide: [0.52, 0.72],
-  bank: [0.72, 1100],
-  top: [92, 8],
+  bank: [0.77, 10],
+  top: [0.84, 0.07],
   topAt: [0.45, 0.75],
   edgeFade: 14,
   algaeFade: 80,
   deepCost: 0.8,
   drought: 0.4,
-  beyond: 60,
+  beyond: 0.5,
 };
 const TEMP = {
   cold: 0.3,
@@ -233,10 +235,10 @@ const VAR = 1.6; // how much offspring traits vary from their parent (1 = base a
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
 const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
-// sea depth bands, shallowest to deepest, and the depths (px, see SEA) where each deeper band starts; the last is
-// the shelf's edge, drawn dashed. The deepest colour is also the background beyond the map
+// sea depth bands, shallowest to deepest, and the depths (in shelf widths, see SEA) where each deeper band starts;
+// the last is the shelf's edge, drawn dashed. The deepest colour is also the background beyond the map
 const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
-const BAND_AT = [30, 64, SEA.shelf];
+const BAND_AT = [0.27, 0.58, 1];
 // thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
 // [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
 // each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees

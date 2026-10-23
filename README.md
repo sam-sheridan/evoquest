@@ -499,21 +499,25 @@ Each world also rolls a **shape** (`SHAPES`), separately from its type:
 
 ### Sea depth
 
-The sea has a **shallow shelf** and **deep water** beyond it. Depth is measured as how far from land (px) the water
-would be on a plain coast, and the shelf ends at 110 px (`SEA.shelf`).
+The sea has a **shallow shelf** and **deep water** beyond it, and the map draws exactly what the game uses: the
+three pale bands round the coasts are the shelf, and its edge, where deep water starts, is the dashed line.
+(Before the map redesign the shelf was worked out separately and never drawn, and the bands were a fixed width.)
 
-- **Every coast** has at least the plain taper: shallowest within 30 px of land, then 64 px, then the shelf's edge
-  at 110 px.
-- **Along some stretches** the shallows reach further out, up to three times as far (`SEA.widen`, `SEA.wide`).
+- **Every coast** has a tapering shelf as wide as the nearest 30% of the world's open sea at the start
+  (`SEA.shelf`), as the shelf was before, but never narrower than 110 px (`SEA.minWidth`). So worlds with a lot of
+  open sea have wide shelves (about 250 px on classic and forest worlds) and supercontinents narrow ones (about
+  130–145 px). That width is fixed for the world, so after a flood or drought the shelf follows the new coast.
+- **Along some stretches** the shallows reach further out, up to 2.2 times as far (`SEA.widen`, `SEA.wide`).
 - **Shallow banks** rise as separate patches out at sea, where there is room (`SEA.bank`).
 - **Each wider stretch and bank has its own shallowest depth** (`SEA.top`, `SEA.topAt`): usually only the outer
   band, sometimes the middle band, and now and then all three. Next to the coast the plain taper stays, so a wide
   stretch is a broad shelf beyond the normal bands.
 - **Near the map's edge**, wider stretches and banks fade away over the 14 cells inside the sea margin
-  (`SEA.edgeFade`), so the open ocean round the map is always deep.
+  (`SEA.edgeFade`), and within the margin itself even a plain shelf runs out, so the open ocean round the map is
+  always deep.
 - **Lakes** (water not joined to the open sea) are always shallow.
 
-The shelf is roughly 18–33% of the open sea, depending on the world, about the same as before this was redesigned.
+With the extra stretches and banks, the shelf is about 29–39% of the open sea, a little more than the 30% it was.
 Depth is worked out again after every flood, drought or earthquake.
 
 - **Algae** grows only on the shelf, most thickly close to shore (`SEA.algaeFade`).
@@ -584,7 +588,7 @@ in deep water when the shelf moves are wiped out: they vanish and can't be eaten
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
 waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
 take it from walkers. Likewise, 40% more of the world type's algae waits in the deep water just beyond the shelf
-(`SEA.drought`, up to 60 px past its edge, `SEA.beyond`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
+(`SEA.drought`, up to half a shelf width past its edge, `SEA.beyond`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
 waits. Without it, a drought could take two thirds of an archipelago's algae at once.
 
 ---

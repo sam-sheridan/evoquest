@@ -335,8 +335,7 @@ function genWorld(seed, att = 0) {
   // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
   const beyond = [];
   for (let i = 0; i < GW * GH; i++)
-    if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < SEA.shelf + SEA.beyond)
-      beyond.push(i);
+    if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < 1 + SEA.beyond) beyond.push(i);
   for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
     put(beyond[(rl2() * beyond.length) | 0]);
 }
@@ -644,10 +643,16 @@ function buildTerrain(skipDraw) {
   // how far each thicket cell is from the thicket's edge (16 px for an edge cell), which sets who can go there
   w.dThick = distField(i => w.type[i] !== 2);
   w.dWater = distField(i => isWater(w.type[i]));
-  // sea depth, as how far from land (px) the water would be on a plain coast: every coast keeps at least the plain
-  // taper, some stretches reach further out (wider shallows), and shallow banks rise out at sea. Both fade out
-  // towards the map's edge, so the open ocean round the map is always deep. Lakes are always shallow
+  // sea depth, measured in shelf widths: 1 is the edge of the shallow shelf on a plain coast. The plain shelf is as
+  // wide as the nearest share of the open sea at the start (never under SEA.minWidth px), so every coast keeps that
+  // tapering shelf; some stretches reach further out, and shallow banks rise out at sea. Those fade out towards the
+  // map's edge, where the sea is always deep. Lakes are always shallow
   const open = openSea(w.type);
+  if (!w.shelfPx) {
+    const d = [];
+    for (let i = 0; i < N; i++) if (open[i]) d.push(w.dLand[i]);
+    w.shelfPx = Math.max(SEA.minWidth, quant(d, SEA.shelf));
+  }
   if (!w.seaN) {
     const r = mulberry32(w.seed ^ 0x5ea),
       wide = field(r, [
@@ -676,15 +681,19 @@ function buildTerrain(skipDraw) {
   w.deep = new Uint8Array(N);
   for (let i = 0; i < N; i++) {
     if (w.type[i] !== 0) continue;
-    const fade = clamp((edgeDist(i % GW, (i / GW) | 0) - EDGE) / SEA.edgeFade, 0, 1),
+    const e = edgeDist(i % GW, (i / GW) | 0),
+      fade = clamp((e - EDGE) / SEA.edgeFade, 0, 1),
       n = clamp((w.seaN[0][i] - SEA.wide[0]) / (SEA.wide[1] - SEA.wide[0]), 0, 1),
       // how shallow the wider stretches and banks get here: usually only the outer band, sometimes shallower
       t = clamp((w.seaN[2][i] - SEA.topAt[0]) / (SEA.topAt[1] - SEA.topAt[0]), 0, 1),
       top = SEA.top[0] + (SEA.top[1] - SEA.top[0]) * t,
-      coast = Math.max(w.dLand[i] / (1 + SEA.widen * n * n * (3 - 2 * n) * fade), Math.min(w.dLand[i], top)),
-      bank = Math.max(top, Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1]);
-    w.depth[i] = open[i] ? Math.min(coast, bank) : Math.min(w.dLand[i], SEA.shelf - 1);
-    w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
+      plain = w.dLand[i] / w.shelfPx,
+      coast = Math.max(plain / (1 + SEA.widen * n * n * (3 - 2 * n) * fade), Math.min(plain, top)),
+      bank = Math.max(top, Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1]),
+      // within the map's sea margin, even a plain shelf runs out into deep water
+      edge = 2 * clamp(1 - e / EDGE, 0, 1);
+    w.depth[i] = open[i] ? Math.max(Math.min(coast, bank), edge) : Math.min(plain, 0.99);
+    w.deep[i] = w.depth[i] > 1 ? 1 : 0;
   }
   for (let i = 0; i < N; i++) {
     const t = w.type[i];
