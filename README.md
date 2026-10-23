@@ -51,7 +51,8 @@ be changed, its name in `js/config.js` is shown like `this`.
    the food it can reach within 640 px without leaving ground it's allowed on (`RELEASE`). So a water design isn't
    left in a rich but cut-off strip of shallows at the map's edge when a longer coast or a river network is on
    offer. The founders start with 90% energy and already
-   old enough to breed, aged 15 to 25 seconds (`FOUNDERS`), so the population gets going without a long wait. Their
+   old enough to breed, aged 15 to 45 seconds (`FOUNDERS`), so the population gets going without a long wait. Their ages are spread so
+   they don't all die of old age at the same moment, which used to halve the population at about 70 seconds. Their
    traits are varied 1.5 times more than normal so selection has something to work on straight away.
 3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
    every 2.5 minutes. A world event happens every 7 minutes.
@@ -265,13 +266,13 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)²) × (1 + 0.25 × (0.9 − size)), plus temperature,
+- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)²) × (1 + 0.5 × (0.9 − size)), plus temperature,
   and more in deep water (`BURN`).
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     long legs.
-  - Big bodies burn less: the smallest burn about 10% more than a size-0.9 creature, the biggest about 9% less.
+  - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 2.1 a second and the biggest about 0.9.
+    about 2.3 a second and the biggest about 0.8.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
     for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
     and big ones least (about 0.65 times).
@@ -372,6 +373,10 @@ allowed into.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
+- **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
+  1.5 seconds less travel (`FOOD_PREF`). A claw gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
+  a straw's algae (10) as 3 seconds closer. So creatures go out of their way for the food their mouth suits, which
+  pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
 ### Moving
@@ -421,7 +426,7 @@ no say in the world, and different worlds favour different designs. All the numb
 | Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
 | **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
-| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 250 / 250 | a little warmer |
+| **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 320 / 250 | a little warmer |
 | **Supercontinent** | 1 in 5 | 42–46% | no | 18% | 8% | 440 / 60 | normal |
 | **Highlands** | 1 in 5 | 33–37% | yes | 8% | 28% | 375 / 125 | colder |
 | **Forest** | 1 in 5 | 32–36% | yes | 45% | 5% | 400 / 100 | normal |
@@ -514,9 +519,9 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 250–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
+| **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a claw, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -548,7 +553,9 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 in deep water when the shelf moves are wiped out: they vanish and can't be eaten. When the ground suits them again
 (say a drought after a flood), they start regrowing from scratch rather than reappearing fully grown. The algae
 waiting on low land works the same way: a flood is what makes it grow, so floods bring food to swimmers while they
-take it from walkers.
+take it from walkers. Likewise, 40% more of the world type's algae waits in the deep water just beyond the shelf
+(`SEA.drought`): a drought dries the old shallows and wipes their algae, and pulls the shelf out to where that algae
+waits. Without it, a drought could take two thirds of an archipelago's algae at once.
 
 ---
 
@@ -654,8 +661,8 @@ Two kinds of split are looked for:
 The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
 becomes a new species.
 
-**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.7 × (living species − 1)
-(`SPC.extra`). With 2 species alive, splits need 70% more difference, and with 3 alive, 140% more. That keeps
+**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.9 × (living species − 1)
+(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. That keeps
 runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
 **Trait difference** is measured across seven traits on comparable scales: width, length (each ÷ 10), legs,

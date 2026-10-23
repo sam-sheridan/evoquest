@@ -367,13 +367,16 @@ function dijkstra(c) {
   c._wait = null;
   let bs = Infinity,
     ws = Infinity;
-  const range = homeRange(c);
+  const range = homeRange(c),
+    // the most a food can be worth to this creature beyond a berry, in seconds (see FOOD_PREF), so the search
+    // doesn't stop before a richer food further away
+    pref = FOOD_PREF * FOOD * Math.max(0, mouthGain(c, 'n') - 1, mouthGain(c, 'w') - 1);
   while (hn) {
     hpop2();
     const i = PI,
       k = PK;
     if (k > pd[i] + 1e-6) continue;
-    if (k - 1.5 > bs || k > MAXT || ++n > 2600) break;
+    if (k - 1.5 - pref > bs || k > MAXT || ++n > 2600) break;
     const L = idx.get(i);
     if (L)
       for (const f of L) {
@@ -386,7 +389,8 @@ function dijkstra(c) {
           if (w < ws) [ws, c._wait] = [w, f];
           continue;
         }
-        const sc = k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range);
+        const sc =
+          k + cl * 2.5 - (mine ? 1.5 : 0) + awayCost(c, f, range) - FOOD_PREF * (foodEnergy(c, f) - FOOD);
         if (sc < bs) {
           bs = sc;
           c._best = f;
