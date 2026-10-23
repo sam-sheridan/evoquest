@@ -14,6 +14,9 @@ let D = {
   lt: 45,
   round: 1,
 };
+// the number released comes from START
+$('#go').textContent = `Release ${START} specimens`;
+$('.brand p').textContent = `Design a species. Release ${START}. The world decides the rest.`;
 $('#fHue').innerHTML = OKABE.map(
   ([n, hex], k) => `<button data-v="${k}" aria-label="${n}" title="${n}" style="background:${hex}"></button>`
 ).join('');

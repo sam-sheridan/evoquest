@@ -167,8 +167,8 @@ function newGame(design, seed) {
         break;
       }
     }
-    c.E = c.cap * 0.8;
-    c.age = rand() * 20;
+    c.E = c.cap * FOUNDERS.energy;
+    c.age = MATURE + rand() * FOUNDERS.age;
     S.creatures.push(c);
   }
   const best = spots[0];
@@ -567,7 +567,11 @@ function update(c, dt) {
   c.dir += clamp(da, -3 * dt, 3 * dt);
   // a waiting creature that has reached its spot stands still, and one that must turn sharply close to its next
   // point turns on the spot first: otherwise it can circle that point for ever, never quite getting there
-  const halt = (waiting && near < 12) || (near < 20 && Math.abs(da) > 1.2),
+  const halt =
+      (waiting && near < 12) ||
+      (near < 20 && Math.abs(da) > 1.2) ||
+      // close to its food but not facing it: turn to face it, so it eats with its mouth
+      (c.target && near < c.reach + 6 && Math.abs(da) > EAT_FACE),
     sp = halt ? 0 : speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
   let moved = false;
   for (const off of [0, 0.45, -0.45, 1, -1, 1.8, -1.8]) {
@@ -598,8 +602,16 @@ function update(c, dt) {
   if (c.target) {
     const dx = c.target.x - c.x,
       dy = c.target.y - c.y;
-    if (dx * dx + dy * dy < c.reach * c.reach) S.claims.push(c);
+    if (dx * dx + dy * dy < c.reach * c.reach && facing(c, c.target)) S.claims.push(c);
   }
+}
+// is this food in front of the creature's mouth? (right on top of it counts too)
+function facing(c, f) {
+  const dx = f.x - c.x,
+    dy = f.y - c.y;
+  if (dx * dx + dy * dy < 9) return true;
+  const a = Math.atan2(dy, dx) - c.dir;
+  return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < EAT_FACE;
 }
 function resolveClaims() {
   if (!S.claims.length) return;
@@ -716,7 +728,12 @@ function steer(c, dt) {
   for (let y = y0 - 1; y <= y0 + 1; y++)
     for (let x = x0 - 1; x <= x0 + 1; x++)
       for (const f of idx.get(y * GW + x) || [])
-        if (edible(f) && allowed(c, f.i, world.type[f.i]) && Math.hypot(f.x - c.x, f.y - c.y) < c.reach) {
+        if (
+          edible(f) &&
+          allowed(c, f.i, world.type[f.i]) &&
+          Math.hypot(f.x - c.x, f.y - c.y) < c.reach &&
+          facing(c, f)
+        ) {
           setTarget(c, f);
           S.claims.push(c);
           return;
