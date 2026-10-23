@@ -161,12 +161,12 @@ what you can see.
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
   | 0–33% | 0 | never enters water | anywhere |
-  | 46% | 0.2 | 13 px | 3200 px (anywhere, in practice) |
+  | 46% | 0.2 | 13 px (never enters water, in practice) | 3200 px (anywhere, in practice) |
   | 53% | 0.3 | 37 px | 1089 px |
   | 60% | 0.4 | 89 px | 450 px |
   | 67% | 0.5 | 200 px | 200 px |
   | 73% | 0.6 | 450 px | 89 px |
-  | 87% | 0.8 | 3200 px | 13 px |
+  | 87% | 0.8 | 3200 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
 
   Water is always at least one cell (16 px) from land, so a limit under 16 px means never: a tail below about 48%
