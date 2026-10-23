@@ -186,6 +186,9 @@ const SHOWS = { tail: 0.25, legs: 0.15 };
 //   share faster and the longest this share slower (medium legs make no difference)
 //   six: 6 legs walk this share faster and swim this share slower, 4 legs the reverse; sixFrom: the size from which a
 //   creature has 6 legs rather than 4
+// eyes: round white eyes with a black pupil looking forwards; radius r at size ref, scaled by (size/ref)^pow, so
+// small creatures get smaller eyes and big ones bigger; the pupil is this share of the eye
+const EYES = { r: 2.3, ref: 0.85, pow: 0.75, pupil: 0.51 };
 const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;

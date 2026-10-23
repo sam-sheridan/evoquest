@@ -546,7 +546,8 @@ In winter, all regrowth takes a further 10% longer (`GROW.winter`).
 
 - Eaten food fades out over a moment rather than vanishing.
 - A regrowing berry is a small ring that fills out, with its leaf appearing at half-grown.
-- A regrowing nut is a small, faint acorn that grows and darkens.
+- A regrowing nut grows in size through three stages: a bare pale nut with no cap just after it's eaten, a pale nut
+  with a small pale cap at half-grown, and the full dark acorn when it's ready to eat.
 - A regrowing algae site shows as small yellow fronds and turns green when ready.
 - When zoomed out, food is drawn as simple dots.
 
@@ -910,6 +911,9 @@ The look is a scientific **field notebook / survey map**.
   mid-zoom included.
 - **Creatures** are seen from above.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
+  - Eyes: round white eyes with a black pupil looking forwards, the same on every body colour, so all members of a
+    species match. They scale with body size (`EYES`): smaller on small creatures, bigger on big ones. On narrow
+    bodies they move apart just enough not to overlap.
   - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves. They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the

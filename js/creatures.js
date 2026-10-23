@@ -319,11 +319,23 @@ function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
     g.stroke(body);
   }
   if (detail) {
-    const ex = L * 0.52,
-      half = Math.max(1.4, Math.min(c.bw * 0.22, 3.2));
-    g.fillStyle = INK;
-    if (c.lt < 40 && fill === col(c)) g.fillStyle = '#fcfcfb';
-    for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
+    // the same eyes on every body colour, sized by body size; on narrow bodies they move apart rather than overlap
+    const R = EYES.r * Math.pow(c.size / EYES.ref, EYES.pow),
+      ex = L * 0.52,
+      half = Math.max(R, Math.min(c.bw * 0.22, 3.2));
+    g.lineWidth = lw * 0.75;
+    g.strokeStyle = INK;
+    for (const s of [-1, 1]) {
+      g.fillStyle = '#fcfcfb';
+      g.beginPath();
+      g.arc(ex, s * half, R, 0, TAU);
+      g.fill();
+      g.stroke();
+      g.fillStyle = INK;
+      g.beginPath();
+      g.arc(ex + 0.28 * R, s * half, EYES.pupil * R, 0, TAU);
+      g.fill();
+    }
   }
   g.restore();
 }
