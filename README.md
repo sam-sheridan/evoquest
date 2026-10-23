@@ -369,7 +369,10 @@ allowed into.
 
 ### Moving
 
-- Creatures turn at most 3 radians a second and move at half speed while turning sharply.
+- Creatures turn at most 3 radians a second and move at half speed while turning sharply. Close to the next point
+  on their route (within 20 px) they turn on the spot instead, and a creature waiting by regrowing or busy food
+  stands still once within 12 px of its spot. Without this, a creature could circle a point for ever without ever
+  quite reaching it.
 - Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
 - Wanderers turn back towards the middle of the map near its oval edge.
@@ -594,7 +597,7 @@ Each event:
 - earthquakes shake the view for 1.6 seconds (major: 2.2, harder), and meteor strikes give it a short jolt
   one second after the strike, with the boom of the impact (`SHAKE`); there is no shake when the device is set
   to reduce motion
-- plays its own sound effect
+- plays its own sound effect (and the sign beeps softly once a second while it flashes beforehand)
 - turns the world event sign bright orange with the event's symbol for 2 seconds (after 7 seconds of flashing
   beforehand)
 - adds a line to the event log
@@ -825,7 +828,8 @@ All sound is generated live in the browser. There are no audio files.
 | **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going, at about the loudness of the zoomed-in beat's snare. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
-| **World events** | Each has its own effect, louder and longer when major: flood (rushing water and falling notes), drought (dry hiss and rising notes), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
+| **World event warning** | While the world event sign flashes, before an event, a soft high beep once a second, on every other flash (`WARN_BEEP`). Not while paused. |
+| **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
 | **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
 
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes

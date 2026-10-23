@@ -470,7 +470,9 @@ function update(c, dt) {
   const hi = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1)),
     here = world.type[hi],
     ok = allowed(c, hi, here);
-  let desired;
+  let desired,
+    near = Infinity, // how far the next point on its route is
+    waiting = false; // heading for regrowing or busy food to wait by, rather than food it can eat
   if (c.path && c.wp < c.path.length) {
     let p = c.path[c.wp];
     if (Math.hypot(p[0] - c.x, p[1] - c.y) < 6 && c.wp < c.path.length - 1) {
@@ -478,6 +480,8 @@ function update(c, dt) {
       p = c.path[c.wp];
     }
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
+    near = Math.hypot(p[0] - c.x, p[1] - c.y);
+    waiting = !c.target && c.wp === c.path.length - 1;
   } else {
     c.wander += (rand() - 0.5) * dt * 1.2;
     // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
@@ -498,7 +502,10 @@ function update(c, dt) {
   }
   const da = ((((desired - c.dir + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
   c.dir += clamp(da, -3 * dt, 3 * dt);
-  const sp = speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
+  // a waiting creature that has reached its spot stands still, and one that must turn sharply close to its next
+  // point turns on the spot first: otherwise it can circle that point for ever, never quite getting there
+  const halt = (waiting && near < 12) || (near < 20 && Math.abs(da) > 1.2),
+    sp = halt ? 0 : speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
   let moved = false;
   for (const off of [0, 0.45, -0.45, 1, -1, 1.8, -1.8]) {
     const d = c.dir + off,
