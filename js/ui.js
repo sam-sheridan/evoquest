@@ -353,7 +353,7 @@ function drawChart() {
 // end of a run, when every species has died)
 const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
-  ['Size', (m, c) => m.size.toFixed(1), 'size', 0.06],
+  ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
   ['Leg length (px)', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
   ['Leg number', (m, c) => m.legs.toFixed(1), 'legs', 0.6],
   ['Tail length (px)', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],

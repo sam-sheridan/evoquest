@@ -598,7 +598,7 @@ Two kinds of split are looked for:
    (more than `SPC.geo` = 0.22), that is a candidate split.
 2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
    two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
-   separate, with the gap between them at least 3.1 times the spread within them (`SPC.ratio`). The smaller
+   separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
    cluster must have at least 8 members.
 
 The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
@@ -610,8 +610,11 @@ runs to about 0–2 new species per 15 minutes, with rarely more than 3 alive.
 
 **Trait difference** is measured across seven traits on comparable scales: width, length (each ÷ 10), legs,
 tail, mouth (× 0.6, `MOUTH_SPLIT`), colour drift (÷ 60°), and roundness (× 0.5). Width and length count
-separately here even though only size matters for survival, because they are what you see. Look traits count too, so long
-separation alone can eventually be enough.
+separately here even though only size matters for survival, because they are what you see. Two features that are
+either there or not count extra (`SHOWS`), because they make creatures look different even when the trait behind
+them has barely moved: having a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15. So a population
+that has split into tailed and tailless creatures, or 4- and 6-legged ones, is closer to becoming two species. Look
+traits count too, so long separation alone can eventually be enough.
 
 Species never merge back together.
 
@@ -918,7 +921,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, bigger `extra` means fewer species at once) |
+| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail or 6 legs counts |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |

@@ -897,7 +897,17 @@ function logEv(m) {
 
 /* stats */
 const dHue = c => ((c.hue - S.design.hue + 540) % 360) - 180;
-const vec = c => [c.w / 10, c.h / 10, c.leg, c.hab, c.mth * MOUTH_SPLIT, dHue(c) / 60, c.round * 0.5];
+const vec = c => [
+  c.w / 10,
+  c.h / 10,
+  c.leg,
+  c.hab,
+  c.mth * MOUTH_SPLIT,
+  dHue(c) / 60,
+  c.round * 0.5,
+  c.tail > 0 ? SHOWS.tail : 0,
+  c.legs === 6 ? SHOWS.legs : 0,
+];
 const KEYS = [
   'w',
   'h',
@@ -974,10 +984,10 @@ function record() {
 /* speciation */
 const dist = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
 const centroid = M => {
-  const s = new Array(7).fill(0);
+  const s = new Array(vec(M[0]).length).fill(0);
   for (const c of M) {
     const v = vec(c);
-    for (let i = 0; i < 7; i++) s[i] += v[i];
+    for (let i = 0; i < v.length; i++) s[i] += v[i];
   }
   return s.map(v => v / M.length);
 };
