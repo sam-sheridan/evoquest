@@ -159,16 +159,20 @@ const REGIONS = { strength: 1.3 };
 // shallow shelf ends and deep water starts. Every coast has at least the plain taper; along some stretches the
 // shallows reach further out, up to 1 + widen times as far, where a broad pattern is between wide[0] and wide[1]
 // and above. Shallow banks rise out at sea where another pattern goes over bank[0], tapering bank[1] px of depth
-// per unit of the pattern. Both fade out over edgeFade cells inside the map's sea margin, so the open ocean round
-// the map is always deep. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance from
-// shore (algaeFade px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones).
-// drought: share of the world type's algae that waits, dormant, in the deep water just beyond the shelf (up to
-// beyond px deeper), growing once a drought pulls the shallows out to it
+// per unit of the pattern. Neither gets shallower than top: from top[0] px (the outer band) where a third pattern
+// is below topAt[0], to top[1] px (the shallowest band) where it is above topAt[1]. Both fade out over edgeFade
+// cells inside the map's sea margin, so the open ocean round the map is always deep. Lakes are always shallow.
+// Algae grows only on the shelf, thinning out with distance from shore (algaeFade px). In deep water, creatures
+// burn up to deepCost more energy (none for fully aquatic ones). drought: share of the world type's algae that
+// waits, dormant, in the deep water just beyond the shelf (up to beyond px deeper), growing once a drought pulls
+// the shallows out to it
 const SEA = {
   shelf: 110,
   widen: 2,
   wide: [0.52, 0.72],
   bank: [0.72, 1100],
+  top: [92, 8],
+  topAt: [0.45, 0.75],
   edgeFade: 14,
   algaeFade: 80,
   deepCost: 0.8,

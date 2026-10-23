@@ -659,12 +659,17 @@ function buildTerrain(skipDraw) {
         [16, 0.5],
         [32, 0.25],
       ]);
-    w.seaN = [new Float32Array(N), new Float32Array(N)];
+    const top = field(r, [
+      [10, 1],
+      [20, 0.5],
+    ]);
+    w.seaN = [new Float32Array(N), new Float32Array(N), new Float32Array(N)];
     for (let i = 0; i < N; i++) {
       const u = (i % GW) / GW,
         v = ((i / GW) | 0) / GH;
       w.seaN[0][i] = wide(u, v);
       w.seaN[1][i] = bank(u, v);
+      w.seaN[2][i] = top(u, v);
     }
   }
   w.depth = new Float32Array(N);
@@ -673,8 +678,11 @@ function buildTerrain(skipDraw) {
     if (w.type[i] !== 0) continue;
     const fade = clamp((edgeDist(i % GW, (i / GW) | 0) - EDGE) / SEA.edgeFade, 0, 1),
       n = clamp((w.seaN[0][i] - SEA.wide[0]) / (SEA.wide[1] - SEA.wide[0]), 0, 1),
-      coast = w.dLand[i] / (1 + SEA.widen * n * n * (3 - 2 * n) * fade),
-      bank = Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1];
+      // how shallow the wider stretches and banks get here: usually only the outer band, sometimes shallower
+      t = clamp((w.seaN[2][i] - SEA.topAt[0]) / (SEA.topAt[1] - SEA.topAt[0]), 0, 1),
+      top = SEA.top[0] + (SEA.top[1] - SEA.top[0]) * t,
+      coast = Math.max(w.dLand[i] / (1 + SEA.widen * n * n * (3 - 2 * n) * fade), Math.min(w.dLand[i], top)),
+      bank = Math.max(top, Math.max(0, SEA.bank[0] + (1 - fade) * 0.3 - w.seaN[1][i]) * SEA.bank[1]);
     w.depth[i] = open[i] ? Math.min(coast, bank) : Math.min(w.dLand[i], SEA.shelf - 1);
     w.deep[i] = w.depth[i] > SEA.shelf ? 1 : 0;
   }
