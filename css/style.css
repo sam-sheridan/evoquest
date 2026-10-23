@@ -580,9 +580,6 @@ table.sp .hl {
 .kv div.limit b {
   color: var(--signal);
 }
-.kv div.limit {
-  box-shadow: -6px 0 0 -4px var(--signal);
-}
 .meter {
   height: 5px;
   background: var(--chip);

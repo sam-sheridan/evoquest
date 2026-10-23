@@ -769,7 +769,7 @@ Collapse or expand it with the arrow. It has four tabs.
   while a key is held and stands still otherwise (burning just its resting energy). It eats any food it reaches,
   then rests as usual before you can move it again. Pressing into ground it can't enter makes its corner brackets
   bump, and the stat that stops it flashes orange in the tab: **Range** (too far from shore or from water),
-  **Speed** (allowed in the water but slower than the 14 px/s a river's current needs) or **Thickets** (too big to
+  **Speed** (allowed in the water but slower than the 14 px/s a river's current needs; the tab just colours the stat) or **Thickets** (too big to
   get that far into a thicket). Rock and the map's edge stop everyone, so nothing flashes for them. The dashed food line is hidden while you control it. Control ends when you press *Control* again,
   select another creature, or it dies.
 - **World**: **map colours** (colour creatures by their own body colour, or by species tag), then world number, current season and time left, sea cover, time to the next event, number of

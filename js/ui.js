@@ -627,7 +627,7 @@ function syncUI() {
         <div><span>Offspring</span><b>${c.births}</b></div><div><span>Meals</span><b>${c.eaten}</b></div>
         <div><span>Energy</span><b>${c.dead ? 0 : Math.round(c.E)} / ${Math.round(c.cap)}</b><div class="meter"><i style="width:${c.dead ? 0 : Math.max(0, (c.E / c.cap) * 100)}%"></i></div></div>
         <div><span>Age</span><b>${Math.round(c.age)} / ${LIFE} s</b><div class="meter"><i style="width:${Math.min(100, (c.age / LIFE) * 100)}%;background:var(--muted)"></i></div></div>
-        <div${lim('speed')}><span>Speed</span><b>land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s${lim('speed') ? ` · rivers need ${RIVER}` : ''}</b></div>
+        <div${lim('speed')}><span>Speed</span><b>land ${Math.round(c.vL)} · water ${Math.round(c.vW)} px/s</b></div>
         <div${lim('range')}><span>Range</span><b>${rangeTxt(c)}</b></div>
         <div${lim('thicket')}><span>Thickets</span><b>${thickTxt(c)[0].toUpperCase() + thickTxt(c).slice(1)}</b></div>
         <div><span>Mouth</span><b>${mouthTxt(c.mth)}</b></div><div><span>Feeding</span><b>${mouthFeed(c)}</b></div>
