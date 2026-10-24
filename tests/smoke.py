@@ -106,12 +106,17 @@ with sync_playwright() as p:
     sx, sy = pg.evaluate("""() => { const c = window.EvoQuestDebug.state.creatures.reduce((a, b) => (b.age < a.age ? b : a));
         return [(c.x - cam.x) * cam.z + innerWidth / 2, (c.y - cam.y) * cam.z + innerHeight / 2]; }""")
     pg.mouse.click(sx, sy)
+    steer_ok = True
     if pg.query_selector('#ctl'):
         pg.click('#ctl')
+        start = pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y]; }")
         for key in ['ArrowRight', 'ArrowUp', 'ArrowLeft', 'ArrowDown']:
             pg.keyboard.down(key)
             time.sleep(0.2)
             pg.keyboard.up(key)
+        # the controlled creature must have moved, and still face a real direction
+        end = pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y, c.dir]; }")
+        steer_ok = bool(start and end) and all(v == v for v in end) and (end[0], end[1]) != tuple(start)
         if pg.query_selector('#ctl'):
             pg.click('#ctl')
 
@@ -140,7 +145,7 @@ with sync_playwright() as p:
 
     browser.close()
 
-ok = intro_ok and summary_shown and alive > 0 and lock_ok and doomed and not errors
-print('PASS' if ok else 'FAIL', '| intro works:', intro_ok, '| summary shown:', summary_shown, '| new run alive:', alive, '| testing lock works:', lock_ok,
+ok = intro_ok and steer_ok and summary_shown and alive > 0 and lock_ok and doomed and not errors
+print('PASS' if ok else 'FAIL', '| intro works:', intro_ok, '| steering works:', steer_ok, '| summary shown:', summary_shown, '| new run alive:', alive, '| testing lock works:', lock_ok,
       '| extinction ends the run:', doomed, '| page errors:', errors)
 sys.exit(0 if ok else 1)

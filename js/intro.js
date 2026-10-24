@@ -51,7 +51,7 @@ function introBox() {
 const inBox = (x, y, b, pad) =>
   x > b.left - pad && x < b.right + pad && y > b.top - pad && y < b.bottom + pad;
 // turn towards angle a at up to rate radians a second
-function steer(c, a, rate, dt) {
+function turnTo(c, a, rate, dt) {
   const d = ((((a - c.dir) % TAU) + TAU * 1.5) % TAU) - Math.PI;
   c.dir += clamp(d, -rate * dt, rate * dt);
 }
@@ -71,9 +71,9 @@ function moveCrowd(dt, t) {
     if (rand() < dt / 12) m.rest = 1 + rand();
     const pad = 30 + 8 * m.k;
     if (m.x < pad || m.x > Wd - pad || m.y < pad || m.y > Hd - pad)
-      steer(c, Math.atan2(Hd / 2 - m.y, Wd / 2 - m.x), 2.2, dt);
+      turnTo(c, Math.atan2(Hd / 2 - m.y, Wd / 2 - m.x), 2.2, dt);
     else if (inBox(m.x, m.y, box, 30 + 10 * m.k))
-      steer(c, Math.atan2(m.y - (box.top + box.bottom) / 2, m.x - (box.left + box.right) / 2), 2.6, dt);
+      turnTo(c, Math.atan2(m.y - (box.top + box.bottom) / 2, m.x - (box.left + box.right) / 2), 2.6, dt);
     else c.dir += Math.sin(t * m.f + m.ph) * 0.8 * dt;
     // no two creatures walk over each other: one heading into another turns aside, and if they still touch they
     // are eased apart
