@@ -69,19 +69,6 @@ function march(fv, thr, wantFill, wantLine) {
     }
   return { fill, line };
 }
-function hatch(g, clip, spacing, colr, lw, ang = 1) {
-  g.save();
-  g.clip(clip);
-  g.strokeStyle = colr;
-  g.lineWidth = lw;
-  g.beginPath();
-  for (let k = -H; k < W + H; k += spacing) {
-    g.moveTo(k, 0);
-    g.lineTo(k + H * ang, H);
-  }
-  g.stroke();
-  g.restore();
-}
 // marching squares again, but chained into closed loops (lists of points) rather than loose segments, so outlines
 // can be straightened
 function traceLoops(fv, thr) {
@@ -192,7 +179,7 @@ function rocks(w, rf, land) {
       tick: new Path2D(),
       tickD: new Path2D(),
     };
-  // separate pieces of rock, and which are too small to draw as crags
+  // separate pieces of rock (each is lifted to a minimum height below)
   const comp = new Int32Array(N).fill(-1),
     pieces = [];
   for (let s = 0; s < N; s++) {
@@ -203,12 +190,7 @@ function rocks(w, rf, land) {
       const j = list[q],
         x = j % GW,
         y = (j / GW) | 0;
-      for (const [dx, dy] of [
-        [1, 0],
-        [-1, 0],
-        [0, 1],
-        [0, -1],
-      ]) {
+      for (const [dx, dy] of D4) {
         const xx = x + dx,
           yy = y + dy,
           k = yy * GW + xx;
@@ -220,7 +202,7 @@ function rocks(w, rf, land) {
     pieces.push(list);
   }
   // (pieces too small to draw were already turned into open ground when the world was built)
-  const big = i => T[i] === 3,
+  const isRock = i => T[i] === 3,
     // water next to rock counts as rock, so the outline runs out past the coast and is cut by the smooth coastline
     wet = i => {
       if (!isWater(T[i])) return false;
@@ -230,14 +212,19 @@ function rocks(w, rf, land) {
         for (let dx = -1; dx <= 1; dx++) {
           const xx = x + dx,
             yy = y + dy;
-          if (xx >= 0 && yy >= 0 && xx < GW && yy < GH && big(yy * GW + xx)) return true;
+          if (xx >= 0 && yy >= 0 && xx < GW && yy < GH && isRock(yy * GW + xx)) return true;
         }
       return false;
     },
-    fv = i => (big(i) ? rf(i) : wet(i) ? Math.max(rf(i), thr + 0.002) : Math.min(rf(i), thr - 0.002));
+    fv = i => (isRock(i) ? rf(i) : wet(i) ? Math.max(rf(i), thr + 0.002) : Math.min(rf(i), thr - 0.002));
+  // the outline's loops, kept for the skirt of strokes below
+  const loops = [];
   for (const l of traceLoops(fv, thr)) {
     const p = straightenLoop(l, ROCKS.straight);
-    if (p.length >= 3 && Math.abs(loopArea(p)) > 120) addLoop(R.outline, p);
+    if (p.length >= 3 && Math.abs(loopArea(p)) > 120) {
+      addLoop(R.outline, p);
+      loops.push(p);
+    }
   }
   const g = document.createElement('canvas').getContext('2d'),
     inRock = (x, y) => g.isPointInPath(R.outline, x, y, 'evenodd');
@@ -352,11 +339,6 @@ function rocks(w, rf, land) {
   });
   // skirt: short strokes just inside the edge, pointing uphill, longer where the rock rises higher and darker on the
   // shaded side
-  const loops = [];
-  for (const l of traceLoops(fv, thr)) {
-    const p = straightenLoop(l, ROCKS.straight);
-    if (p.length >= 3 && Math.abs(loopArea(p)) > 120) loops.push(p);
-  }
   for (const l of loops) {
     let carry = 0;
     for (let k = 0; k < l.length; k++) {
@@ -451,12 +433,7 @@ function patchMiddles(w) {
         x = j % GW,
         y = (j / GW) | 0;
       top = Math.max(top, w.dThick[j]);
-      for (const [dx, dy] of [
-        [1, 0],
-        [-1, 0],
-        [0, 1],
-        [0, -1],
-      ]) {
+      for (const [dx, dy] of D4) {
         const xx = x + dx,
           yy = y + dy,
           k = yy * GW + xx;
@@ -548,7 +525,7 @@ function renderTerrain() {
   const fade = i => clamp(w.seaD[i] / 3, 0, 1),
     sm = f => i => f(i) * fade(i);
   // sea depth bands (land counts as shallowest, so each band meets the shore under the land), with the edge of each
-  // kept as a line: thin ones for the bands, and the shelf's edge, where deep water starts, drawn dashed
+  // kept as a thin line (the outer band's edge is the shelf's edge, where deep water starts)
   const shallow = i => (T[i] === 0 ? -w.depth[i] : 20);
   V.bands = BAND_AT.map(d => march(shallow, -d, true, true));
   const land = march(i => w.fl[i], w.level, true, true);
@@ -570,25 +547,10 @@ function renderTerrain() {
   let tMax = w.tThr;
   for (let i = 0; i < N; i++) if (T[i] === 2 && w.thk[i] > tMax) tMax = w.thk[i];
   const t0 = w.tThr - 0.03;
-  if (!w.refH) {
-    const a = [];
-    for (let i = 0; i < N; i++) if (isLand(T[i])) a.push(w.hgt[i]);
-    w.refH = Float32Array.from(a).sort();
-  }
-  const R = w.refH,
-    cdf = new Float32Array(N);
-  for (let i = 0; i < N; i++) {
-    if (!isLand(T[i])) continue;
-    const v = w.hgt[i];
-    let lo = 0,
-      hi = R.length;
-    while (lo < hi) {
-      const m = (lo + hi) >> 1;
-      if (R[m] < v) lo = m + 1;
-      else hi = m;
-    }
-    cdf[i] = lo / R.length;
-  }
+  // each piece of land's rank among the world's original land heights (0 lowest, 1 highest): the reverse of its
+  // temperature (see buildTerrain), so floods and droughts don't recolour the land that remains
+  const cdf = new Float32Array(N);
+  for (let i = 0; i < N; i++) if (isLand(T[i])) cdf[i] = 1 - w.temp[i];
   // contour heights follow the land itself (rocks sit on top and show their own height), with thickets in hollows
   const el = new Float32Array(N);
   for (let i = 0; i < N; i++)
@@ -664,7 +626,7 @@ function renderTerrain() {
   paintStipple(g);
   bakeLo();
   detail.ok = false;
-  if (typeof S !== 'undefined' && S) for (const c of S.creatures) c.rt = 0;
+  if (S) for (const c of S.creatures) c.rt = 0;
 }
 // the open land's details: softened fertility for the meadow / dry-ground wash, hill shading as a small image, lone
 // trees and small clumps on fertile ground, grass tufts on meadows, and reed marks on low ground by lakes and rivers
@@ -832,14 +794,12 @@ function paintTerrain(g) {
     g.fillStyle = BAND[k];
     g.fill(V.bands[k].fill);
   }
-  g.fillStyle = BAND[0];
-  g.fill(V.river);
   g.strokeStyle = 'rgba(77,115,133,.35)';
   g.lineWidth = 0.7;
   for (const b of V.bands) g.stroke(b.line);
   g.fillStyle = '#e9ecde';
   g.fill(V.land);
-  const se = typeof S !== 'undefined' && S ? S.season : 0;
+  const se = S ? S.season : 0;
   g.save();
   g.clip(V.land);
   for (const [p, c] of V.tint) {
@@ -990,7 +950,7 @@ function paintRock(g, se) {
 }
 // thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {
-  const se = typeof S !== 'undefined' && S ? S.season : 0,
+  const se = S ? S.season : 0,
     keepOut = new Path2D();
   // anything still overlapping rock is cut off where the rock begins
   keepOut.rect(-W, -H, 3 * W, 3 * H);
@@ -1015,7 +975,8 @@ function paintStipple(g) {
   g.restore();
 }
 
-// when zoomed past the base texture's resolution, redraw the visible area from vectors (twice the screen, so panning stays sharp)
+// copies the part of a zoomed-in detail image (drawn at twice the screen's size, so panning stays sharp) that is on
+// screen now, offset by how far the camera has moved since it was drawn
 function blitVisible(can, ox, oy) {
   const sx = Math.round(dpr * (cw / 2 - ox)),
     sy = Math.round(dpr * (ch / 2 - oy)),
@@ -1054,9 +1015,8 @@ function drawBerry(g, x, y, p) {
   g.stroke();
   g.restore();
 }
-// an acorn: brown nut under a darker cap; regrowing ones are small and pale
-// a nut grows through three stages: a bare pale nut just after eating, a pale nut with a small cap half grown, and
-// the full dark acorn when ready to eat
+// an acorn: a brown nut under a darker cap. A regrowing nut is smaller and goes through three stages: a bare pale nut
+// just after eating, a pale nut with a small cap half grown, and the full dark acorn when ready to eat
 function drawNut(g, x, y, p) {
   const k = 0.45 + 0.55 * p,
     ripe = p >= 1;

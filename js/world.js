@@ -3,7 +3,6 @@
    Cell types: 0 sea, 1 land, 2 thicket, 3 rock, 4 river. */
 
 /* ---------- world ---------- */
-// types: 0 sea, 1 land, 2 thicket, 3 rock, 4 river
 let world = null;
 const isLand = t => t === 1 || t === 2 || t === 3,
   isWater = t => t === 0 || t === 4;
@@ -60,8 +59,7 @@ function genWorld(seed, att = 0) {
   const rng = mulberry32(seed + att * 7777),
     { kind, shape } = rollWorld(seed),
     T = WORLD_TYPES[kind],
-    // a second random stream for what world types and shapes add, so a classic oval world keeps the layout it
-    // had before types existed
+    // a second random stream for what world types and shapes add, so they don't shift the layout of the rest
     rx = mulberry32(seed * 7 + 99991 + att * 131),
     fi = field(rx, [
       [10, 0.5],
@@ -102,7 +100,7 @@ function genWorld(seed, att = 0) {
       [9, 0.6],
       [21, 0.4],
     ]),
-    // once set thicket gap widths; no longer used, but still made so every world number keeps its layout
+    // not used, but still made so the patterns after it (and so every world number's layout) stay the same
     fg = field(rng, [[8, 1]]),
     // regions: broad patterns that make some areas thicket country, some rocky, some low and wet
     rT = field(rng, [
@@ -344,15 +342,8 @@ function genWorld(seed, att = 0) {
 // filled with rock. The change goes into the rock pattern itself, so later events can't seal it again.
 function openPockets() {
   const w = world,
-    N = GW * GH,
-    // where each pass comes out, for the record
-    D4 = [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ];
-  w.passes = [];
+    N = GW * GH;
+  w.passes = []; // where each pass comes out, for the record
   for (let round = 0; round < 6; round++) {
     // everything but rock that can be reached from the open sea at the map's edge
     const open = new Uint8Array(N),
@@ -432,12 +423,7 @@ function openSea(T) {
     const j = st.pop(),
       x = j % GW,
       y = (j / GW) | 0;
-    for (const [dx, dy] of [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ]) {
+    for (const [dx, dy] of D4) {
       const xx = x + dx,
         yy = y + dy,
         k = yy * GW + xx;
@@ -590,12 +576,7 @@ function buildTerrain(skipDraw) {
         const j = list[q],
           x = j % GW,
           y = (j / GW) | 0;
-        for (const [dx, dy] of [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-        ]) {
+        for (const [dx, dy] of D4) {
           const xx = x + dx,
             yy = y + dy,
             k = yy * GW + xx;
@@ -620,12 +601,7 @@ function buildTerrain(skipDraw) {
       n++;
       const x = j % GW,
         y = (j / GW) | 0;
-      for (const [dx, dy] of [
-        [1, 0],
-        [-1, 0],
-        [0, 1],
-        [0, -1],
-      ]) {
+      for (const [dx, dy] of D4) {
         const xx = x + dx,
           yy = y + dy;
         if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;

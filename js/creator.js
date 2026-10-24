@@ -308,15 +308,7 @@ function openCreator(seed, design) {
   $('#pastWrap').innerHTML = saved.runs.length
     ? `<h3 class="sec" style="margin-top:22px">Past lineages</h3>${histHTML()}`
     : '';
-  $('#pastWrap')
-    .querySelectorAll('[data-revisit]')
-    .forEach(
-      b =>
-        (b.onclick = () => {
-          const r = saved.runs[+b.dataset.revisit];
-          openCreator(r.seed, r.design);
-        })
-    );
+  bindHist($('#pastWrap'));
   syncCreator();
   $('#creator').hidden = false;
   $('#sheet').hidden = true;

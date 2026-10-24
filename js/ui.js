@@ -218,6 +218,18 @@ $('#bDoom').onclick = () => {
   syncSettings();
   syncUI(true);
 };
+// the Settings menu: the Sound switch, Extinction, and the testing tools, which need a password and (for events) a
+// live run
+function syncSettings() {
+  $('#sSound').setAttribute('aria-pressed', String(sound));
+  const live = S && !S.over && !S.replay;
+  for (const b of document.querySelectorAll('#sSpeed button, #sMajor')) b.disabled = !testUnlocked;
+  for (const b of document.querySelectorAll('.testev button')) b.disabled = !testUnlocked || !live;
+  $('#testTools').hidden = !testUnlocked;
+  $('#sPw').disabled = $('#sPwGo').disabled = testUnlocked;
+  if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction (end run)';
+  $('#bDoom').disabled = !live || !!S.doom;
+}
 // the testing tools are locked until the password (TEST_PASSWORD) is entered: a tick when it's right, and the tools
 // unlock until the page is reloaded; a cross when it's wrong
 let testUnlocked = false;
@@ -533,7 +545,7 @@ const INFO = {
   <div class="legend">${['flood', 'drought', 'quake', 'meteor'].map(k => `<span style="display:flex">${OMEN[k]}</span><span><b>${{ flood: 'Flood', drought: 'Drought', quake: 'Earthquake', meteor: 'Meteor' }[k]}.</b> ${{ flood: 'The sea rises and low land is lost.', drought: 'The sea falls; new land appears, islands may join, and rivers and sea channels can dry up.', quake: 'The land splits, usually with a new river, sometimes with a channel of sea.', meteor: 'A strike kills creatures nearby and leaves a crater. About 1 in 20 events.' }[k]}</span>`).join('')}</div>
 `,
 };
-function openInfo(which, btn) {
+function openInfo(which) {
   const p = $('#infoPop');
   if (!p.hidden && p.dataset.w === which) {
     p.hidden = true;
@@ -551,11 +563,11 @@ function openInfo(which, btn) {
     left: r.left + 'px',
   });
 }
-document.querySelectorAll('.info, #evSq, #clock').forEach(
+document.querySelectorAll('#evSq, #clock').forEach(
   b =>
     (b.onclick = e => {
       e.stopPropagation();
-      openInfo(b.dataset.info, b);
+      openInfo(b.dataset.info);
     })
 );
 function renderLog() {
@@ -701,8 +713,8 @@ function syncUI() {
       <div><span>Floods</span><b>${n.flood}</b></div><div><span>Droughts</span><b>${n.drought}</b></div>
       <div><span>Earthquakes</span><b>${n.quake}</b></div><div><span>Meteor strikes</span><b>${n.meteor}</b></div></div>
       <div class="legend">
-       ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (darker) fruit heavily in spring, plains sparsely.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Denser dots mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
+       ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (greener) fruit heavily in spring, plains sparsely.</span>
+       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>

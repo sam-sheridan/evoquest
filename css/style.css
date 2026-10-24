@@ -498,15 +498,6 @@ td:first-child {
   font-family: var(--sans);
   font-size: 12.5px;
 }
-tr.grp td {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-top: 10px;
-  border-top: 1px solid var(--ink);
-}
 .tag {
   display: inline-block;
   width: 8px;
@@ -843,29 +834,6 @@ h3.sec {
 }
 .setrow .seg2 button[aria-pressed='false']::after {
   font-size: 12px;
-}
-.info {
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-  width: 17px;
-  height: 17px;
-  padding: 0;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--panel);
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 15px;
-  text-align: center;
-  font-style: normal;
-}
-.info:hover {
-  background: var(--ink);
-  color: var(--panel);
 }
 #badgePop {
   position: fixed;

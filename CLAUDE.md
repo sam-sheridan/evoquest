@@ -44,14 +44,10 @@ Read the relevant section before changing a mechanic.
   skirt of uphill strokes, sea cliffs where they meet water; no rock pieces under 6 cells), contours follow the
   land and fade before rocks, and the open land has blended meadow and dry-ground colours, very light hill
   shading, lone trees, grass tufts and reeds. Heavy shading is always a small smoothed image (Safari's limit).
-- Possible follow-up Sam hasn't decided on: darker tree outlines, shading strokes and woodland floor (at every
-  zoom; the crowns stay see-through so submerged creatures show).
 - The intro shipped in October 2026: a title screen every time the game loads (wandering creatures round the name,
   "A game by Sam Sheridan" in the corner) and five panes explaining the game, reopened from the creator's EvoQuest
   title. Sam chose wandering creatures over a pinned "specimen plate" look (kept in the branch history).
-- Still to do: a **sound redesign** (Sam will lead it). Thickets stay as they are: Sam decided against thickets that change
-  over time.
-- Add the git tag `beta-1` (a permanent label on a version) only after the visual changes are done and Sam asks.
+- Thickets stay as they are: Sam decided against thickets that change over time.
 
 ## How a batch of changes works
 

@@ -1,31 +1,36 @@
 /* EvoQuest configuration: every number worth tuning lives here. */
 
-/* ---- world size and creatures ---- */
-const MATURE = 15; // seconds old before a creature can breed
-const LIFE = 90; // maximum lifespan in seconds
-// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
-const OLD = { from: 85, slowest: 0 };
-const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
+/* ---- sound ---- */
 const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
 const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
 const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
 // length (s), loudness
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };
+// seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
+const AUDIO_CHECK = 2;
+
+/* ---- settings and background play ---- */
 // the password for the testing tools in Settings (change it here; it can't be changed in the game)
 const TEST_PASSWORD = '1234';
 // Extinction (Settings): impact = seconds until one huge meteor lands among the creatures, killing all within blast
 // px; then small ones strike survivors every gap seconds; at end seconds every creature left dies (all game time)
 const DOOM = { impact: 1, blast: 900, small: 5, gap: 0.35, end: 3.2 };
-const AUDIO_CHECK = 2; // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
+const BG_MAX = 15; // in a hidden tab, the most real seconds of play caught up in one background tick
+
+/* ---- world size and creatures ---- */
+const MATURE = 15; // seconds old before a creature can breed
+const LIFE = 90; // maximum lifespan in seconds
+// ageing: from this age creatures slow down steadily, reaching this fraction of their speed at LIFE (0 = a halt)
+const OLD = { from: 85, slowest: 0 };
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)
 const CS = 16; // size of one terrain cell in px
 const GW = 282; // terrain grid width in cells
 const GH = 197; // terrain grid height in cells
-const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations near 100)
+const MAXPOP = 400; // safety limit only, far above normal numbers (crowding keeps populations at about 40-100)
 const RIVER = 14; // water speed (px/s) needed to swim across a river current
-const FOOD = 8; // energy gained from one piece of food
+const FOOD = 8; // energy from a berry (nuts and algae give a multiple of it, depending on the mouth: see MOUTH)
 // choosing food: each point of energy a food gives this creature beyond a berry's counts as this many seconds less
 // travel, so a beak goes out of its way for nuts and a straw for algae
 const FOOD_PREF = 1.5;
@@ -145,19 +150,15 @@ const LAKES = {
   slope: 0.015,
   shore: 6,
 };
-// overall shape of the land, rolled separately from the type (relative weights): oval as before, lagoon (land in a
+// overall shape of the land, rolled separately from the type (relative weights): oval, lagoon (land in a
 // ring around a central sea) or crescent (land curving round a big bay)
 const SHAPES = { oval: 4, lagoon: 1.5, crescent: 1.5 };
 // regions: broad areas with their own character (thicket country, rocky uplands, low wetlands with lakes);
 // strength 0 spreads thicket and rock evenly everywhere, 1 is the normal amount, higher is more extreme
 const REGIONS = { strength: 1.3 };
-// temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
-// each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
-// which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
-//   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
 // sea depth is measured in shelf widths: 1 is where the shallow shelf ends and deep water starts on a plain coast.
-// Each world's plain shelf is as wide as the nearest shelf share of its open sea at the start, as the shelf was
-// before the map redesign, but never under minWidth px. Every coast has at least that tapering shelf; along some
+// Each world's plain shelf is as wide as the nearest shelf share of its open sea at the start, but never under
+// minWidth px. Every coast has at least that tapering shelf; along some
 // stretches the shallows reach further out, up to 1 + widen times as far, where a broad pattern is between wide[0]
 // and wide[1] and above. Shallow banks rise out at sea where another pattern goes over bank[0], tapering bank[1]
 // shelf widths of depth per unit of the pattern. Neither gets shallower than top, set by a third pattern: top[0] (the
@@ -183,6 +184,10 @@ const SEA = {
   drought: 0.4,
   beyond: 0.5,
 };
+// temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
+// each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
+// which hurts small bodies most; above hot they burn extra cooling down, which hurts big bodies most.
+//   coldCost: extra energy per second at the coldest, for a mid-sized creature; heatCost: the same at the hottest
 const TEMP = {
   cold: 0.3,
   hot: 0.8,
@@ -191,7 +196,7 @@ const TEMP = {
   coldCost: 0.18,
   heatCost: 0.15,
 };
-const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land as before); high ground is cold
+const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land); high ground is cold
 // tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
 // the limit grows quickly towards either end. first: every visible tail swims at least this far from shore (one
 // cell, so into the first band of water), on top of the curve
@@ -219,8 +224,6 @@ const SHOWS = { tail: 0.25, legs: 0.15 };
 //   share faster and the longest this share slower (medium legs make no difference)
 //   six: 6 legs walk this share faster and swim this share slower, 4 legs the reverse; sixFrom: the size from which a
 //   creature has 6 legs rather than 4
-// eyes are white on a species whose starting body is darker than this lightness, black otherwise
-const EYE_WHITE = 40;
 const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
@@ -241,17 +244,10 @@ const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 // trees drawn over creatures; below it the pre-drawn map is used and creatures show on top of the trees
 const DETAIL = 0.65;
 // sea depth bands, shallowest to deepest, and the depths (in shelf widths, see SEA) where each deeper band starts;
-// the last is the shelf's edge, drawn dashed. The deepest colour is also the background beyond the map
+// the last is the shelf's edge, where deep water starts. The deepest colour is also the background beyond the map
 const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
 const BAND_AT = [0.27, 0.58, 1];
-// thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
-// [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
-// each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees.
-// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures), as
-// [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
-// 5% almost fully solid
-// colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
-// open land. wash: per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
+// open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
 // strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
 // per open cell of a lone tree or small clump, [base, extra on the most fertile ground]. grass: chance of a grass
 // tuft per fertile cell (times fertility). reed: chance of a reed mark per low cell by lakes and rivers
@@ -314,6 +310,14 @@ const ROCKS = {
   tick: 5,
   face: ['#d2c9b8', '#c6bdab', '#b9af9c'],
 };
+// thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
+// [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
+// each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees.
+// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures), as
+// [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
+// 5% almost fully solid
+// colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
+// of the three
 const TREES = {
   r: [5.5, 10.5],
   jitter: 2.5,
@@ -354,6 +358,8 @@ const SHADE = 4;
 // seconds a new species' creatures take to blend from the old colour to the new one
 const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
+// eyes are white on a species whose starting body is darker than this lightness, black otherwise
+const EYE_WHITE = 40;
 
 /* ---- seasons and food ---- */
 // per season, how quickly each kind of place regrows food: f fast, n normal, s slow
@@ -392,8 +398,9 @@ const SEASONS = [
 const FAST = { speed: 4, dur: 20, cool: 120 };
 const CHART_SPAN = 1200; // most seconds of history an inspector chart shows at once (20 minutes); a slider moves back
 const SEASON_LEN = 150; // seconds per season (2.5 minutes, so a year is 10 minutes)
-// regrowth time in seconds for each speed: [minimum, random extra]; winter multiplies all land regrowth
-const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 }; // regrowth seconds [minimum, random extra] for fast, normal and slow regions; tuned in scenario tests
+// regrowth time in seconds for fast, normal and slow regions: [minimum, random extra]; in winter every regrowth
+// time (land and water) is multiplied by winter
+const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 };
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
@@ -444,7 +451,7 @@ const SHAKE = {
 const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
-const CRW = { r: 80, half: 2, pow: 2 }; // tuned with home ranges: local groups can be denser before breeding slows
+const CRW = { r: 80, half: 2, pow: 2 };
 
 /* ---- speciation ---- */
 // geo: trait difference needed between groups on separate land; eco: between two clusters on the same land

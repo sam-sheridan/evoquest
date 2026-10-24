@@ -107,7 +107,7 @@ if alive:
     print(f"  % of land explored at 10 minutes: {[r['explored10'] for r in results]}")
     print(f"  population at 10 minutes: {[r['pop10'] for r in results]}")
     print(f"  average population after 20 minutes: {[r['lateAvg'] for r in results]}")
-    print(f"  average mouth at the end (0 claw, 1 straw; released at 0.5): {[r['mouthEnd'] for r in results]}")
+    print(f"  average mouth at the end (0 beak, 1 straw; released at 0.5): {[r['mouthEnd'] for r in results]}")
     print(f"  average roundness at the end (released at 0.5): {[r['roundEnd'] for r in results]}")
     print(f"  average tail at the end: {[(r['design'], r['tailEnd']) for r in results]}")
     print(f"  average size at the end (released at 0.9; 0.64 small, 1.13 big): {[r['sizeEnd'] for r in results]}")
