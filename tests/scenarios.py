@@ -84,7 +84,7 @@ with sync_playwright() as p:
     for r in range(RUNS):
         name, design = DESIGNS[r % len(DESIGNS)]
         seed = 1000 + r * 37
-        pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true }")
+        pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true; document.querySelector('#intro').hidden = true }")
         pg.evaluate(f"() => window.EvoQuestDebug.setDesign({{ w: 4, h: 4.5, leg: 0.5, hab: 0.32, mth: 0.5, round: 0.5, ...{json.dumps(design)} }})")
         pg.evaluate(f"""() => {{ const sel = document.querySelector('#fWorld');
             sel.innerHTML += `<option value="{seed}">test</option>`; sel.value = '{seed}'; }}""")

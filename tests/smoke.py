@@ -22,6 +22,18 @@ with sync_playwright() as p:
     pg.goto('file://' + os.path.abspath(page_file))
     time.sleep(1)
 
+    # the intro opens by itself on a first visit: click through every pane to the creator, then reopen it from the
+    # creator's title and skip it
+    intro_first = pg.evaluate("() => !document.querySelector('#intro').hidden")
+    pg.click('#inStart')
+    for _ in range(5):
+        time.sleep(0.3)
+        pg.click('#inNext')
+    pg.click('#crLogo')
+    time.sleep(0.3)
+    pg.click('#inSkip')
+    intro_ok = intro_first and pg.evaluate("() => document.querySelector('#intro').hidden")
+
     # creator: randomise (to exercise the button), then release a sturdy design on a known world, so the run
     # doesn't die out early and leave the end screen covering the controls
     pg.click('#rnd')
@@ -128,7 +140,7 @@ with sync_playwright() as p:
 
     browser.close()
 
-ok = summary_shown and alive > 0 and lock_ok and doomed and not errors
-print('PASS' if ok else 'FAIL', '| summary shown:', summary_shown, '| new run alive:', alive, '| testing lock works:', lock_ok,
+ok = intro_ok and summary_shown and alive > 0 and lock_ok and doomed and not errors
+print('PASS' if ok else 'FAIL', '| intro works:', intro_ok, '| summary shown:', summary_shown, '| new run alive:', alive, '| testing lock works:', lock_ok,
       '| extinction ends the run:', doomed, '| page errors:', errors)
 sys.exit(0 if ok else 1)

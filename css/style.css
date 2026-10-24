@@ -1252,3 +1252,188 @@ select {
     transition: none;
   }
 }
+
+/* the intro: a title screen on squared paper with creatures wandering round the name, then the panes */
+.brand .logo {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.brand .logo:hover span {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--panel);
+  overflow: hidden;
+}
+#inCv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#inTitle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -54%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+#inTitle .row {
+  justify-content: center;
+  margin-top: 26px;
+}
+.inName {
+  font-size: clamp(64px, 15vw, 168px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  margin: 6px 0 14px;
+}
+.inName span,
+.inBy b {
+  color: var(--signal);
+}
+.inTag {
+  margin: 0 auto;
+  max-width: 36em;
+  font-size: clamp(15px, 2.2vw, 19px);
+  color: var(--ink);
+}
+.inBy {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  margin: 0;
+  padding: 3px 7px;
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.inBy b {
+  font-weight: 600;
+}
+#inPanes {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: flex;
+  padding: 16px;
+  padding-bottom: 44px;
+}
+#inCard {
+  margin: auto;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+  box-shadow: 6px 6px 0 rgba(21, 25, 24, 0.12);
+}
+.inHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.inX {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.inX:hover {
+  color: var(--ink);
+}
+#inPic,
+#inArt {
+  width: 100%;
+  aspect-ratio: 560 / 245;
+  display: block;
+  border: 1px solid var(--line);
+  box-sizing: border-box;
+}
+#inArt {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  background: #fcfcfb;
+}
+#inArt[hidden] {
+  display: none;
+}
+.inRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.inItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.inItem b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.inItem small {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+#inH {
+  font-size: 22px;
+  margin: 16px 0 6px;
+}
+#inTxt p {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.inNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.inDots {
+  display: flex;
+  gap: 8px;
+}
+.inDots button {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: transparent;
+}
+.inDots button[aria-current] {
+  background: var(--ink);
+}
+@media (max-width: 480px) {
+  #inArt {
+    aspect-ratio: auto;
+    padding: 14px 0;
+  }
+  .inItem small {
+    display: none;
+  }
+}

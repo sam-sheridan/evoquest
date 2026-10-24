@@ -134,7 +134,7 @@ def worker(jobs):
         pg.goto('file://' + os.path.join(ROOT, 'index.html'))
         time.sleep(1)
         for job in jobs:
-            pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true }")
+            pg.evaluate("() => { document.querySelector('#creator').hidden = false; document.querySelector('#end').hidden = true; document.querySelector('#intro').hidden = true }")
             if DESIGNS[job['design']] is None:
                 pg.evaluate('() => randomDesign()')
             else:

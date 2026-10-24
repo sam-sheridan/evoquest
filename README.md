@@ -45,8 +45,9 @@ be changed, its name in `js/config.js` is shown like `this`.
 
 ## 1. A run from start to finish
 
-1. **Design** a species in the creator. You set its name, body, look and which world to use.
-2. **Release.** 20 creatures (`START`) appear together on the main landmass (or in the water near it, for a
+1. **The intro** opens every time the game loads (see [the intro](#the-intro)).
+2. **Design** a species in the creator. You set its name, body, look and which world to use.
+3. **Release.** 20 creatures (`START`) appear together on the main landmass (or in the water near it, for a
    design that lives in water). The release spot is chosen for the food the design can eat within 180 px, plus half
    the food it can reach within 640 px without leaving ground it's allowed on (`RELEASE`). So a water design isn't
    left in a rich but cut-off strip of shallows at the map's edge when a longer coast or a river network is on
@@ -54,13 +55,13 @@ be changed, its name in `js/config.js` is shown like `this`.
    old enough to breed, aged 15 to 45 seconds (`FOUNDERS`), so the population gets going without a long wait. Their ages are spread so
    they don't all die of old age at the same moment, which used to halve the population at about 70 seconds. Their
    traits are varied 1.5 times more than normal so selection has something to work on straight away.
-3. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
+4. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
    every 2.5 minutes. A world event happens every 7 minutes.
-4. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
+5. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
    creatures eat and breed in this world become more common.
-5. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
+6. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
    become a new species with its own Latin name.
-6. **The run ends** only when every creature of every species has died. There is no win condition and no time
+7. **The run ends** only when every creature of every species has died. There is no win condition and no time
    limit. You can also end a run at any time with *Extinction* in Settings, which brings up the end screen, where
    you can start a new species.
 
@@ -70,6 +71,35 @@ are shown as m:ss, and as hh:mm:ss from an hour on (for example 01:12:01).
 ---
 
 ## 2. The species creator
+
+### The intro
+
+Every time the game loads, a title screen comes up first: the name large in the middle ("Evo" in ink, "Quest" in
+orange), the line "Design a species. Release it. Watch the world decide what it becomes.", and "A game by Sam
+Sheridan" in the bottom right corner. Behind it, on squared paper, 10 random creatures (6 on a phone-sized screen,
+`INTRO`) wander round the page, drawn 2.6 to 4 times life size. They are random designs like *Randomise* makes, one of
+each palette colour in turn, drawn with the game's own creature drawing, and they walk at a speed that follows their
+real land speed. They keep clear of the title, the screen's edges and each other, and stop now and then to snap their
+mouths.
+
+*How it works* opens five panes, each with a small moving picture; *Skip to the creator* goes straight to the
+creator. Each pane has Back (Title on the first), Next and Skip, and dots to jump to any pane; the arrow keys move
+between panes and Esc closes the intro. The creatures carry on behind the panes, faded.
+
+1. **Design a species**: one creature changing smoothly from one random design to the next, with its size, legs,
+   tail and mouth written under it.
+2. **Release it into the world**: a stretch of coast with berries, nuts under thicket trees and algae in the
+   shallows, a walker looping round the land and a swimmer round the water.
+3. **Eat, breed, survive**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
+   caption for each step (loops every 9 seconds, `INTRO.loop`).
+4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
+5. **Evolve into new species**: a family tree growing across the picture, with primus carrying on and *natans* and
+   *magnus* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
+   tapping a creature. Its last button, *Design your species*, closes the intro.
+
+Clicking **EvoQuest** at the top left of the creator opens the intro again.
+
+### The creator
 
 | Control | What it does |
 |---|---|
@@ -1103,6 +1133,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |
+| `js/intro.js` | The intro: title screen and the five panes explaining the game |
 | `js/main.js` | Camera, input, rendering each frame, the main loop |
 | `tools/build.py` | Bundles everything into one HTML file in `dist/` |
 | `tests/smoke.py` | Clicks through every feature and fails on any error |
@@ -1136,7 +1167,7 @@ python3 tests/smoke.py
 python3 tests/scenarios.py 6 15
 ```
 
-- **`smoke.py`** clicks through every feature and prints PASS or FAIL.
+- **`smoke.py`** clicks through every feature (starting with every pane of the intro) and prints PASS or FAIL.
 - **`scenarios.py [runs] [minutes]`** runs full simulations as fast as possible across six test designs and
   reports population, seasonal swing, extinctions, new species, how much land was explored at 10 minutes, the
   population at 10 minutes and after 20, and the time per simulation step.
