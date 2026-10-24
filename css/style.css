@@ -1375,11 +1375,21 @@ select {
   line-height: 1.55;
 }
 .inNav {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 10px;
   margin-top: 16px;
+}
+/* Back and Next are the same size on every pane (Next becomes Get Started on the last), so the dots stay put */
+.inNav .btn {
+  min-width: 108px;
+}
+#inBack {
+  justify-self: start;
+}
+#inNext {
+  justify-self: end;
 }
 .inDots {
   display: flex;

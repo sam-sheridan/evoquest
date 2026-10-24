@@ -522,7 +522,7 @@ function showPane(i) {
   $('#inArt').hidden = !P.html;
   if (P.html) $('#inArt').innerHTML = P.html();
   $('#inBack').textContent = i ? 'Back' : 'Title';
-  $('#inNext').textContent = i === PANES.length - 1 ? 'Design your species' : 'Next';
+  $('#inNext').textContent = i === PANES.length - 1 ? 'Get Started' : 'Next';
   $('#inDots').innerHTML = PANES.map(
     (_, k) =>
       `<button data-k="${k}" aria-label="Page ${k + 1}"${k === i ? ' aria-current="step"' : ''}></button>`
