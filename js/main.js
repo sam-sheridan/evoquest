@@ -446,6 +446,7 @@ cam.y = H / 2;
 cam.z = fitZ() * 1.25;
 openCreator(null);
 renderBadges();
+if (!introSeen()) openIntro();
 requestAnimationFrame(frame);
 
 // read-only window into the running game, used by the automated tests in tests/

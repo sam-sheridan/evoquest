@@ -81,16 +81,17 @@ const SYL = [
   'zun',
   'mip',
 ];
-// a random name, body, colour and look; the creator starts like this whenever it opens without a past design
-function randomDesign() {
+const pick = a => a[(rand() * a.length) | 0];
+// a random name: two made-up syllables, sometimes with an "s"
+function randomName() {
+  const nm = pick(SYL) + pick(SYL) + (rand() < 0.5 ? 's' : '');
+  return nm[0].toUpperCase() + nm.slice(1);
+}
+// a random body, colour and look (the intro's creatures use this too)
+function randomBody() {
   const r = (a, b) => a + rand() * (b - a),
-    pick = a => a[(rand() * a.length) | 0],
     o = pick(OKABE);
-  let nm = pick(SYL) + pick(SYL);
-  if (rand() < 0.5) nm += 's';
-  nm = nm[0].toUpperCase() + nm.slice(1);
-  Object.assign(D, {
-    name: nm,
+  return {
     w: +r(1.5, 6.5).toFixed(1),
     h: +r(1.5, 6.5).toFixed(1),
     leg: +r(0, 1).toFixed(2),
@@ -101,7 +102,11 @@ function randomDesign() {
     sat: o[3],
     lt: o[4],
     round: +r(0, 1).toFixed(2),
-  });
+  };
+}
+// a random name, body, colour and look; the creator starts like this whenever it opens without a past design
+function randomDesign() {
+  Object.assign(D, { name: randomName(), ...randomBody() });
 }
 $('#rnd').onclick = () => {
   randomDesign();
