@@ -23,7 +23,7 @@ function newGame(design, seed) {
     seed, // world number
     creatures: [], // living creatures
     newborns: [], // born this step, added at the end of the step
-    sites: world.sites, // food sites (berries on land, algae in water)
+    sites: world.sites, // food sites (berries and nuts on land, algae in water)
     speed: 1, // testing speed from Settings: 1×, 2×, 4× or 10× (fast forward multiplies on top)
     paused: false,
     over: false, // lineage extinct
@@ -56,7 +56,6 @@ function newGame(design, seed) {
     spT: 0,
     count: { flood: 0, drought: 0, quake: 0, meteor: 0 }, // world events so far, by kind (for the World tab)
   };
-  S.sites = world.sites;
   world.sites.forEach(f => {
     f.active = true;
     f.gone = false;
@@ -139,11 +138,9 @@ function newGame(design, seed) {
     }
     return best || [W / 2, H / 2];
   };
-  const spots = [spot(world.main)]; // release site on the main landmass
-  S.home = spots[0];
+  const home = spot(world.main); // the release spot, on the main landmass
   const base = { ...design, gen: 0, id: 0, sp: 0 };
   for (let k = 0; k < START; k++) {
-    const home = spots[k % spots.length];
     let x,
       y,
       n = 0;
@@ -174,11 +171,10 @@ function newGame(design, seed) {
     c.age = MATURE + rand() * FOUNDERS.age;
     S.creatures.push(c);
   }
-  const best = spots[0];
   S.orig = summ([probe]);
   logEv(`Released ${START} ${design.name} on world #${seed}`);
-  cam.x = best[0];
-  cam.y = best[1];
+  cam.x = home[0];
+  cam.y = home[1];
   cam.z = Math.max(fitZ() * 1.05, 1.3);
   {
     const g = tcan.getContext('2d');
@@ -263,32 +259,6 @@ function hpush(i, k) {
     j = p;
   }
 }
-function hpop() {
-  const top = HA[0],
-    k = HK[0];
-  hn--;
-  if (hn > 0) {
-    HA[0] = HA[hn];
-    HK[0] = HK[hn];
-    let j = 0;
-    for (;;) {
-      const l = 2 * j + 1,
-        r = l + 1;
-      let m = j;
-      if (l < hn && HK[l] < HK[m]) m = l;
-      if (r < hn && HK[r] < HK[m]) m = r;
-      if (m === j) break;
-      const ta = HA[m],
-        tk = HK[m];
-      HA[m] = HA[j];
-      HK[m] = HK[j];
-      HA[j] = ta;
-      HK[j] = tk;
-      j = m;
-    }
-  }
-  return [top, k];
-}
 const NB = [
   [1, 0, 1],
   [-1, 0, 1],
@@ -320,9 +290,11 @@ function cellIndex() {
   S.cIdxN = S.sites.length;
   return m;
 }
+// the heap's smallest entry is taken off into PI (the cell) and PK (its cost), rather than returned as a pair, which
+// keeps the route search quick
 let PI = 0,
   PK = 0;
-function hpop2() {
+function hpop() {
   PI = HA[0];
   PK = HK[0];
   hn--;
@@ -375,7 +347,7 @@ function dijkstra(c) {
     // doesn't stop before a richer food further away
     pref = FOOD_PREF * FOOD * Math.max(0, mouthGain(c, 'n') - 1, mouthGain(c, 'w') - 1);
   while (hn) {
-    hpop2();
+    hpop();
     const i = PI,
       k = PK;
     if (k > pd[i] + 1e-6) continue;
@@ -953,8 +925,6 @@ function worldEvent(kind, major, forced) {
   if (k === 'quake') startShake('quake', major);
   eventAlert(k);
 }
-// droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
-// are, and at least a set number (EVENTS.dry, dryShare); returns how many
 // floods widen rivers and sea channels (f above 1) and droughts narrow them (f below 1); returns how many rivers
 // became sea channels and how many sea channels that began as rivers became rivers again
 function widen(f) {
@@ -968,6 +938,8 @@ function widen(f) {
   }
   return [opened, closed];
 }
+// droughts dry up rivers (or close sea channels) at random, turning them back into land: a share of those there
+// are, and at least a set number (EVENTS.dry, dryShare); returns how many
 function dryUp(sea, m) {
   const pick = world.channels.filter(ch => ch.sea === sea),
     n = Math.max(EVENTS.dry[m], Math.round(pick.length * EVENTS.dryShare[m]));

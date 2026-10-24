@@ -63,6 +63,14 @@ function save() {
 let saved = load();
 saved.runs = saved.runs || [];
 
+// the four neighbours of a grid cell, as [dx, dy]
+const D4 = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+];
+
 /* noise */
 function mulberry32(a) {
   return () => {

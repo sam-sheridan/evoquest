@@ -4,8 +4,7 @@ Design a species, release 20 of them onto a randomly generated island world, and
 they become. Food, terrain, seasons and world events shape their bodies over generations. Groups that get cut
 off, or that take up a different way of life, can split into new species.
 
-**Play online:** https://sam-sheridan.github.io/evoquest/ (this works once GitHub Pages is switched on for the
-repo)
+**Play online:** https://sam-sheridan.github.io/evoquest/
 
 **Play from a download:** open `index.html` in a browser. Nothing to install, nothing to build.
 

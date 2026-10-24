@@ -4,7 +4,7 @@ Usage:  python3 tests/study.py [minutes] [workers] [worlds per type] [results fi
         e.g.  python3 tests/study.py 45 4 3 study.jsonl      (75 runs of 45 minutes, four at a time)
 
 For each world type it picks worlds with a mix of shapes, and on every world it releases five designs: a middling
-one, a fully random one (as Randomise makes), a small clawed walker, a big long-legged walker and a water creature.
+one, a fully random one (as Randomise makes), a small beaked walker, a big long-legged walker and a water creature.
 Each run records, as one line of JSON: population at 10, 20 and 30 minutes and at the end, time over 100, seasonal swing, new
 species (when, and how each split happened), most species alive at once, extinction (when, and what killed them),
 exploration at 10 minutes, how far each body trait moved, and which creature type each species ended up as
@@ -30,7 +30,7 @@ ONLY = sys.argv[5].split(',') if len(sys.argv) > 5 else None  # run only these d
 DESIGNS = {
     'middling': {'w': 4, 'h': 4.5, 'leg': 0.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
     'random': None,  # made in the page by the creator's own Randomise
-    'small clawed walker': {'w': 2.5, 'h': 3, 'leg': 0.6, 'hab': 0.05, 'mth': 0.05, 'round': 0.2},
+    'small beaked walker': {'w': 2.5, 'h': 3, 'leg': 0.6, 'hab': 0.05, 'mth': 0.05, 'round': 0.2},
     'big long-legged walker': {'w': 6, 'h': 6.5, 'leg': 0.9, 'hab': 0.05, 'mth': 0.5, 'round': 0.15},
     'water creature': {'w': 3.8, 'h': 4.5, 'leg': 0.05, 'hab': 0.97, 'mth': 0.97, 'round': 0.95},
 }

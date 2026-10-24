@@ -1,7 +1,7 @@
 /* All sound, made live with the Web Audio API: ambient notes, small creature sounds, world-event effects and
    the beat that plays when zoomed in. */
 
-/* ---------- sound (the original ambient set) ---------- */
+/* ---------- sound ---------- */
 let AC = null,
   sound = true,
   lastSnd = 0;
@@ -299,15 +299,3 @@ setInterval(() => {
     if (S.nextEvent - S.t > 0.5) tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
   }
 }, 50);
-
-function syncSettings() {
-  $('#sSound').setAttribute('aria-pressed', String(sound));
-  // testing tools hidden until unlocked; events also need a live run
-  const live = S && !S.over && !S.replay;
-  for (const b of document.querySelectorAll('#sSpeed button, #sMajor')) b.disabled = !testUnlocked;
-  for (const b of document.querySelectorAll('.testev button')) b.disabled = !testUnlocked || !live;
-  $('#testTools').hidden = !testUnlocked;
-  $('#sPw').disabled = $('#sPwGo').disabled = testUnlocked;
-  if (performance.now() - doomAsk > 3000) $('#bDoom').textContent = 'Extinction (end run)';
-  $('#bDoom').disabled = !live || !!S.doom;
-}
