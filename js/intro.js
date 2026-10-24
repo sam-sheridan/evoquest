@@ -1,10 +1,8 @@
 /* The intro: a title screen with creatures wandering round the game's name, then five panes that explain the
-   game, each with a small moving picture. It opens by itself the first time the game is played in a browser, and
-   again whenever the EvoQuest title at the top of the creator is clicked. */
+   game, each with a small moving picture. It opens every time the game is loaded, and again whenever the EvoQuest
+   title at the top of the creator is clicked. */
 
 /* ---------- intro ---------- */
-const INTRO_SEEN = 'evoquest.intro'; // remembered in the browser once the intro has been closed
-let INTRO_LOOK = 'wander'; // the title screen's creatures: 'wander' round the page, or pinned like a 'plate' of specimens
 const intro = { pane: -1, crowd: [], last: 0, raf: 0, pics: {}, shift: (rand() * 7) | 0 };
 const smooth = u => u * u * (3 - 2 * u);
 // a creature ready to draw from a set of traits
@@ -14,25 +12,12 @@ function introCreature(traits, id) {
   compute(c);
   return c;
 }
-// the Latin name the game would give a creature like this (see Speciation and naming in the README)
-function introEpithet(c) {
-  if (c.tail > 0.6) return 'natans';
-  if (c.mth > 0.85) return 'sorbens';
-  if (c.mth < 0.15) return 'rostratus';
-  if (c.size > 1.1) return 'magnus';
-  if (c.size < 0.62) return 'minimus';
-  if (c.leg > 0.8) return 'longipes';
-  if (c.leg < 0.2) return 'brevipes';
-  if (c.round > 0.8) return 'rotundus';
-  if (c.round < 0.2) return 'acutus';
-  return 'primus';
-}
 
 /* the title screen's creatures */
 function introCrowd() {
   const Wd = innerWidth,
     Hd = innerHeight,
-    n = INTRO_LOOK === 'plate' ? (Wd < 640 ? 6 : 10) : Wd < 640 ? INTRO.phone : INTRO.creatures,
+    n = Wd < 640 ? INTRO.phone : INTRO.creatures,
     box = introBox();
   intro.crowd = [];
   for (let i = 0; i < n; i++) {
@@ -41,30 +26,19 @@ function introCrowd() {
       m = { c, rest: 0, f: 0.2 + rand() * 0.3, ph: rand() * TAU };
     // how much room it takes up on screen, legs and tail included
     const room = k => (Math.max(c.bw, c.bh) / 2 + tailLen(c) * 0.6 + 4) * k;
-    if (INTRO_LOOK === 'plate') {
-      // pinned in a ring round the name, all facing up the page, each about the same drawn length
-      // (on a narrow screen, in a row of three above the name and three below)
-      const a = -Math.PI / 2 + ((i + 0.5) * TAU) / n;
-      m.x = Wd < 640 ? Wd * (0.2 + 0.3 * (i % 3)) : Wd / 2 + Math.cos(a) * Wd * 0.4;
-      m.y = Wd < 640 ? Hd * (i < 3 ? 0.15 : 0.76) : Hd / 2 + Math.sin(a) * Hd * 0.36;
-      m.k = clamp(Math.min(56 / (c.bh + tailLen(c)), 34 / c.bw), 1.8, 4);
-      m.name = `${genus(randomName())} ${introEpithet(c)}`;
-      c.dir = -Math.PI / 2;
-    } else {
-      m.k = INTRO.zoom[0] + rand() * (INTRO.zoom[1] - INTRO.zoom[0]);
-      m.r = room(m.k);
-      // walking speed on screen follows the creature's real land speed
-      m.v = clamp(c.vL, 12, 50) * m.k * 0.45;
-      c.dir = rand() * TAU;
-      for (let tries = 0; tries < 60; tries++) {
-        m.x = 30 + rand() * (Wd - 60);
-        m.y = 30 + rand() * (Hd - 60);
-        if (
-          !inBox(m.x, m.y, box, 40) &&
-          intro.crowd.every(o => Math.hypot(o.x - m.x, o.y - m.y) > o.r + m.r + 20)
-        )
-          break;
-      }
+    m.k = INTRO.zoom[0] + rand() * (INTRO.zoom[1] - INTRO.zoom[0]);
+    m.r = room(m.k);
+    // walking speed on screen follows the creature's real land speed
+    m.v = clamp(c.vL, 12, 50) * m.k * 0.45;
+    c.dir = rand() * TAU;
+    for (let tries = 0; tries < 60; tries++) {
+      m.x = 30 + rand() * (Wd - 60);
+      m.y = 30 + rand() * (Hd - 60);
+      if (
+        !inBox(m.x, m.y, box, 40) &&
+        intro.crowd.every(o => Math.hypot(o.x - m.x, o.y - m.y) > o.r + m.r + 20)
+      )
+        break;
     }
     intro.crowd.push(m);
   }
@@ -87,13 +61,6 @@ function moveCrowd(dt, t) {
     Hd = innerHeight;
   for (const m of intro.crowd) {
     const c = m.c;
-    if (INTRO_LOOK === 'plate') {
-      // a pinned specimen only fidgets: a slow sway, a little leg movement and a snap of the mouth now and then
-      c.dir = -Math.PI / 2 + Math.sin(t * m.f + m.ph) * 0.12;
-      c.walk += dt * 0.6;
-      c.rest = (t + m.ph * 2) % 7 < 1.4 ? 1 : 0;
-      continue;
-    }
     // now and then a creature stops for a moment, as if eating, and its mouth snaps
     if (m.rest > 0) {
       m.rest -= dt;
@@ -164,17 +131,6 @@ function drawCrowd(t) {
   if (intro.pane >= 0) g.globalAlpha = 0.35; // behind a pane, the creatures fade back
   for (const m of [...intro.crowd].sort((a, b) => a.y - b.y)) {
     drawCreature(g, m.c, m.x, m.y, m.k, 7, col(m.c), t, false, 1.1 / m.k);
-    if (m.name && intro.pane < 0) {
-      const y = m.y + (m.c.bh / 2 + tailLen(m.c)) * m.k + 16;
-      g.textAlign = 'center';
-      g.fillStyle = '#636d69';
-      g.font = '500 10px "IBM Plex Mono", monospace';
-      g.fillText(`FIG. ${intro.crowd.indexOf(m) + 1}`, m.x, y);
-      g.fillStyle = INK;
-      g.font = 'italic 12px "IBM Plex Sans", sans-serif';
-      g.fillText(m.name, m.x, y + 15);
-      g.textAlign = 'left';
-    }
   }
   g.globalAlpha = 1;
 }
@@ -593,17 +549,6 @@ function openIntro() {
 }
 function closeIntro() {
   $('#intro').hidden = true;
-  try {
-    localStorage.setItem(INTRO_SEEN, '1');
-  } catch (e) {}
-}
-// the first time the game is played in this browser
-function introSeen() {
-  try {
-    return !!localStorage.getItem(INTRO_SEEN);
-  } catch (e) {
-    return true;
-  }
 }
 $('#inStart').onclick = () => showPane(0);
 $('#inSkip').onclick = closeIntro;
@@ -620,7 +565,4 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape') closeIntro();
   else if (e.key === 'ArrowRight' && intro.pane < PANES.length - 1) showPane(intro.pane + 1);
   else if (e.key === 'ArrowLeft' && intro.pane >= 0) showPane(intro.pane - 1);
-});
-addEventListener('resize', () => {
-  if (!$('#intro').hidden && INTRO_LOOK === 'plate') introCrowd();
 });
