@@ -94,7 +94,8 @@ between panes and Esc closes the intro. The creatures carry on behind the panes,
 4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
 5. **Evolve into new species**: a family tree growing across the picture, with primus carrying on and *natans* and
    *magnus* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
-   tapping a creature. Its last button, *Design your species*, closes the intro.
+   tapping a creature. Its last button, *Get Started*, closes the intro. Back and Next stay the same size on every pane, so the dots
+   never move.
 
 Clicking **EvoQuest** at the top left of the creator opens the intro again.
 
