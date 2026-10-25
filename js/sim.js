@@ -442,11 +442,11 @@ function plan(c) {
   c.rt = 3.5 + rand() * 1.5;
   const strand = dijkstra(c);
   const best = c._best,
-    // with no food free, head for the nearest regrowing or busy food and wait there (looking again soon)
+    // with no food free, head for the nearest regrowing or busy food and amble round it (looking again soon)
     goal = best || c._wait;
   setTarget(c, best);
-  // waiting by regrowing or busy food (not heading somewhere safe, nor for food it can eat)
-  c.waits = !best && !!c._wait;
+  // the regrowing or busy food it is waiting by (not heading somewhere safe, nor for food it can eat)
+  c.spot = best ? null : c._wait;
   c.blk = 0;
   if (!best) c.rt = 1.2 + rand();
   // stranded with no food in reach: make for the nearest safe ground instead
@@ -515,9 +515,10 @@ function update(c, dt) {
     here = world.type[hi],
     ok = allowed(c, hi, here);
   let desired,
-    near = Infinity, // how far the next point on its route is
-    waiting = false; // heading for regrowing or busy food to wait by, rather than food it can eat
-  if (c.path && c.wp < c.path.length) {
+    near = Infinity; // how far the next point on its route is
+  // close to the regrowing or busy food it is waiting by: amble round it instead of following the route
+  const spot = c.spot && Math.hypot(c.spot.x - c.x, c.spot.y - c.y) < AMBLE.r ? c.spot : null;
+  if (c.path && c.wp < c.path.length && !spot) {
     let p = c.path[c.wp];
     if (Math.hypot(p[0] - c.x, p[1] - c.y) < 6 && c.wp < c.path.length - 1) {
       c.wp++;
@@ -525,14 +526,13 @@ function update(c, dt) {
     }
     desired = Math.atan2(p[1] - c.y, p[0] - c.x);
     near = Math.hypot(p[0] - c.x, p[1] - c.y);
-    waiting = c.waits && c.wp === c.path.length - 1;
   } else {
-    c.wander += (rand() - 0.5) * dt * 1.2;
+    c.wander += (rand() - 0.5) * dt * (spot ? 2.4 : 1.2);
     // wanderers drift back towards home once they are outside their range, or out in deep water (unless fully
-    // aquatic)
-    const hx = c.home[0] - c.x,
-      hy = c.home[1] - c.y;
-    if (hx * hx + hy * hy > homeRange(c) ** 2 || (world.deep[hi] && c.tail < 1)) {
+    // aquatic); amblers back towards their food once more than halfway to the edge of its circle
+    const hx = (spot ? spot.x : c.home[0]) - c.x,
+      hy = (spot ? spot.y : c.home[1]) - c.y;
+    if (hx * hx + hy * hy > (spot ? AMBLE.r / 2 : homeRange(c)) ** 2 || (world.deep[hi] && c.tail < 1)) {
       const toHome = Math.atan2(hy, hx),
         off = Math.atan2(Math.sin(c.wander - toHome), Math.cos(c.wander - toHome));
       c.wander -= off * Math.min(1, dt * 1.5);
@@ -546,14 +546,13 @@ function update(c, dt) {
   }
   const da = ((((desired - c.dir + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
   c.dir += clamp(da, -3 * dt, 3 * dt);
-  // a waiting creature that has reached its spot stands still, and one that must turn sharply close to its next
-  // point turns on the spot first: otherwise it can circle that point for ever, never quite getting there
+  // a creature that must turn sharply close to its next point turns on the spot first: otherwise it can circle
+  // that point for ever, never quite getting there
   const halt =
-      (waiting && near < 12) ||
       (near < 20 && Math.abs(da) > 1.2) ||
       // close to its food but not facing it: turn to face it, so it eats with its mouth
       (c.target && near < c.reach + 6 && Math.abs(da) > EAT_FACE),
-    sp = halt ? 0 : speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1);
+    sp = halt ? 0 : speedIn(c, here, hi, ok) * (Math.abs(da) > 1.2 ? 0.5 : 1) * (spot ? AMBLE.pace : 1);
   let moved = false;
   for (const off of [0, 0.45, -0.45, 1, -1, 1.8, -1.8]) {
     const d = c.dir + off,

@@ -451,6 +451,9 @@ const SHAKE = {
 // parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
 // around the release spot
 const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
+// with no food free, a creature heads for the nearest regrowing or busy food and, once within r px of it, ambles
+// round it at pace (share of full speed) until something frees up, rather than standing still
+const AMBLE = { r: 60, pace: 0.5 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 };
