@@ -735,8 +735,10 @@ becomes a new species.
 hour-long test runs that lasted the hour, three in four had 1–3 new species (the rest none), none ever had more
 than 3 alive at once, and most new species were still alive at the end of the hour.
 
-**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.5,
-`SPC.size`), legs, tail, mouth (× 0.6, `MOUTH_SPLIT`) and roundness (× 0.5). Colour never makes a new
+**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.2,
+`SPC.size`), leg length (× 0.75, `SPC.leg`), tail (× 1.3, `SPC.tail`), mouth (× 0.9, `MOUTH_SPLIT`) and roundness
+(× 0.5). What a creature eats (its mouth) and where it lives (its tail) count for more than how big it is or how
+long its legs are, as in real animals, where a change of diet or habitat is a classic start to a new species. Colour never makes a new
 species (each new species is given its own), and width and length count only through size, so two
 groups that only look a little different stay one species. Two features that are either there or not count extra
 (`SHOWS`), because they change how creatures live and look even when the trait behind them has barely moved: having

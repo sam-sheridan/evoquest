@@ -214,7 +214,7 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.25 };
-const MOUTH_SPLIT = 0.6; // how much a difference in mouths counts towards a new species (the tail counts 1)
+const MOUTH_SPLIT = 0.9; // how much a difference in mouths counts towards a new species (see SPC for the others)
 // features that are either there or not count extra towards a new species, since they make creatures look
 // different: having a tail at all, and having 6 legs rather than 4
 const SHOWS = { tail: 0.25, legs: 0.15 };
@@ -461,7 +461,8 @@ const CRW = { r: 80, half: 2, pow: 2 };
 // age / cool: seconds a species must exist, and wait after a split, before it can split again
 // extra: how much harder each additional living species makes the next split
 // min: fewest creatures a new species can start with; same: a group this close (in trait difference) to a species
-// already alive doesn't split off; size: how much size counts in the trait difference
+// already alive doesn't split off; size, leg, tail: how much size, leg length and tail count in the trait difference
+// (what a creature eats and where it lives count more than how big it is or how long its legs are)
 const SPC = {
   geo: 0.22,
   eco: 0.4,
@@ -472,7 +473,9 @@ const SPC = {
   extra: 0.9,
   min: 12,
   same: 0.2,
-  size: 1.5,
+  size: 1.2,
+  leg: 0.75,
+  tail: 1.3,
 };
 
 /* ---- intro ---- */
