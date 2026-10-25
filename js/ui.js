@@ -650,7 +650,6 @@ function renderBadges() {
     got = all.filter(b => mine.includes(b.id)).length;
   $('#badgePop').innerHTML =
     `<div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Achievements this run</b><span class="lbl">${got} / ${all.length}</span></div>${badgesHTML(mine)}`;
-  $('#bBadge').querySelector('small').textContent = got;
 }
 $('#bBadge').onclick = e => {
   e.stopPropagation();

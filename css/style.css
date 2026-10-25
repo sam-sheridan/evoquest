@@ -142,9 +142,9 @@ h3 {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-/* every control the same width: room for the achievements medal and a two-digit count, icons centred */
+/* every control the same width, icons centred */
 .strip button {
-  width: 52px;
+  width: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -845,7 +845,8 @@ h3.sec {
 }
 /* Help (?): the same question mark as the creator's, in the controls' type */
 #bHelp {
-  font-size: 14px;
+  font-size: 17px;
+  line-height: 1;
   font-weight: 600;
 }
 /* while help is on, an orange outline round each part of the screen and a short dark label beside it (like the
