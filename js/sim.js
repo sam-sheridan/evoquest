@@ -1043,8 +1043,8 @@ function logEv(m) {
 // length count only through size, so look-alike groups don't become separate species
 const vec = c => [
   c.size * SPC.size,
-  c.leg,
-  c.hab,
+  c.leg * SPC.leg,
+  c.hab * SPC.tail,
   c.mth * MOUTH_SPLIT,
   c.round * 0.5,
   c.tail > 0 ? SHOWS.tail : 0,
