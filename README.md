@@ -843,7 +843,7 @@ New species, extinctions and achievements pop up below the status bar for 9 seco
 Collapse or expand it with the arrow. It has four tabs.
 
 - **Species**
-  - **Table**: one column for every species (the starting design isn't shown here, since it never changes), living ones first and extinct ones
+  - **Table**: a **Released** column first, with the released design's traits (its population is left empty), then one column for every species, living ones first and extinct ones
     at the far right, greyed out and marked †. Every column has the same fixed width, so the table doesn't shift as
     species change. Numbers are shown to one decimal place (size to two). When there are too many to fit, the table
     scrolls sideways while the row names stay in view. The first row
