@@ -403,8 +403,9 @@ shortest-route search (Dijkstra's algorithm). The search allows for terrain spee
 allowed into.
 
 - It only plans up to **22 seconds of travel** ahead (`MAXT`). If no food is free in range (say every nearby
-  piece is regrowing or already has three creatures heading for it), it heads for the nearest such food and waits
-  there, looking again every second or two. Only if there is no food at all in range does it wander.
+  piece is regrowing or already has three creatures heading for it), it heads for the nearest such food and, once
+  within 60 px of it, ambles round it at half pace rather than standing still (`AMBLE`), looking again every second
+  or two. Only if there is no food at all in range does it wander further.
 - **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
   a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
   around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
@@ -428,9 +429,9 @@ allowed into.
 ### Moving
 
 - Creatures turn at most 3 radians a second and move at half speed while turning sharply. Close to the next point
-  on their route (within 20 px) they turn on the spot instead, and a creature waiting by regrowing or busy food
-  stands still once within 12 px of its spot (a stranded creature heading for safe ground never stops short of it). Without this, a creature could circle a point for ever without ever
-  quite reaching it.
+  on their route (within 20 px) they turn on the spot instead. Without this, a creature could circle a point for ever without ever
+  quite reaching it. A creature waiting by regrowing or busy food never stands still: within 60 px of it, it
+  ambles round it at half pace.
 - Old creatures slow down: from 85 seconds old their speed falls steadily, coming to a halt at 90 (`OLD`).
 - If the way ahead is blocked, a creature tries angles to either side before turning around.
 - Wanderers turn back towards the middle of the map near its oval edge.
