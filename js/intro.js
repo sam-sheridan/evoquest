@@ -395,7 +395,7 @@ const PANES = [
   {
     h: 'The world keeps changing',
     p: [
-      'Seasons turn every 2½ minutes, changing where food grows back fastest and how cold the hills get. Every 7 minutes a world event strikes, and the sign in the bottom left flashes just before one.',
+      'Seasons turn every 2½ minutes, changing where food grows back fastest and how cold the hills get. Every 12 minutes a world event strikes, and the sign in the bottom left flashes just before one.',
       'No world stays the same for long: islands join and split, rivers come and go, and what worked last year may not work now.',
     ],
     html() {

@@ -851,9 +851,14 @@ function worldEvent(kind, major, forced) {
     k = pickEvent();
   let msg;
   if (k === 'meteor') {
+    // aim near a random living creature (any land spot if there are none), and land on land
+    const L = S.creatures.filter(c => !c.dead);
     for (let tries = 0; tries < 200; tries++) {
-      const x = rand() * W,
-        y = rand() * H;
+      const c = L.length ? L[Math.floor(rand() * L.length)] : null,
+        a = rand() * 2 * Math.PI,
+        r = EVENTS.near * Math.sqrt(rand()),
+        x = c ? Math.min(W - 1, Math.max(0, c.x + Math.cos(a) * r)) : rand() * W,
+        y = c ? Math.min(H - 1, Math.max(0, c.y + Math.sin(a) * r)) : rand() * H;
       if (cellT(x, y) === 1) {
         meteor(x, y, major);
         return;

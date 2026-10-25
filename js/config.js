@@ -404,18 +404,20 @@ const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 };
 
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
-// (no random extra: one event every 7 minutes, like clockwork)
+// (no random extra: one event every 12 minutes, like clockwork)
 // meteor: chance an event is a meteor; major: chance an event is a major one
 // each pair below is [normal, major]
 // shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
+// near: meteors land within this many px of a random living creature, so they tend to hit populations
 // blast: meteor kill radius in px; crater: crater radius in cells
 // splits: new splits per earthquake; seaSplit: chance each split is a sea channel rather than a river
 // dry: rivers dried up and sea channels closed per drought (each) at least; dryShare: or this share of them if
 // more, so the more splits there are, the more a drought undoes; they turn straight back into land
 const EVENTS = {
-  first: [420, 0],
-  gap: [420, 0],
+  first: [720, 0],
+  gap: [720, 0],
   meteor: 0.05,
+  near: 250,
   major: 0.1,
   shift: [0.12, 0.2],
   blast: [190, 280],
