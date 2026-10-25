@@ -142,6 +142,14 @@ h3 {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* every control the same width: room for the achievements medal and a two-digit count, icons centred */
+.strip button {
+  width: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 .strip button:last-child {
   border-right: 0;
 }
@@ -839,7 +847,6 @@ h3.sec {
 #bHelp {
   font-size: 14px;
   font-weight: 600;
-  padding-inline: 11px;
 }
 /* while help is on, an orange outline round each part of the screen and a short dark label beside it (like the
    notifications); clicks pass through, so everything still works */

@@ -63,7 +63,8 @@ Sam isn't comfortable with git yet, so Claude does all of it.
    Artifact (the fragment suits hosts that add their own page wrapper), then give Sam the link. Republish to the same Artifact after each round of feedback, so the link stays the same
    within a session.
 5. **Ship only when Sam says so** ("ship it", "merge it", "make it live"). Bring the branch up to date with
-   `main`, run the checks once more, merge into `main`, push, and tell Sam it will be live in a minute or two.
+   `main`, set the `?v=` version on every script and the stylesheet in `index.html` to the date (add b, c and so on for a
+   second ship that day, so browsers never mix old and new files), run the checks once more, merge into `main`, push, and tell Sam it will be live in a minute or two.
    Keep the branch afterwards: Sam likes old branches kept as a record. Never delete an unmerged branch.
 
 Changes that only touch `CLAUDE.md` or `README.md`, and don't affect the game, can go straight to `main`.
