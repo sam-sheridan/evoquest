@@ -101,14 +101,22 @@ with sync_playwright() as p:
     pg.click('#grab')
     pg.click('#grab')
 
-    # select a creature directly (the youngest, so it won't die of old age mid-test), take control, steer it with
-    # the arrow keys, then let go
-    sx, sy = pg.evaluate("""() => { const c = window.EvoQuestDebug.state.creatures.reduce((a, b) => (b.age < a.age ? b : a));
-        return [(c.x - cam.x) * cam.z + innerWidth / 2, (c.y - cam.y) * cam.z + innerHeight / 2]; }""")
+    # select a creature directly (the youngest on open map that isn't resting after a meal, so it won't die of old
+    # age mid-test, the click isn't caught by a panel over it and it can move straight away), take control, steer
+    # it with the arrow keys, then let go
+    sx, sy = pg.evaluate("""() => { const at = c => [(c.x - cam.x) * cam.z + innerWidth / 2, (c.y - cam.y) * cam.z + innerHeight / 2];
+        const C = [...window.EvoQuestDebug.state.creatures].sort((a, b) => a.age - b.age),
+          c = C.find(c => c.rest <= 0 && document.elementFromPoint(...at(c))?.id === 'cv') || C[0];
+        return at(c); }""")
     pg.mouse.click(sx, sy)
     steer_ok = True
     if pg.query_selector('#ctl'):
         pg.click('#ctl')
+        # a resting creature can't move until its rest is over, so wait for that first (at most 2 seconds)
+        for _ in range(40):
+            if not pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && c.rest > 0; }"):
+                break
+            time.sleep(0.05)
         start = pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y]; }")
         for key in ['ArrowRight', 'ArrowUp', 'ArrowLeft', 'ArrowDown']:
             pg.keyboard.down(key)
