@@ -55,7 +55,7 @@ be changed, its name in `js/config.js` is shown like `this`.
    they don't all die of old age at the same moment, which used to halve the population at about 70 seconds. Their
    traits are varied 1.5 times more than normal so selection has something to work on straight away.
 4. **The simulation runs.** Food regrows, creatures plan routes to food, eat, breed and die. Seasons change
-   every 2.5 minutes. A world event happens every 7 minutes.
+   every 2.5 minutes. A world event happens every 12 minutes.
 5. **Evolution.** Offspring inherit their parent's traits with small random changes. Traits that help
    creatures eat and breed in this world become more common.
 6. **Speciation.** If part of the population gets cut off or settles into a different way of life, it can
@@ -649,10 +649,10 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 ### Timing
 
-- The first event comes exactly 7 minutes into a run (`EVENTS.first`).
-- After that, one comes every 7 minutes (`EVENTS.gap`), with no random variation. A 15-minute run sees two
-  events, at 7 and 14 minutes. Events don't line up with seasons: a year is 10 minutes, so each event falls in a
-  different season from the one before.
+- The first event comes exactly 12 minutes into a run (`EVENTS.first`).
+- After that, one comes every 12 minutes (`EVENTS.gap`), with no random variation. A 30-minute run sees two
+  events, at 12 and 24 minutes. Events don't line up with seasons: a year is 10 minutes, so each event comes 2
+  minutes later in the year than the one before, and they work through spring, summer, autumn and winter in turn.
 - There is **no timer** on screen. For the last 7 seconds before an event (`EVENTS.warn`), the **world event
   sign** (bottom left) flashes orange with the coming event's symbol, then stays bright orange for 2 seconds once
   it happens (`EVENTS.show`). Major events look the same there.
@@ -682,10 +682,10 @@ All of this is in the `SEASONS` table in `js/config.js`.
 | **Flood** | Sea level rises: land falls by 12 percentage points of the map (never more than 18 below where the world started, `LAND.min`). Low land and its food go underwater. Every river and sea channel widens by 35%, and a river that reaches 2.6 cells wide becomes a **sea channel** (`EVENTS.widen`, `toSea`). | Land falls by 20 points, and rivers and sea channels widen by 60%. |
 | **Drought** | Sea level falls: land rises by 12 points (never more than 18 above where it started, `LAND.max`). New land appears and islands may join the mainland, and big droughts can even close the main strait. A quarter of the rivers dry up and a quarter of the sea channels close (at least one of each, if there are any). The rest narrow by the same share a flood widens them, but never below the width they started at; a sea channel that began as a river turns back into one when it narrows below 2.6 cells. | Land rises by 20 points. Half the rivers dry up and half the sea channels close (at least two of each), and the rest narrow by the share a major flood widens them. |
 | **Earthquake** | One new split cuts across the map. It is a river, or 30% of the time a **sea channel**: a wider cut of open sea that land creatures can't cross the way strong swimmers cross a river. | Two new splits, each with its own 30% chance of being a sea channel (so at least one sea channel about half the time). |
-| **Meteor** | Hits a random land spot. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle, where 3 algae sites start growing. | Kills within 280 px and makes a much bigger crater. |
+| **Meteor** | Hits a land spot near the creatures: within 250 px of a random living one (`EVENTS.near`), so it usually strikes a population. Kills every creature within 190 px. Leaves a crater: an irregular rock rim with a gap, and a small lake in the middle, where 3 algae sites start growing. | Kills within 280 px and makes a much bigger crater. |
 
 Sizes and chances are in `EVENTS` in `js/config.js` (`shift`, `blast`, `crater`, `splits`, `seaSplit`, `dry`,
-`dryShare`).
+`dryShare`, `near`).
 
 A dried-up river or closed sea channel turns straight back into ordinary land, leaving no trace, so creatures can
 walk across it at once. Which river or channel dries up is picked at random, including the ones the world started
