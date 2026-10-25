@@ -416,11 +416,11 @@ const labelWidth = labels => {
   g.font = '12.5px "IBM Plex Sans", system-ui, sans-serif';
   return Math.ceil(Math.max(...labels.map(l => g.measureText(l).width))) + 10;
 };
-// grey: in the inspector (extinct species greyed out, no starting design column, as it never changes); at the end
-// of a run the starting design is shown first
+// grey: in the inspector (extinct species greyed out); the released design is always the first column, headed
+// Released in the inspector and Starting design at the end of a run
 function speciesTable(grey) {
   const start = { name: 'Starting design', m: S.orig, key: 'r' },
-    cols = grey ? [] : [start];
+    cols = [start];
   // living species first, extinct ones at the far right
   const order = [
     ...S.species.filter(s => !s.died),
@@ -429,7 +429,9 @@ function speciesTable(grey) {
   for (const sp of order) {
     const m = spAvg(sp);
     if (!m) continue;
-    cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent: sp.parent === null ? 'r' : sp.parent });
+    // primus is compared with the starting design only at the end of a run: in the inspector it has no highlights
+    const parent = sp.parent === null ? (grey ? null : 'r') : sp.parent;
+    cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent });
   }
   // each picture is in its species' colour (the starting design's for that column)
   for (const k of cols) {
@@ -461,7 +463,8 @@ function speciesTable(grey) {
   const info = [
     [
       grey ? 'Population' : 'Peak population',
-      k => (k.sp ? (grey ? S.creatures.filter(c => c.sp === k.sp.id).length : k.sp.peak) : START),
+      // the released design has no population of its own in the inspector, so its cell is left empty
+      k => (k.sp ? (grey ? S.creatures.filter(c => c.sp === k.sp.id).length : k.sp.peak) : grey ? '' : START),
     ],
     ['Time alive', k => (k.sp ? fmtT((k.sp.died ?? S.t) - k.sp.born) : '–')],
   ];
@@ -473,12 +476,14 @@ function speciesTable(grey) {
     .map(k =>
       k.sp
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
-        : `<th class="sd">Starting<br>design</th>`
+        : grey
+          ? `<th class="sd">Released</th>`
+          : `<th class="sd">Starting<br>design</th>`
     )
     .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
     .map(
       (k, i) =>
-        `<td${ext(k)}><canvas data-pic="${i}" aria-label="Average ${k.sp ? k.sp.epithet : 'starting design'}"></canvas></td>`
+        `<td${ext(k)}><canvas data-pic="${i}" aria-label="${k.sp ? `Average ${k.sp.epithet}` : grey ? 'Released design' : 'Average starting design'}"></canvas></td>`
     )
     .join('')}</tr>${info
     .map(([l, f]) => `<tr><td>${l}</td>${cols.map(k => `<td${ext(k)}>${f(k)}</td>`).join('')}</tr>`)
