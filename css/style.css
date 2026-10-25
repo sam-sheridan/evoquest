@@ -835,6 +835,63 @@ h3.sec {
 .setrow .seg2 button[aria-pressed='false']::after {
   font-size: 12px;
 }
+/* Help (?): the same question mark as the creator's, in the controls' type */
+#bHelp {
+  font-size: 14px;
+  font-weight: 600;
+  padding-inline: 11px;
+}
+/* while help is on, an orange outline round each part of the screen and a short dark label beside it (like the
+   notifications); clicks pass through, so everything still works */
+#helpLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+#helpLayer .hring {
+  position: absolute;
+  border: 2px solid var(--signal);
+  border-radius: 3px;
+}
+#helpLayer .hcall {
+  position: absolute;
+  max-width: 230px;
+  background: var(--ink);
+  color: var(--panel);
+  padding: 7px 10px;
+  border-radius: 2px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+#helpLayer .hcall b {
+  display: block;
+  color: var(--signal);
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+#helpLayer .hrow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+}
+#helpLayer .hrow i {
+  flex: none;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  font-style: normal;
+  font-weight: 600;
+}
+#helpLayer .hrow em {
+  font-style: normal;
+  font-weight: 600;
+}
 #badgePop {
   position: fixed;
   z-index: 9;

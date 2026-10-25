@@ -277,6 +277,135 @@ document.addEventListener('click', e => {
     $('#bSet').classList.remove('on');
   }
 });
+// Help (?): pauses the game and labels each part of the screen; pressing it again takes the labels away and carries
+// on (still paused if it was paused before). Each label: [what it points at, which side it goes, title, text]
+let help = null; // while help is on: { was: whether the game was already paused }
+const helpIcon = id => $(id).querySelector('svg')?.outerHTML ?? $(id).textContent;
+const HELP = [
+  [
+    '#bar .idp',
+    'below',
+    'Your species',
+    'Its name, then creatures alive · species · highest generation · time.',
+  ],
+  [
+    '#bar .strip',
+    'below',
+    'Controls',
+    () =>
+      [
+        ['#bPause', 'Pause or play'],
+        ['#bFast', 'Fast forward: 8× for up to 40 s. The ring shows the charge left'],
+        ['#bLog', 'Event log'],
+        ['#bBadge', 'Achievements'],
+        ['#bSet', 'Settings: sound and ending the run'],
+        ['#bHelp', 'Help: press again to carry on'],
+      ]
+        .map(([id, t]) => `<div class="hrow"><i>${helpIcon(id)}</i><span>${t}</span></div>`)
+        .join(''),
+  ],
+  [
+    '#sheet .tabs',
+    'left',
+    'Inspector',
+    [
+      ['Species', 'each species’ average body'],
+      ['Stats', 'charts over time'],
+      ['Specimen', 'the creature you tap; Control steers it with the arrow keys'],
+      ['World', 'event counts and a map key'],
+    ]
+      .map(([t, d]) => `<div><em>${t}</em>: ${d}</div>`)
+      .join('') + '<div>The arrow hides or shows it.</div>',
+  ],
+  ['#clock', 'above', 'Season', 'The year’s clock, the season and the world’s temperature. Tap for more.'],
+  [
+    '#evSq',
+    'right',
+    'World event sign',
+    'Flashes orange just before a flood, drought, earthquake or meteor. Tap for more.',
+  ],
+  [null, 'map', 'Map', 'Drag to move, scroll or pinch to zoom, and tap a creature to follow it.'],
+];
+// put each label beside the part it explains, kept on screen and clear of the outlines and the other labels (moved
+// down, or up for labels above their part, past anything in the way); parts covered by something else (the
+// season clock under an open inspector on a phone) get no label
+function placeHelp() {
+  const L = $('#helpLayer'),
+    vw = innerWidth,
+    vh = innerHeight,
+    m = 8,
+    gap = 8,
+    taken = [],
+    hits = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  L.innerHTML = '';
+  const sheet = $('#sheet').getBoundingClientRect();
+  const parts = HELP.map(([sel, ...rest]) => {
+    if (!sel) return [null, ...rest];
+    const el = $(sel),
+      r = el && el.getBoundingClientRect();
+    if (!r || !r.width || el.closest('[hidden]')) return null;
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (top && !el.contains(top) && !L.contains(top)) return null;
+    const ring = document.createElement('div');
+    ring.className = 'hring';
+    Object.assign(ring.style, {
+      left: r.left - 3 + 'px',
+      top: r.top - 3 + 'px',
+      width: r.width + 2 + 'px',
+      height: r.height + 2 + 'px',
+    });
+    L.append(ring);
+    taken.push({ x: r.left - 3, y: r.top - 3, w: r.width + 6, h: r.height + 6 });
+    return [r, ...rest];
+  });
+  for (const part of parts) {
+    if (!part) continue;
+    const [r, side, title, text] = part;
+    const c = document.createElement('div');
+    c.className = 'hcall';
+    c.innerHTML = `<b>${title}</b>${typeof text === 'function' ? text() : text}`;
+    L.append(c);
+    const w = c.offsetWidth,
+      h = c.offsetHeight;
+    let x, y;
+    if (side === 'map') {
+      // the middle of the open map, left of the inspector when there's room
+      const right = sheet.width && sheet.left > vw / 2 ? sheet.left : vw;
+      [x, y] = [(right - w) / 2, vh * 0.45 - h / 2];
+    } else if (side === 'below') [x, y] = [r.left, r.bottom + gap];
+    else if (side === 'above') [x, y] = [r.left, r.top - h - gap];
+    else if (side === 'right') [x, y] = [r.right + gap, r.bottom - h];
+    // left of the inspector, or above it when there's no room (phones)
+    else if (r.left - w - gap >= m) [x, y] = [r.left - w - gap, r.top];
+    else [x, y] = [r.right - w, r.top - h - gap];
+    const up = y < (r ? r.top : 0);
+    const box = { x: Math.max(m, Math.min(vw - w - m, x)), y, w, h };
+    for (let i = 0, t; i < 20 && (t = taken.find(o => hits(box, o))); i++)
+      box.y = up ? t.y - h - gap / 2 : t.y + t.h + gap / 2;
+    box.y = Math.max(m, Math.min(vh - h - m, box.y));
+    taken.push(box);
+    c.style.left = box.x + 'px';
+    c.style.top = box.y + 'px';
+  }
+}
+function setHelp(on) {
+  if (on === !!help) return;
+  if (on) {
+    help = { was: S.paused };
+    S.paused = true;
+  } else {
+    if (!S.over && !S.doom) S.paused = help.was;
+    help = null;
+  }
+  $('#helpLayer').hidden = !on;
+  $('#bHelp').classList.toggle('on', on);
+  $('#bHelp').setAttribute('aria-pressed', String(on));
+  syncUI(true);
+}
+$('#bHelp').onclick = () => {
+  if (S && !S.over && !S.replay) setHelp(!help);
+};
+addEventListener('resize', () => help && placeHelp());
 const liveSp = () => S.species.filter(s => !s.died).sort((a, b) => b.n - a.n);
 // the chart shows at most CHART_SPAN seconds; chartEnd is the time at its right edge, or null to follow the present
 let chartEnd = null;
@@ -612,6 +741,9 @@ addEventListener('keydown', () => {
 });
 function syncUI() {
   if (!S) return;
+  // help closes when the run ends or the creator opens; otherwise its labels follow the screen as it changes
+  if (help && (S.over || S.replay || !$('#creator').hidden)) setHelp(false);
+  if (help) placeHelp();
   const n = S.creatures.length,
     ls = S.species.filter(s => !s.died).length;
   $('#spName').innerHTML =
