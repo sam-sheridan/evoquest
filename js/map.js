@@ -629,7 +629,7 @@ function renderTerrain() {
   if (S) for (const c of S.creatures) c.rt = 0;
 }
 // the open land's details: softened fertility for the meadow / dry-ground wash, hill shading as a small image, lone
-// trees and small clumps on fertile ground, grass tufts on meadows, and reed marks on low ground by lakes and rivers
+// trees and small clumps on fertile ground, and reed marks on low ground by lakes and rivers
 function landDetail(w, V) {
   const N = GW * GH,
     T = w.type,
@@ -648,7 +648,6 @@ function landDetail(w, V) {
       lone: new Path2D(),
       loneShade: new Path2D(),
       loneShadow: new Path2D(),
-      grass: new Path2D(),
       reed: new Path2D(),
     };
   let f = new Float32Array(N);
@@ -690,12 +689,6 @@ function landDetail(w, V) {
       for (const dx of [-2, 0, 2]) {
         L.reed.moveTo(x + dx, y - 0.5);
         L.reed.lineTo(x + dx * 1.3, y - 3.2 - (dx ? 0 : 1));
-      }
-    } else if (fz(i) > 0.45 && r() < OPENLAND.grass * fz(i) && !onRock(x, y, 4)) {
-      // grass: three short strokes fanning upwards
-      for (const a of [-0.5, 0, 0.5]) {
-        L.grass.moveTo(x + a * 1.2, y);
-        L.grass.lineTo(x + a * 3.4, y - 3.4 + Math.abs(a) * 1.2);
       }
     }
   }
@@ -841,8 +834,6 @@ function paintTerrain(g) {
   clipOut(g, V.thick);
   g.lineCap = 'round';
   g.lineWidth = 0.85;
-  g.strokeStyle = 'rgba(60,90,45,.7)';
-  g.stroke(V.landD.grass);
   g.strokeStyle = 'rgba(45,80,90,.75)';
   g.stroke(V.landD.reed);
   g.restore();

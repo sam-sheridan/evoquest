@@ -977,8 +977,8 @@ The look is a scientific **field notebook / survey map**.
     also the background beyond the map, so the map has no visible border.
   - **Open land** (`OPENLAND`) is pale, with fertile meadows washed green and poor dry ground washed straw, fading
     into each other (drawn as a small smoothed image, one pixel per cell, so it adds nothing to Safari's limit). In
-    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows, small ink grass tufts dot
-    fertile ground, and reed marks show the low wet ground by lakes and rivers. A very light hill shading (also a
+    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows (there are no grass tufts:
+    Sam's choice, October 2026), and reed marks show the low wet ground by lakes and rivers. A very light hill shading (also a
     small image) darkens slopes facing away from the north-west light and fades out at the water's edge.
   - Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
