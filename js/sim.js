@@ -631,7 +631,7 @@ function eat(c, f) {
   c.blk = 0;
   c.rest = 0.8 + rand() * 0.6;
   f.vis = Math.min(c.rest / 2, 1.5);
-  if (c.E >= c.cap * 0.85 && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c))) c.pb = rand() * 3;
+  if (c.E >= c.cap * BREED.full && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c))) c.pb = rand() * 3;
   if (audible(c)) SND.eat();
 }
 function birth(p) {
