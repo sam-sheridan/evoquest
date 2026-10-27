@@ -338,6 +338,7 @@
       }
 
       // ---- images from the game ----
+      const ok = i => i.complete && i.naturalWidth > 0; // a picture that failed to load is skipped, not drawn
       const img = src => {
         const i = new Image();
         i.src = src;
@@ -346,7 +347,7 @@
       const IM = { island: img('island.jpg'), empty: img('patch_empty.jpg'), creatures: img('patch_cr.jpg') };
       let islandLo = null; // a small copy of the home island for when it's far away
       function lo() {
-        if (islandLo || !IM.island.complete) return;
+        if (islandLo || !ok(IM.island)) return;
         islandLo = document.createElement('canvas');
         islandLo.width = 900;
         islandLo.height = Math.round((900 * H) / W);
@@ -537,16 +538,16 @@
         // home island: the game's own map picture, swapped for the sharp release view as we arrive
         lo();
         const src = z * dpr < 0.25 && islandLo ? islandLo : IM.island;
-        if (src.complete !== false) g.drawImage(src, 0, 0, W, H);
+        if (src === islandLo || ok(src)) g.drawImage(src, 0, 0, W, H);
         const px = HOME.x - PATCH.w / 2,
           py = HOME.y - PATCH.h / 2,
           sharp = clamp01((k - 0.82) / 0.12);
-        if (sharp > 0 && IM.empty.complete) {
+        if (sharp > 0 && ok(IM.empty)) {
           g.globalAlpha = sharp;
           g.drawImage(IM.empty, px, py, PATCH.w, PATCH.h);
           g.globalAlpha = 1;
         }
-        if (landed > 0 && IM.creatures.complete) {
+        if (landed > 0 && ok(IM.creatures)) {
           g.globalAlpha = clamp01(landed);
           g.drawImage(IM.creatures, px, py, PATCH.w, PATCH.h);
           g.globalAlpha = 1;
@@ -622,7 +623,11 @@
           s = skipped ? o.dur + LAND : (now - t0) / 1000 - 0.5; // half a second's pause on the far view
         const t = Math.max(0, s) / o.dur,
           landed = (s - o.dur) / LAND;
-        render(cv, opt, t, landed);
+        try {
+          render(cv, opt, t, landed);
+        } catch (e) {
+          console.error(e);
+        }
         hint.textContent = t < 1 ? 'click to skip' : 'click to replay';
         requestAnimationFrame(frame);
       }
