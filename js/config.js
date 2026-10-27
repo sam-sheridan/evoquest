@@ -458,17 +458,17 @@ const CRW = { r: 80, half: 2, pow: 2 };
 // every species is one of four types, named by its epithet: water (natans) has at least water.tail of tail (0 none,
 // 1 full); thicket (silvicola) is no bigger than thicket.size with a mouth no more than thicket.mouth (0 beak,
 // 1 straw), and isn't water; plains (campestris) is at least plains.size, and isn't water; everything else is the
-// middle type (vulgaris). margin: how far past its species' border (in each trait) a creature must be to move to
-// another type. near: a creature joins a living species only with at least near.n of its members within near.r px
-// (so species stay groups that live somewhere). min / deep: founding a species (or bringing back one that died
-// out) needs min creatures within near.r px of one of them, each at least deep margins inside the new type, so a
-// new species starts clearly different
+// middle type (vulgaris). Species change by group, not by creature: link: members within this many px of each
+// other (in a chain) form one group. margin: how far past its species' border (in each trait) a group's average
+// must be for the whole group to move to the type it fits best. min / deep: founding a species (or bringing back
+// one that died out) needs a group of at least min whose average is deep margins inside the new type, so a new
+// species starts clearly different
 const TYPES = {
   water: { tail: 0.5 },
   thicket: { size: 0.8, mouth: 0.4 },
   plains: { size: 1.0 },
+  link: 250,
   margin: { tail: 0.08, size: 0.04, mouth: 0.08 },
-  near: { r: 400, n: 5 },
   min: 12,
   deep: 2,
 };

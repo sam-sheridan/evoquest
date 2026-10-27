@@ -739,29 +739,32 @@ several quite different body types.)
 
 ### Moving between species
 
-Newborns take their parent's species. As traits drift, a creature can end up living another way. Every 5 seconds,
-each creature is checked:
+Newborns take their parent's species. As traits drift, part of a species can end up living another way. Species
+change **by group, not by creature**: every 5 seconds, each species is split into local groups (members within
+250 px of each other, in a chain, are one group: `TYPES.link`), and each group is judged by its **average** body.
 
-- It **leaves** its species once it is clearly outside that species' type: at least one margin past the border
-  (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth), so a creature near a border doesn't flick
-  back and forth. A creature's body never changes during its life, so this is decided by how it was born. It moves
-  to the type it fits best, blending into that species' colour over 1.5 seconds (`SPLIT_FADE`) and keeping its
-  own shade.
-- It **joins a living species on its own**. To **found a new species** (or bring back one that died out), at least
-  **12** creatures of one species must be ready to move to it together (`TYPES.min`). Until then they wait in their
-  old species, so a few in-between creatures can sit in a species for a while.
+- A group **moves** once its average is clearly outside its species' type: at least one margin past the border
+  (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth), so a group near a border doesn't flick
+  back and forth. The whole group moves to the type it fits best, if that species is alive, each creature blending
+  into the new colour over 1.5 seconds (`SPLIT_FADE`) and keeping its own shade.
+- To **found a new species** (or bring back one that died out), the group needs at least **12** members
+  (`TYPES.min`) and an average **two margins** inside the new type (`TYPES.deep`: a 66% tail for *natans*, for
+  example), so a new species starts clearly different. Until then the group stays where it is.
+- A creature always follows its group, so there is never a lone *natans* in a herd of *vulgaris*, and species stay
+  herds that live somewhere. Two water herds in different places can both be *natans*. Groups are formed within
+  each species, so a water herd living right beside a land herd stays separate. A herd can carry a few odd
+  individuals (a tailed creature in a land herd): like real animals, it's the population that is judged.
 - When the last members of a species move to others, the log says so ("The last Blorbus vulgaris have become
   natans"). When a species dies out and a group later takes up its way of life again, it **comes back** under the
   same name and colour, with a notification, and the family tree shows each stretch it was alive.
 
-Because creatures can move in both directions, groups from different species can end up in one type: species here
+Because groups can move in both directions, groups from different species can end up in one type: species here
 describe how creatures live, not a single line of descent. The family tree shows where each species first came
 from.
 
-In 75 hour-long study runs (October 2026, when moving also waited 20 seconds, so new species now appear a little
-sooner): about a third stayed one species, and the rest had 1–3 new species
-(median 23 minutes before the first), with up to 4 alive at once. New species mostly lasted: only 6 of 80 died out
-before the run ended. Only about 19 creatures an hour moved between living species, so borders are steady.
+(Two earlier versions judged each creature on its own. Moving freely left lone creatures of one species inside
+herds of another; needing company nearby to move left species' averages drifting away from their type. Judging
+local groups fixed both.)
 
 ### Names
 
@@ -1113,7 +1116,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to leave its species, `min` for how many to found one |
+| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `link` for how close creatures must be to count as one group, `margin` for how far past a border a group's average must be to move, `min` and `deep` for how big and how clearly different a group must be to found a species |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |
