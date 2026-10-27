@@ -522,12 +522,10 @@ const SP_ROWS = [
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
 ];
-// a species' average traits: now if it is alive, otherwise as last recorded
+// a species' average traits: now if it is alive, otherwise as last seen alive
 function spAvg(sp) {
   const M = S.creatures.filter(c => c.sp === sp.id);
-  if (M.length) return summ(M);
-  const e = [...S.hist].reverse().find(e => e.sp[sp.id]);
-  return e ? e.sp[sp.id] : null;
+  return M.length ? summ(M) : sp.last || null;
 }
 // a creature built from average traits, for drawing and for leg and tail length
 function avgCreature(m) {
