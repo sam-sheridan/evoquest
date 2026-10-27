@@ -216,15 +216,14 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 const MOUTH = { nut: 1.25, bonus: 0.25 };
 const MOUTH_SPLIT = 0.9; // how much a difference in mouths counts towards a new species (see SPC for the others)
 // features that are either there or not count extra towards a new species, since they make creatures look
-// different: having a tail at all, and having 6 legs rather than 4
-const SHOWS = { tail: 0.25, legs: 0.15 };
+// different: having a tail at all
+const SHOWS = { tail: 0.25 };
 // speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
 // base px/s; bigger bodies are slower, smaller ones faster.
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
 //   share faster and the longest this share slower (medium legs make no difference)
-//   six: 6 legs walk this share faster and swim this share slower, 4 legs the reverse; sixFrom: the size from which a
-//   creature has 6 legs rather than 4
-const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, six: 0.05, sixFrom: 0.9 };
+//   sixFrom: the size from which a creature is drawn with 6 legs rather than 4 (only a look: it changes nothing)
+const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
 // stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)

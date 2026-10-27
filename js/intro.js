@@ -191,7 +191,7 @@ const PANES = [
       drawCreature(g, c, 280, 112, k, 7, col(c), t, false, 1.1 / k);
       note(
         g,
-        `Size ${c.size.toFixed(2)} · ${c.legs} legs · ${legTxt(c.leg)} legs · Tail ${tailTxt(c.hab).split(' ·')[0]} · ${mouthTxt(c.mth)}`,
+        `Size ${c.size.toFixed(2)} · ${legTxt(c.leg)} legs · Tail ${tailTxt(c.hab).split(' ·')[0]} · ${mouthTxt(c.mth)}`,
         280,
         228,
         INK,

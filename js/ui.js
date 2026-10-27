@@ -518,7 +518,6 @@ const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
   ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
   ['Leg length', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
-  ['Leg number', (m, c) => m.legs.toFixed(1), 'legs', 0.6],
   ['Tail length', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
