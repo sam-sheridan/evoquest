@@ -762,6 +762,12 @@ Because groups can move in both directions, groups from different species can en
 describe how creatures live, not a single line of descent. The family tree shows where each species first came
 from.
 
+In 75 hour-long study runs (October 2026, with breeding at 75% energy): about a third stayed one species and the
+rest had 1–3 new species (median 21 minutes before the first), with up to 4 alive at once; 70 of 80 new species
+lasted to the end of the run. *Campestris*, *vulgaris* and *natans* appeared often, *silvicola* only once (a
+herd must average size 0.72 or less with a mouth of 0.24 or less to found it). About 50 creatures an hour changed
+species, almost all as part of a group.
+
 (Two earlier versions judged each creature on its own. Moving freely left lone creatures of one species inside
 herds of another; needing company nearby to move left species' averages drifting away from their type. Judging
 local groups fixed both.)
