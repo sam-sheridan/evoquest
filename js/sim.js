@@ -1152,10 +1152,10 @@ function endSpecies(sp) {
   sp.n = 0;
   sp.spans.at(-1)[1] = S.t;
 }
-// every 5 s: a creature that has been clearly outside its species' type (a margin or more past its border) for
-// TYPES.hold seconds moves to the type it fits best. It joins a living species on its own; founding a new one, or
-// bringing back one that died out, needs TYPES.min creatures ready together. Newborns take their parent's species,
-// so a species keeps its members until they change, and a creature near a border doesn't flick back and forth
+// every 5 s: a creature clearly outside its species' type (a margin or more past its border) moves to the type it
+// fits best. It joins a living species on its own; founding a new one, or bringing back one that died out, needs
+// TYPES.min creatures ready together, so until then they wait in their old species. Newborns take their parent's
+// species, so a creature near a border doesn't flick back and forth
 function checkTypes() {
   const by = bySpecies(),
     byName = Object.fromEntries(S.species.map(s => [s.epithet, s]));
@@ -1165,11 +1165,8 @@ function checkTypes() {
     const ready = {};
     const own = TYPE_NAMES.indexOf(sp.epithet);
     for (const c of M) {
-      const v = typeScores(c),
-        z = v[own] > -1 ? null : TYPE_NAMES[v.indexOf(Math.max(...v))];
-      if (!z) c.away = null;
-      else if (!c.away || c.away.z !== z) c.away = { z, t: S.t };
-      else if (S.t - c.away.t >= TYPES.hold) (ready[z] ??= []).push(c);
+      const v = typeScores(c);
+      if (v[own] <= -1) (ready[TYPE_NAMES[v.indexOf(Math.max(...v))]] ??= []).push(c);
     }
     for (const [z, G] of Object.entries(ready)) {
       const to = byName[z];
@@ -1192,7 +1189,6 @@ function move(G, from, to) {
     c.hue = to.hue;
     c.sat = to.sat;
     c.sp = to.id;
-    c.away = null;
   }
   from.n -= G.length;
   to.n += G.length;

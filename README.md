@@ -742,11 +742,11 @@ several quite different body types.)
 Newborns take their parent's species. As traits drift, a creature can end up living another way. Every 5 seconds,
 each creature is checked:
 
-- It counts as **leaving** its species once it is clearly outside that species' type: at least one margin past the
-  border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). A creature near a border doesn't
-  flick back and forth.
-- It must stay clearly outside for **20 seconds** (`TYPES.hold`). Then it moves to the type it now fits best,
-  blending into that species' colour over 1.5 seconds (`SPLIT_FADE`) and keeping its own shade.
+- It **leaves** its species once it is clearly outside that species' type: at least one margin past the border
+  (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth), so a creature near a border doesn't flick
+  back and forth. A creature's body never changes during its life, so this is decided by how it was born. It moves
+  to the type it fits best, blending into that species' colour over 1.5 seconds (`SPLIT_FADE`) and keeping its
+  own shade.
 - It **joins a living species on its own**. To **found a new species** (or bring back one that died out), at least
   **12** creatures of one species must be ready to move to it together (`TYPES.min`). Until then they wait in their
   old species, so a few in-between creatures can sit in a species for a while.
@@ -758,7 +758,8 @@ Because creatures can move in both directions, groups from different species can
 describe how creatures live, not a single line of descent. The family tree shows where each species first came
 from.
 
-In 75 hour-long study runs (October 2026): about a third stayed one species, and the rest had 1–3 new species
+In 75 hour-long study runs (October 2026, when moving also waited 20 seconds, so new species now appear a little
+sooner): about a third stayed one species, and the rest had 1–3 new species
 (median 23 minutes before the first), with up to 4 alive at once. New species mostly lasted: only 6 of 80 died out
 before the run ended. Only about 19 creatures an hour moved between living species, so borders are steady.
 
@@ -1112,7 +1113,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to leave its species, `hold` for how long, `min` for how many to found one |
+| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to leave its species, `min` for how many to found one |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |

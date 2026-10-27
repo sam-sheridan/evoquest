@@ -456,15 +456,14 @@ const CRW = { r: 80, half: 2, pow: 2 };
 // every species is one of four types, named by its epithet: water (natans) has at least water.tail of tail (0 none,
 // 1 full); thicket (silvicola) is no bigger than thicket.size with a mouth no more than thicket.mouth (0 beak,
 // 1 straw), and isn't water; plains (campestris) is at least plains.size, and isn't water; everything else is the
-// middle type (vulgaris). margin: how far past a border (in each trait) a creature must be to count as clearly
-// another type; hold: seconds it must stay clearly that type before it moves to that species; min: creatures that
-// must be ready together to found a species (or bring back one that died out); joining a living one needs only one
+// middle type (vulgaris). margin: how far past its species' border (in each trait) a creature must be to move to
+// another type; min: creatures that must be ready together to found a species (or bring back one that died out);
+// joining a living one needs only one
 const TYPES = {
   water: { tail: 0.5 },
   thicket: { size: 0.8, mouth: 0.4 },
   plains: { size: 1.0 },
   margin: { tail: 0.08, size: 0.04, mouth: 0.08 },
-  hold: 20,
   min: 12,
 };
 
