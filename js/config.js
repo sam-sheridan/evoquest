@@ -397,7 +397,8 @@ const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 };
 /* ---- world events ---- */
 // first: when the first event comes, gap: time between events, both as [minimum, random extra] seconds
 // (no random extra: one event every 12 minutes, like clockwork)
-// meteor: chance an event is a meteor; major: chance an event is a major one
+// meteor: chance an event is a meteor; major: chance an event is a major one; streak: at most this many floods in a
+// row, and at most this many droughts in a row
 // each pair below is [normal, major]
 // shift: how far floods and droughts move the land share of the map (0.12 = 12 percentage points)
 // near: meteors land within this many px of a random living creature, so they tend to hit populations
@@ -408,9 +409,10 @@ const GROW = { f: [16, 5.5], n: [19, 7.5], s: [23.5, 7.5], winter: 1.1 };
 const EVENTS = {
   first: [720, 0],
   gap: [720, 0],
-  meteor: 0.05,
+  meteor: 1 / 7,
   near: 250,
   major: 0.1,
+  streak: 2,
   shift: [0.12, 0.2],
   blast: [190, 280],
   crater: [7.5, 11],
