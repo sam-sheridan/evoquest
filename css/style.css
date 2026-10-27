@@ -11,6 +11,14 @@
   --warn: #b5651d;
   --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* text sizes: every piece of text uses one of these (the title screen's big name and tagline scale with the window) */
+  --fs-xs: 11px; /* small capitals labels, table headings, times, chips */
+  --fs-s: 12px; /* buttons, table cells, the event log, map key */
+  --fs-m: 13px; /* body text, popups, hints */
+  --fs-l: 15px; /* the species name, section headings, intro text */
+  --fs-xl: 17px; /* the name box, icon buttons */
+  --fs-2xl: 22px; /* big numbers, intro headings */
+  --fs-3xl: 28px; /* screen titles */
   color-scheme: light;
 }
 html,
@@ -59,7 +67,7 @@ h3 {
 }
 .lbl {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -109,7 +117,7 @@ h3 {
 }
 .idp b {
   display: block;
-  font-size: 15px;
+  font-size: var(--fs-l);
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -118,7 +126,7 @@ h3 {
 .idp small {
   display: block;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-s);
   font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
@@ -136,7 +144,7 @@ h3 {
   background: transparent;
   padding: 6px 9px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -218,7 +226,7 @@ h3 {
 }
 .spdset .btn {
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 .spdset .btn[aria-pressed='true'] {
   background: var(--ink);
@@ -245,7 +253,7 @@ h3 {
   gap: 8px;
   padding: 6px 8px 6px 7px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-s);
   white-space: nowrap;
 }
 #clock span {
@@ -327,7 +335,7 @@ h3 {
   z-index: 3;
   left: max(12px, env(safe-area-inset-left, 0px));
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--ink);
   pointer-events: none;
 }
@@ -357,7 +365,7 @@ h3 {
   color: var(--panel);
   padding: 8px 14px;
   border-radius: 2px;
-  font-size: 13px;
+  font-size: var(--fs-m);
   text-align: center;
   opacity: 0;
   transform: translateY(-6px);
@@ -373,7 +381,7 @@ h3 {
   color: var(--signal);
   font-family: var(--mono);
   font-weight: 500;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   display: block;
@@ -412,7 +420,7 @@ h3 {
   background: transparent;
   padding: 9px 10px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
@@ -425,7 +433,7 @@ h3 {
 .tabs .grab {
   flex: 0 0 auto;
   border-right: 0;
-  font-size: 16px;
+  font-size: var(--fs-xl);
   line-height: 1;
   padding: 6px 12px;
   color: var(--ink);
@@ -453,7 +461,7 @@ h3 {
   border-bottom: 1px solid var(--line);
   background: var(--panel);
   padding: 6px 4px;
-  font-size: 12px;
+  font-size: var(--fs-s);
   text-align: center;
 }
 .metrics button.on {
@@ -475,7 +483,7 @@ canvas.chart {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: var(--fs-s);
   font-variant-numeric: tabular-nums;
   margin-top: 8px;
 }
@@ -484,7 +492,7 @@ th {
   font-weight: 500;
   color: var(--muted);
   text-align: right;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 4px 0 4px 8px;
@@ -500,11 +508,11 @@ td {
   padding: 5px 0 5px 8px;
   border-top: 1px solid var(--line);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 td:first-child {
   font-family: var(--sans);
-  font-size: 12.5px;
+  font-size: var(--fs-s);
 }
 .tag {
   display: inline-block;
@@ -537,7 +545,7 @@ table.sp th .latin {
   font-style: italic;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 12px;
+  font-size: var(--fs-s);
   color: var(--ink);
 }
 table.sp th:first-child,
@@ -555,7 +563,7 @@ table.sp tr.pic td {
 }
 table.sp tr.pic td:first-child {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   line-height: 1.3;
 }
 table.sp canvas {
@@ -573,7 +581,7 @@ table.sp .hl {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 10px 14px;
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 .kv div {
   min-width: 0;
@@ -581,7 +589,7 @@ table.sp .hl {
 .kv span {
   display: block;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -589,7 +597,7 @@ table.sp .hl {
 .kv b {
   font-weight: 500;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: var(--fs-m);
   font-variant-numeric: tabular-nums;
 }
 /* the specimen stat that stops a controlled creature going somewhere */
@@ -609,7 +617,7 @@ table.sp .hl {
 }
 .hint {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-m);
   line-height: 1.5;
   margin: 6px 0;
 }
@@ -624,7 +632,7 @@ table.sp .hl {
   background: var(--panel);
   border-radius: 2px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--fs-m);
   font-weight: 500;
 }
 .btn:hover {
@@ -647,7 +655,7 @@ table.sp .hl {
   border: 0;
   background: var(--panel);
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 .seg2 button[aria-pressed='true'] {
   background: var(--ink);
@@ -657,7 +665,7 @@ table.sp .hl {
   display: grid;
   grid-template-columns: 22px 1fr;
   gap: 7px 10px;
-  font-size: 12.5px;
+  font-size: var(--fs-s);
   align-items: center;
   margin: 10px 0;
 }
@@ -668,7 +676,7 @@ table.sp .hl {
   list-style: none;
   margin: 6px 0 0;
   padding: 0;
-  font-size: 12.5px;
+  font-size: var(--fs-s);
 }
 .log li {
   padding: 6px 0;
@@ -679,7 +687,7 @@ table.sp .hl {
 .log time {
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   flex: none;
   min-width: 40px; /* wider for hh:mm:ss times */
   padding-top: 1px;
@@ -693,12 +701,12 @@ table.sp .hl {
 .badge {
   border: 1px dashed var(--line);
   padding: 7px 9px;
-  font-size: 12px;
+  font-size: var(--fs-s);
   color: var(--muted);
 }
 .badge b {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-m);
   font-weight: 600;
 }
 .badge.got {
@@ -715,7 +723,7 @@ table.sp .hl {
   background: var(--paper);
 }
 h3.sec {
-  font-size: 13px;
+  font-size: var(--fs-m);
   margin-top: 14px;
 }
 #logPop {
@@ -737,7 +745,7 @@ h3.sec {
   overflow: auto;
   padding: 12px;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 #infoPop table td {
   padding: 5px 0 5px 8px;
@@ -760,7 +768,7 @@ h3.sec {
   width: 260px;
   padding: 12px;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 .setrow {
   display: flex;
@@ -778,7 +786,7 @@ h3.sec {
 }
 /* the Major toggle keeps its label when off */
 .setrow .seg2 #sMajor[aria-pressed='false'] {
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 .setrow .seg2 #sMajor[aria-pressed='false']::after {
   content: none;
@@ -796,11 +804,11 @@ h3.sec {
   border: 1px solid var(--ink);
   background: var(--panel);
   padding: 5px 8px;
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 .pwrow .btn {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 .pwmark {
   display: flex;
@@ -830,7 +838,7 @@ h3.sec {
 }
 .testev .btn {
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 .testev .btn:disabled {
   color: var(--muted);
@@ -841,11 +849,11 @@ h3.sec {
   font-size: 0;
 }
 .setrow .seg2 button[aria-pressed='false']::after {
-  font-size: 12px;
+  font-size: var(--fs-s);
 }
 /* Help (?): the same question mark as the creator's, in the controls' type */
 #bHelp {
-  font-size: 17px;
+  font-size: var(--fs-xl);
   line-height: 1;
   font-weight: 600;
 }
@@ -869,7 +877,7 @@ h3.sec {
   color: var(--panel);
   padding: 7px 10px;
   border-radius: 2px;
-  font-size: 12.5px;
+  font-size: var(--fs-s);
   line-height: 1.4;
 }
 #helpLayer .hcall b {
@@ -877,7 +885,7 @@ h3.sec {
   color: var(--signal);
   font-family: var(--mono);
   font-weight: 500;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-bottom: 2px;
@@ -939,7 +947,7 @@ h3.sec {
   height: 36px;
   padding: 0;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: var(--fs-xl);
   font-weight: 600;
   line-height: 1;
   align-self: center;
@@ -953,7 +961,7 @@ h3.sec {
   width: min(380px, calc(100% - 40px));
   padding: 12px 14px;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: var(--fs-m);
   line-height: 1.5;
 }
 #crHelp p {
@@ -987,7 +995,7 @@ h3.sec {
   padding-bottom: 12px;
 }
 .brand h1 {
-  font-size: 28px;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -997,7 +1005,7 @@ h3.sec {
 .brand p {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 .cgrid {
   display: grid;
@@ -1040,7 +1048,7 @@ h3.sec {
   box-sizing: border-box;
   white-space: nowrap;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-variant-numeric: tabular-nums;
 }
 .group {
@@ -1057,11 +1065,11 @@ h3.sec {
   flex-wrap: wrap;
 }
 .group > .gh b {
-  font-size: 14px;
+  font-size: var(--fs-l);
 }
 .group > .gh small {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .field {
@@ -1074,7 +1082,7 @@ h3.sec {
 .field > label,
 .flabel {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -1092,7 +1100,7 @@ input[type='text'] {
   border-radius: 2px;
   padding: 8px 10px;
   background: var(--panel);
-  font-size: 17px;
+  font-size: var(--fs-xl);
   font-weight: 600;
   width: 100%;
 }
@@ -1167,7 +1175,7 @@ input[type='range']:focus-visible {
   border-right: 1px solid var(--line);
   background: var(--panel);
   padding: 6px 10px;
-  font-size: 12.5px;
+  font-size: var(--fs-s);
 }
 .seg button:last-child {
   border-right: 0;
@@ -1205,7 +1213,7 @@ select {
   padding: 7px 9px;
   background: var(--panel);
   width: 100%;
-  font-size: 13px;
+  font-size: var(--fs-m);
 }
 .statgrid {
   display: grid;
@@ -1222,7 +1230,7 @@ select {
 .stat b {
   display: block;
   font-family: var(--mono);
-  font-size: 22px;
+  font-size: var(--fs-2xl);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -1237,7 +1245,7 @@ select {
   align-items: center;
   padding: 8px 0;
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--fs-m);
   flex-wrap: wrap;
 }
 .hist li > div {
@@ -1247,7 +1255,7 @@ select {
 .hist small {
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 .hist i {
   width: 12px;
@@ -1277,7 +1285,7 @@ select {
   align-items: center;
   padding: 6px 6px 6px 12px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-s);
   font-variant-numeric: tabular-nums;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1352,7 +1360,7 @@ select {
   padding: 3px 7px;
   background: var(--panel);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-s);
   color: var(--muted);
 }
 .inBy b {
@@ -1383,7 +1391,7 @@ select {
   border: 0;
   background: none;
   padding: 2px 0;
-  font-size: 13px;
+  font-size: var(--fs-m);
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1422,21 +1430,21 @@ select {
   text-align: center;
 }
 .inItem b {
-  font-size: 13px;
+  font-size: var(--fs-m);
   font-weight: 600;
 }
 .inItem small {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 #inH {
-  font-size: 22px;
+  font-size: var(--fs-2xl);
   margin: 16px 0 6px;
 }
 #inTxt p {
   margin: 0 0 8px;
-  font-size: 14.5px;
+  font-size: var(--fs-l);
   line-height: 1.55;
 }
 .inNav {

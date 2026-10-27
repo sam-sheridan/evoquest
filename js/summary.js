@@ -109,7 +109,7 @@ function treeSVG(width) {
   };
   sps.filter(s => s.parent === null).forEach(walk);
   const rowH = 34,
-    top = 14,
+    top = 18,
     L = 10,
     R = width - 10,
     T = Math.max(30, S.t),
@@ -120,14 +120,14 @@ function treeSVG(width) {
   let out = `<svg width="${width}" height="${h}" viewBox="0 0 ${width} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">`;
   // a marker every minute, or every few minutes on long runs so the labels don't overlap; from an hour on they
   // read hh:mm:ss
-  const every = 60 * Math.max(1, Math.ceil(T / 60 / 15));
+  const every = 60 * Math.max(1, Math.ceil(T / 60 / 12));
   for (let m = 0; m <= T; m += every) {
     const x = X(m);
     const lab = m < 3600 ? m / 60 + 'm' : fmtT(m);
     out += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="currentColor" stroke-opacity=".07"/>`;
     // a label is left off if it wouldn't fit before the right edge
-    if (x + 2 + lab.length * 5 <= width)
-      out += `<text x="${x + 2}" y="9" font-size="8" fill="#636d69">${lab}</text>`;
+    if (x + 2 + lab.length * 7 <= width)
+      out += `<text x="${x + 2}" y="11" font-size="11" fill="#636d69">${lab}</text>`;
   }
   for (const s of order) {
     const x0 = X(s.born),
@@ -138,8 +138,8 @@ function treeSVG(width) {
       out += `<path d="M${x0} ${Y[s.parent]}V${y}" stroke="currentColor" stroke-width="1" fill="none"/>`;
     out += `<line x1="${x0}" y1="${y}" x2="${Math.max(x1, x0 + 2)}" y2="${y}" stroke="${s.tag}" stroke-width="${alive ? 4 : 2}" stroke-opacity="${alive ? 1 : 0.55}"/>`;
     if (!alive) out += `<line x1="${x1}" y1="${y - 4}" x2="${x1}" y2="${y + 4}" stroke="currentColor"/>`;
-    const lx = Math.min(x0 + 3, width - 170);
-    out += `<text x="${lx}" y="${y - 7}" font-size="10.5" fill="#151918" font-family="IBM Plex Sans, sans-serif"><tspan font-style="italic">${esc(S.genus)} ${s.epithet}</tspan><tspan font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#636d69"> ${alive ? s.n + ' alive' : '† ' + fmtT(s.died)}</tspan></text>`;
+    const lx = Math.min(x0 + 3, width - 200);
+    out += `<text x="${lx}" y="${y - 7}" font-size="11" fill="#151918" font-family="IBM Plex Sans, sans-serif"><tspan font-style="italic">${esc(S.genus)} ${s.epithet}</tspan><tspan font-family="IBM Plex Mono, monospace" font-size="11" fill="#636d69"> ${alive ? s.n + ' alive' : '† ' + fmtT(s.died)}</tspan></text>`;
   }
   return out + '</svg>';
 }

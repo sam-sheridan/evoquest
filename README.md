@@ -962,6 +962,15 @@ species. Browsers that can't do this send sound straight to the speakers instead
 
 The look is a scientific **field notebook / survey map**.
 
+- **Text.** Two fonts from one family: IBM Plex Sans for writing and IBM Plex Mono for numbers, labels and
+  times. Every piece of text uses one of seven sizes (`--fs-xs` to `--fs-3xl` at the top of `css/style.css`:
+  11, 12, 13, 15, 17, 22 and 28 px); only the title screen's big name and tagline scale with the window. Charts
+  and the family tree use the smallest size for their labels.
+- **Favicon and link preview.** The browser tab icon is a sky blue creature with the shortest possible tail on a
+  pale tile with the title screen's grid; the phone home screen icon is the same without the rounded corners
+  (phones round them). Both were drawn by the game's own creature code. The link preview (the card shown when
+  the link is shared) is the title on the notebook grid beside the map of world #159 just after a release, with
+  thickets, a rock and a lake. They are fixed pictures in `img/`; changing the game's look doesn't update them.
 - **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
   - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
     line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
@@ -1127,6 +1136,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 |---|---|
 | `index.html` | Page structure: status bar, controls, inspector, creator, summary |
 | `css/style.css` | All styling |
+| `img/` | The favicon (`favicon-16.png`, `favicon-32.png`), the phone home screen icon (`apple-touch-icon.png`) and the link preview picture (`preview.jpg`) |
 | `js/config.js` | **Every number worth tuning**: world size, seasons, food regrowth, crowding, speciation, events, colours |
 | `js/util.js` | Shared helpers: random numbers, maths, saved runs, noise |
 | `js/world.js` | World generation: coastlines, rivers, thickets, rocks, craters, food sites |
