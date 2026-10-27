@@ -337,7 +337,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 A creature may breed when it eats **and** all of these are true:
 
 - it is at least 15 seconds old (`MATURE`)
-- its energy after eating is at least 85% of capacity (`BREED.full`)
+- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20)
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
