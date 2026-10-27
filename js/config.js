@@ -485,8 +485,8 @@ const SPC = {
 // the title screen's creatures: how many wander round the name (fewer on a phone-sized screen), how much bigger
 // than life they're drawn [smallest, biggest], and how long the pane pictures take to loop, in seconds
 const INTRO = {
-  creatures: 10,
-  phone: 6,
+  creatures: 7,
+  phone: 5,
   zoom: [2.6, 4],
   loop: 9,
 };
