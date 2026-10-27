@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Opening Zoom Drafts</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+    />
+    <!-- Draft only, not loaded by the game: three takes on a camera move that starts far out over a wider sea of
+         islands and lands on the release spot. The home island and the release view are real captures from the game
+         (world #1074, made by tools/drafts/opening-zoom-capture.py); everything else is drawn here. -->
+    <style>
+      :root {
+        --paper: #f3f4f1;
+        --panel: #fcfcfb;
+        --ink: #151918;
+        --muted: #636d69;
+        --line: #d2d8d4;
+        --chip: #e8ece9;
+        --signal: #ff4f1a;
+        --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --paper: #1b1f1e;
+          --panel: #232827;
+          --ink: #e8ece9;
+          --muted: #9aa4a0;
+          --line: #3a4240;
+          --chip: #2c3331;
+        }
+      }
+      :root[data-theme='dark'] {
+        --paper: #1b1f1e;
+        --panel: #232827;
+        --ink: #e8ece9;
+        --muted: #9aa4a0;
+        --line: #3a4240;
+        --chip: #2c3331;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .lede {
+        color: var(--muted);
+        margin: 0 0 18px;
+        max-width: 70ch;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .tabs button,
+      .act {
+        font: 500 12px var(--mono);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 7px 11px;
+        cursor: pointer;
+      }
+      .tabs button[aria-pressed='true'] {
+        border-color: var(--ink);
+        box-shadow: inset 0 -2px 0 var(--signal);
+      }
+      .act {
+        margin-left: auto;
+      }
+      .stage {
+        position: relative;
+        border: 1px solid var(--line);
+        background: #adc6cf;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .stage canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .hint {
+        position: absolute;
+        right: 10px;
+        bottom: 8px;
+        font: 500 11px var(--mono);
+        color: #151918;
+        background: rgba(252, 252, 251, 0.85);
+        padding: 3px 7px;
+        border-radius: 2px;
+        pointer-events: none;
+      }
+      .about {
+        margin: 12px 0 22px;
+        max-width: 75ch;
+      }
+      .about b {
+        font-weight: 600;
+      }
+      h2 {
+        font: 500 11px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 8px;
+      }
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      @media (max-width: 640px) {
+        .frames {
+          grid-template-columns: 1fr;
+        }
+      }
+      figure {
+        margin: 0;
+      }
+      figure canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border: 1px solid var(--line);
+        background: #adc6cf;
+      }
+      figcaption {
+        font: 11px var(--mono);
+        color: var(--muted);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Opening zoom: drafts</h1>
+      <p class="lede">
+        What you'd see straight after pressing <i>Release into the world</i>. The home island and the close-up
+        at the end are real pictures from the game (world #1074). The other islands, labels and compass are
+        new drawings. Click the map to skip to the end, the way it would work in the game.
+      </p>
+      <div class="tabs" role="group" aria-label="Option">
+        <button data-o="A">A · Plain chart</button>
+        <button data-o="B" aria-pressed="true">B · Notebook chart</button>
+        <button data-o="C">C · Close neighbours</button>
+        <button class="act" id="replay">↻ Replay</button>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="cv"></canvas>
+        <span class="hint" id="hint">click to skip</span>
+      </div>
+      <p class="about" id="about"></p>
+      <h2>Start, middle and end</h2>
+      <div class="frames">
+        <figure>
+          <canvas id="f0"></canvas>
+          <figcaption>Start</figcaption>
+        </figure>
+        <figure>
+          <canvas id="f1"></canvas>
+          <figcaption>Halfway</figcaption>
+        </figure>
+        <figure>
+          <canvas id="f2"></canvas>
+          <figcaption>Landed, creatures released</figcaption>
+        </figure>
+      </div>
+    </main>
+    <script>
+      // ---- the real game world: 4512 x 3152 world px, release spot from the game ----
+      const W = 4512,
+        H = 3152,
+        HOME = { x: 1790.7, y: 493.4 },
+        PATCH = { w: 1600, h: 1000 }, // release view captured at zoom 1, centred on HOME
+        INK = '#151918',
+        SEA = '#adc6cf',
+        BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7'],
+        MEADOW = '#cfdbb9',
+        DRY = '#e6e6d2',
+        TREE = ['#bcd3a0', '#b0ca92', '#a3bf86'],
+        ROCK = ['#d2c9b8', '#c6bdab', '#b9af9c'];
+
+      const OPTIONS = {
+        A: {
+          dur: 3.0,
+          span: 8.5, // starting view width in multiples of the home world's width
+          notes: false,
+          about:
+            '<b>A · Plain chart.</b> Open sea and other islands, nothing else. About 3 seconds. Quiet and atmospheric; the other islands do all the work.',
+        },
+        B: {
+          dur: 3.2,
+          span: 8.5,
+          notes: true,
+          about:
+            '<b>B · Notebook chart.</b> The same sea with field-notebook touches: a faint grid, a compass, each island labelled with a world number (so every other island is a world you could play), and an inked ring that draws itself round the release spot as the camera arrives. About 3 seconds. My pick.',
+        },
+        C: {
+          dur: 2.2,
+          span: 2.6,
+          notes: true,
+          about:
+            '<b>C · Close neighbours.</b> Starts just far enough out to see two or three nearby islands, with the touches from B. About 2 seconds. Subtler and quicker, but less of a sense of a big world.',
+        },
+      };
+
+      // ---- the other islands, in world px relative to the home world's top-left ----
+      function rng(seed) {
+        return () => {
+          seed |= 0;
+          seed = (seed + 0x6d2b79f5) | 0;
+          let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      const CX = W / 2,
+        CY = H / 2;
+      const LAYOUT = [
+        // [dx, dy from the home world's centre, radius, stretch, world number]
+        [-5000, -1300, 950, 1.3, 2210],
+        [5300, 1000, 720, 1.6, 388],
+        [6700, -700, 260, 1, 0],
+        [900, 4900, 980, 1.5, 5127],
+        [-1500, 5300, 300, 1.2, 0],
+        [-13500, -6800, 1900, 1.25, 917],
+        [12500, -7800, 1300, 1.4, 4463],
+        [-12000, 6600, 1400, 1.2, 3051],
+        [14800, 7400, 1700, 1.35, 6290],
+        [-2200, -10600, 1200, 1.5, 1802],
+        [4300, 10800, 620, 1.3, 7734],
+        [5400, 11600, 380, 1.1, 0],
+        [3500, 11900, 300, 1, 0],
+        [-17600, 300, 900, 1.6, 2645],
+        [19200, -1500, 1100, 1.3, 8011],
+        [-7800, -4600, 380, 1.2, 0],
+        [9800, 4300, 420, 1.3, 0],
+      ];
+      const ISLANDS = LAYOUT.map(([dx, dy, R, st, num], i) =>
+        makeIsland(CX + dx, CY + dy, R, st, num, 77 + i * 31)
+      );
+
+      function makeIsland(x, y, R, stretch, num, seed) {
+        const r = rng(seed),
+          harm = [];
+        for (let k = 2; k <= 16; k++) harm.push([k, ((r() * 0.6 + 0.4) * 0.42) / k ** 1.15, r() * 6.283]);
+        const rot = r() * Math.PI,
+          N = 180;
+        const radius = th => {
+          let v = 1;
+          for (const [k, a, p] of harm) v += a * Math.sin(k * th + p);
+          return v;
+        };
+        const at = (th, off, s = 1) => {
+          const rr = R * radius(th) * s + off,
+            ex = Math.cos(th) * rr * stretch,
+            ey = Math.sin(th) * rr;
+          return [x + ex * Math.cos(rot) - ey * Math.sin(rot), y + ex * Math.sin(rot) + ey * Math.cos(rot)];
+        };
+        const ring = (off, s = 1) => {
+          const p = new Path2D();
+          for (let i = 0; i <= N; i++) {
+            const [px, py] = at((i / N) * 6.283, off, s);
+            i ? p.lineTo(px, py) : p.moveTo(px, py);
+          }
+          p.closePath();
+          return p;
+        };
+        const shelf = Math.min(1, R / 900) * 90 + 40;
+        const isl = {
+          x,
+          y,
+          R: R * stretch,
+          num,
+          labelY: y + R * 1.25 + shelf * 3,
+          bands: [ring(shelf * 3), ring(shelf * 2), ring(shelf)],
+          land: ring(0),
+          contours: [0.7, 0.4].map(s => ring(0, s)),
+          dry: [],
+          trees: [],
+          rocks: [],
+        };
+        // dry ground patches, tree clumps and a few crags, all inside the coast
+        const inside = s => {
+          const th = r() * 6.283,
+            f = Math.sqrt(r()) * s;
+          return at(th, 0, f);
+        };
+        for (let i = 0; i < 3 + R / 300; i++) isl.dry.push([...inside(0.8), R * (0.2 + r() * 0.3)]);
+        const clumps = Math.round(2 + R / 260);
+        for (let c = 0; c < clumps; c++) {
+          const [qx, qy] = inside(0.7),
+            n = (6 + (r() * R) / 25) | 0,
+            spread = 40 + r() * R * 0.18;
+          for (let i = 0; i < n; i++) {
+            const a = r() * 6.283,
+              d = Math.sqrt(r()) * spread;
+            isl.trees.push([qx + Math.cos(a) * d, qy + Math.sin(a) * d, 11 + r() * 6, (r() * 3) | 0]);
+          }
+        }
+        for (let i = 0; i < Math.round(R / 500); i++) {
+          const [qx, qy] = inside(0.6),
+            s = 50 + r() * 90,
+            pts = [];
+          for (let k = 0; k < 7; k++) {
+            const a = (k / 7) * 6.283 + r() * 0.5;
+            pts.push([qx + Math.cos(a) * s * (0.6 + r() * 0.5), qy + Math.sin(a) * s * (0.5 + r() * 0.4)]);
+          }
+          isl.rocks.push(pts);
+        }
+        return isl;
+      }
+
+      // ---- images from the game ----
+      const img = src => {
+        const i = new Image();
+        i.src = src;
+        return i;
+      };
+      const IM = { island: img('island.jpg'), empty: img('patch_empty.jpg'), creatures: img('patch_cr.jpg') };
+      let islandLo = null; // a small copy of the home island for when it's far away
+      function lo() {
+        if (islandLo || !IM.island.complete) return;
+        islandLo = document.createElement('canvas');
+        islandLo.width = 900;
+        islandLo.height = Math.round((900 * H) / W);
+        islandLo.getContext('2d').drawImage(IM.island, 0, 0, islandLo.width, islandLo.height);
+      }
+
+      // ---- the camera move ----
+      const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+      const clamp01 = t => Math.max(0, Math.min(1, t));
+      function camAt(o, t, cw, ch) {
+        const z1 = cw / 1100, // ends showing about 1100 world px across, as the game does on a laptop screen
+          z0 = cw / (W * o.span);
+        // start over the middle of the archipelago (a little off the home island), end on the release spot
+        const sx = CX + (o.span > 4 ? 900 : 300),
+          sy = CY + (o.span > 4 ? 600 : 250);
+        const u = ease(clamp01(t)) ** 1.35,
+          v = ease(clamp01(t * 1.35)),
+          z = Math.exp(Math.log(z0) + (Math.log(z1) - Math.log(z0)) * u);
+        // the release spot glides to the screen centre at a steady pace on screen, however fast the zoom
+        return {
+          x: HOME.x - ((HOME.x - sx) * z0 * (1 - v)) / z,
+          y: HOME.y - ((HOME.y - sy) * z0 * (1 - v)) / z,
+          z,
+          z0,
+          z1,
+        };
+      }
+
+      // ---- drawing ----
+      function drawIsland(g, isl, z) {
+        g.fillStyle = BAND[2];
+        g.fill(isl.bands[0]);
+        g.fillStyle = BAND[1];
+        g.fill(isl.bands[1]);
+        g.fillStyle = BAND[0];
+        g.fill(isl.bands[2]);
+        g.fillStyle = DRY;
+        g.fill(isl.land);
+        g.save();
+        g.clip(isl.land);
+        for (const [x, y, r] of isl.dry) {
+          const gr = g.createRadialGradient(x, y, 0, x, y, r);
+          gr.addColorStop(0, MEADOW);
+          gr.addColorStop(1, 'rgba(207,219,185,0)');
+          g.fillStyle = gr;
+          g.fillRect(x - r, y - r, r * 2, r * 2);
+        }
+        if (isl.R * z > 25) {
+          g.strokeStyle = 'rgba(21,25,24,0.13)';
+          g.lineWidth = 0.7 / z;
+          for (const c of isl.contours) g.stroke(c);
+        }
+        g.restore();
+        if (isl.R * z > 40) {
+          for (const pts of isl.rocks) {
+            g.beginPath();
+            pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+            g.closePath();
+            g.fillStyle = ROCK[1];
+            g.fill();
+            g.strokeStyle = INK;
+            g.lineWidth = 0.8 / z;
+            g.stroke();
+          }
+          const tw = 0.6 / z;
+          for (const [x, y, r, s] of isl.trees) {
+            g.beginPath();
+            g.arc(x, y, Math.max(r, 1.1 / z), 0, 6.283);
+            g.fillStyle = TREE[s];
+            g.fill();
+            if (r * z > 1.2) {
+              g.strokeStyle = 'rgba(21,25,24,0.55)';
+              g.lineWidth = tw;
+              g.stroke();
+            }
+          }
+        } else {
+          // too far for single trees: a soft green tint where the woods are
+          g.fillStyle = 'rgba(163,191,134,0.55)';
+          for (const [x, y, r] of isl.trees) g.fillRect(x - r, y - r, r * 2, r * 2);
+        }
+        g.strokeStyle = INK;
+        g.lineWidth = Math.min(0.9, 0.3 + isl.R * z * 0.004) / z;
+        g.stroke(isl.land);
+      }
+
+      function compass(g, x, y, s, a) {
+        g.save();
+        g.globalAlpha = a;
+        g.translate(x, y);
+        g.strokeStyle = INK;
+        g.fillStyle = INK;
+        g.lineWidth = 1;
+        g.beginPath();
+        g.arc(0, 0, s * 0.62, 0, 6.283);
+        g.stroke();
+        g.lineWidth = 0.6;
+        g.beginPath();
+        g.arc(0, 0, s * 0.5, 0, 6.283);
+        g.stroke();
+        for (let i = 0; i < 4; i++) {
+          g.rotate(Math.PI / 2);
+          g.beginPath();
+          g.moveTo(0, -s);
+          g.lineTo(s * 0.12, -s * 0.12);
+          g.lineTo(0, 0);
+          g.closePath();
+          g.fill();
+          g.beginPath();
+          g.moveTo(0, -s);
+          g.lineTo(-s * 0.12, -s * 0.12);
+          g.lineTo(0, 0);
+          g.closePath();
+          g.lineWidth = 0.9;
+          g.stroke();
+        }
+        g.rotate(Math.PI / 4);
+        for (let i = 0; i < 4; i++) {
+          g.rotate(Math.PI / 2);
+          g.beginPath();
+          g.moveTo(0, -s * 0.55);
+          g.lineTo(s * 0.07, -s * 0.07);
+          g.lineTo(-s * 0.07, -s * 0.07);
+          g.closePath();
+          g.stroke();
+        }
+        g.restore();
+        g.save();
+        g.globalAlpha = a;
+        g.fillStyle = INK;
+        g.font = `600 ${Math.round(s * 0.34)}px "IBM Plex Mono", monospace`;
+        g.textAlign = 'center';
+        g.fillText('N', x, y - s - 5);
+        g.restore();
+      }
+
+      function render(cv, opt, t, landed) {
+        const dpr = Math.min(2, window.devicePixelRatio || 1),
+          cw = cv.clientWidth,
+          ch = cv.clientHeight;
+        if (cv.width !== Math.round(cw * dpr)) {
+          cv.width = Math.round(cw * dpr);
+          cv.height = Math.round(ch * dpr);
+        }
+        const g = cv.getContext('2d'),
+          o = OPTIONS[opt],
+          c = camAt(o, t, cw, ch),
+          z = c.z;
+        // how far in we are, 0 at the start, 1 on arrival
+        const k = (Math.log(z) - Math.log(c.z0)) / (Math.log(c.z1) - Math.log(c.z0));
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.fillStyle = SEA;
+        g.fillRect(0, 0, cw, ch);
+        const toWorld = () =>
+          g.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cw / 2 - c.x * z), dpr * (ch / 2 - c.y * z));
+        const toScreen = (x, y) => [(x - c.x) * z + cw / 2, (y - c.y) * z + ch / 2];
+
+        // faint survey grid (B and C)
+        if (o.notes) {
+          const a = 1 - clamp01((k - 0.35) / 0.3);
+          if (a > 0) {
+            toWorld();
+            g.strokeStyle = `rgba(21,25,24,${0.13 * a})`;
+            g.lineWidth = 0.8 / z;
+            g.setLineDash([6 / z, 5 / z]);
+            const step = 5000,
+              x0 = c.x - cw / 2 / z,
+              x1 = c.x + cw / 2 / z,
+              y0 = c.y - ch / 2 / z,
+              y1 = c.y + ch / 2 / z;
+            g.beginPath();
+            for (let x = Math.floor(x0 / step) * step; x < x1; x += step) {
+              g.moveTo(x, y0);
+              g.lineTo(x, y1);
+            }
+            for (let y = Math.floor(y0 / step) * step; y < y1; y += step) {
+              g.moveTo(x0, y);
+              g.lineTo(x1, y);
+            }
+            g.stroke();
+            g.setLineDash([]);
+          }
+        }
+
+        toWorld();
+        for (const isl of ISLANDS) drawIsland(g, isl, z);
+
+        // home island: the game's own map picture, swapped for the sharp release view as we arrive
+        lo();
+        const src = z * dpr < 0.25 && islandLo ? islandLo : IM.island;
+        if (src.complete !== false) g.drawImage(src, 0, 0, W, H);
+        const px = HOME.x - PATCH.w / 2,
+          py = HOME.y - PATCH.h / 2,
+          sharp = clamp01((k - 0.82) / 0.12);
+        if (sharp > 0 && IM.empty.complete) {
+          g.globalAlpha = sharp;
+          g.drawImage(IM.empty, px, py, PATCH.w, PATCH.h);
+          g.globalAlpha = 1;
+        }
+        if (landed > 0 && IM.creatures.complete) {
+          g.globalAlpha = clamp01(landed);
+          g.drawImage(IM.creatures, px, py, PATCH.w, PATCH.h);
+          g.globalAlpha = 1;
+        }
+
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (o.notes) {
+          // world numbers under each island, fading as the camera closes in
+          const la = 1 - clamp01((k - 0.4) / 0.25);
+          if (la > 0) {
+            g.font = '500 11px "IBM Plex Mono", monospace';
+            g.textAlign = 'center';
+            for (const isl of ISLANDS) {
+              if (!isl.num) continue;
+              const [sx, sy] = toScreen(isl.x, isl.labelY);
+              g.fillStyle = `rgba(21,25,24,${0.62 * la})`;
+              g.fillText('#' + String(isl.num).padStart(4, '0'), sx, sy + 4);
+            }
+            const [hx, hy] = toScreen(W / 2, H * 0.93);
+            g.font = '600 12px "IBM Plex Mono", monospace';
+            g.fillStyle = `rgba(21,25,24,${la})`;
+            g.fillText('#1074', hx, hy + 16);
+            g.font = 'italic 12px "IBM Plex Sans", sans-serif';
+            g.fillText('release site', hx, hy + 31);
+          }
+          // compass rose, bottom left
+          const ca = 1 - clamp01((k - 0.45) / 0.25);
+          if (ca > 0) compass(g, 48, ch - 52, Math.min(34, cw * 0.035 + 8), ca * 0.8);
+          // inked ring drawing itself round the release spot, gone once the creatures appear
+          const ra = clamp01((k - 0.55) / 0.35),
+            rf = 1 - clamp01(landed * 1.6);
+          if (ra > 0 && rf > 0) {
+            const [rx, ry] = toScreen(HOME.x, HOME.y),
+              R = 46;
+            g.save();
+            g.globalAlpha = rf;
+            g.strokeStyle = INK;
+            g.lineWidth = 1.6;
+            g.lineCap = 'round';
+            g.beginPath();
+            // a slightly uneven, hand-drawn circle that overshoots its start
+            for (let i = 0; i <= 60 * ra * 1.08; i++) {
+              const a = -1.9 + (i / 60) * 6.283,
+                rr = R * (1 + 0.05 * Math.sin(a * 3 + 1) + i * 0.0012);
+              const qx = rx + Math.cos(a) * rr,
+                qy = ry + Math.sin(a) * rr * 0.92;
+              i ? g.lineTo(qx, qy) : g.moveTo(qx, qy);
+            }
+            g.stroke();
+            const xa = clamp01((ra - 0.6) / 0.4) * 9;
+            if (xa > 0) {
+              g.beginPath();
+              g.moveTo(rx - xa, ry - xa);
+              g.lineTo(rx + xa, ry + xa);
+              g.moveTo(rx + xa, ry - xa);
+              g.lineTo(rx - xa, ry + xa);
+              g.stroke();
+            }
+            g.restore();
+          }
+        }
+      }
+
+      // ---- playback ----
+      const cv = document.getElementById('cv'),
+        hint = document.getElementById('hint');
+      let opt = 'B',
+        t0 = performance.now(),
+        skipped = false;
+      const LAND = 0.6; // seconds for the creatures to fade in after arrival
+      function frame(now) {
+        const o = OPTIONS[opt],
+          s = skipped ? o.dur + LAND : (now - t0) / 1000 - 0.5; // half a second's pause on the far view
+        const t = Math.max(0, s) / o.dur,
+          landed = (s - o.dur) / LAND;
+        render(cv, opt, t, landed);
+        hint.textContent = t < 1 ? 'click to skip' : 'click to replay';
+        requestAnimationFrame(frame);
+      }
+      function stills() {
+        const o = OPTIONS[opt];
+        render(document.getElementById('f0'), opt, 0, 0);
+        render(document.getElementById('f1'), opt, 0.5, 0);
+        render(document.getElementById('f2'), opt, 1, 1);
+      }
+      function restart() {
+        t0 = performance.now();
+        skipped = false;
+      }
+      document.getElementById('stage').addEventListener('click', () => {
+        const o = OPTIONS[opt],
+          s = (performance.now() - t0) / 1000 - 0.5;
+        if (skipped || s > o.dur) restart();
+        else skipped = true;
+      });
+      document.getElementById('replay').addEventListener('click', restart);
+      for (const b of document.querySelectorAll('[data-o]'))
+        b.addEventListener('click', () => {
+          opt = b.dataset.o;
+          for (const x of document.querySelectorAll('[data-o]')) x.setAttribute('aria-pressed', x === b);
+          document.getElementById('about').innerHTML = OPTIONS[opt].about;
+          restart();
+          stills();
+        });
+      document.getElementById('about').innerHTML = OPTIONS[opt].about;
+      let ready = 0;
+      for (const i of Object.values(IM))
+        i.addEventListener('load', () => {
+          if (++ready === 3) {
+            stills();
+            restart();
+          }
+        });
+      (document.fonts ? document.fonts.ready : Promise.resolve()).then(stills);
+      window.addEventListener('resize', stills);
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>
