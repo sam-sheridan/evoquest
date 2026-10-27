@@ -856,8 +856,9 @@ Collapse or expand it with the arrow. It has four tabs.
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
-    from are highlighted in orange, with a tooltip saying so (there is no note under the table). Primus has no
-    highlights, since it didn't split from anything. A trait counts only if it
+    from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the inspector
+    primus has no highlights, since it didn't split from anything (on the end screen it is compared with the
+    released design). A trait counts only if it
     differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
@@ -915,8 +916,9 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
   3 / 15).
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
-  (none greyed out, since all have died), and the **starting design** as the first column. Primus isn't
-  highlighted against it; compare the two columns by eye.
+  (none greyed out, since all have died), and the released design as the first column, headed **Released** as in
+  the inspector. Here primus's one or two most changed traits are highlighted against the released design, the
+  same way other species are against their parent.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
   runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
