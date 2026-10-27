@@ -465,7 +465,7 @@ function drawChart() {
   if (pct) hi = Math.min(hi, 100); // a share never goes over 100%
   const X = t => pad.l + ((w - pad.l - pad.r) * (t - t0)) / span,
     Y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
-  g.font = '10px "IBM Plex Mono", monospace';
+  g.font = '11px "IBM Plex Mono", monospace';
   g.fillStyle = '#636d69';
   g.strokeStyle = '#d2d8d4';
   g.lineWidth = 1;
@@ -542,7 +542,7 @@ const SP_COL = 86; // width of every species column, px
 // the row names column is only as wide as its longest name, so the first species sits as far left as it can
 const labelWidth = labels => {
   const g = (labelWidth.g ||= document.createElement('canvas').getContext('2d'));
-  g.font = '12.5px "IBM Plex Sans", system-ui, sans-serif';
+  g.font = '12px "IBM Plex Sans", system-ui, sans-serif';
   return Math.ceil(Math.max(...labels.map(l => g.measureText(l).width))) + 10;
 };
 // grey: in the inspector (extinct species greyed out); the released design is always the first column, headed
