@@ -41,6 +41,7 @@ function newGame(design, seed) {
     lastEvent: -1,
     nextEvent: EVENTS.first[0] + rand() * EVENTS.first[1], // when the next world event happens
     nextKind: null, // which event it will be (decided a little early; changing season must not re-roll it)
+    recent: [], // the last few scheduled events' kinds, newest last (for EVENTS.streak)
     evStart: 0,
     season: 0, // 0 spring, 1 summer, 2 autumn, 3 winter
     nextSeason: SEASON_LEN,
@@ -830,6 +831,14 @@ function pickEvent() {
     ev.drought += ev.flood;
     ev.flood = 0;
   }
+  // no more than EVENTS.streak floods, or droughts, in a row: after that many, the next is something else
+  const last = S.recent.slice(-EVENTS.streak);
+  if (
+    last.length === EVENTS.streak &&
+    last.every(k => k === last[0]) &&
+    (last[0] === 'flood' || last[0] === 'drought')
+  )
+    ev[last[0]] = 0;
   const kinds = Object.entries(ev).filter(k => k[1] > 0);
   let roll = rand() * kinds.reduce((s, k) => s + k[1], 0);
   for (const [n, wt] of kinds) {
@@ -848,6 +857,7 @@ function worldEvent(kind, major, forced) {
       (k === 'flood' && w.landFrac < w.land0 + LAND.noFlood))
   )
     k = pickEvent();
+  if (!forced) S.recent = [...S.recent, k].slice(-EVENTS.streak);
   let msg;
   if (k === 'meteor') {
     // aim near a random living creature (any land spot if there are none), and land on land

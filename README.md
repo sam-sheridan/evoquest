@@ -660,7 +660,7 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
 ### Which event
 
-- **5%** of events are meteors (`EVENTS.meteor`, about 1 in 20).
+- **1 in 7** events (about 14%) is a meteor (`EVENTS.meteor`).
 - Otherwise the event is picked by the current season's weights (see the table above). Some events are ruled
   out when they would push the world too far:
   - no drought when land is more than 12 points above where the world started (`LAND.noDrought`)
@@ -671,6 +671,10 @@ All of this is in the `SEASONS` table in `js/config.js`.
 
   When a drought is ruled out, its share of the odds goes to floods, and when a flood is ruled out, its share
   goes to droughts. (Earlier, those shares went mostly to earthquakes, which grew to about half of all events.)
+- **No more than 2 floods in a row, or 2 droughts in a row** (`EVENTS.streak`). After two floods, the next event
+  can't be a flood: it is picked from the other kinds by their usual odds (the same for droughts). A meteor or
+  earthquake in between breaks the run. Earthquakes and meteors have no such limit. Events fired from the testing
+  buttons don't count towards a run.
 
   There is no limit on rivers or sea channels: droughts dry them up again, and the more there are, the more each
   drought undoes, so the map doesn't keep breaking up over hours of play.
@@ -1078,7 +1082,7 @@ accident.
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species don't merge back.** Instead, splitting gets harder as more species are alive.
-- **Meteors are rare (about 1 in 20 events)** and dramatic.
+- **Meteors are occasional (about 1 in 7 events)** and dramatic.
 - **Almost no player tools during a run.** You design, then watch. The one exception is controlling a single
   creature's movement: it follows every normal rule, so it lets you feel the world's pressures without steering
   evolution.
