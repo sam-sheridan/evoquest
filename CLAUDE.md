@@ -32,8 +32,8 @@ Read the relevant section before changing a mechanic.
 
 ## Where things stand
 
-- Mechanics are beta-ready. The game was reworked in October 2026: one fixed colour per species (primus keeps the
-  creator's colour, each new species gets the most different one at its split), black or white eyes set per
+- Mechanics are beta-ready. The game was reworked in October 2026: one fixed colour per species (the released species keeps
+  the creator's colour, each new species gets the most different one when it appears), black or white eyes set per
   species, a redesigned creator (stat tags that fill like bars, a ? help popup, a refresh button for Randomise)
   and 15 achievements.
 - The map redesign's water and trees shipped in October 2026: the drawn bands are now the game's real shelf
@@ -96,9 +96,10 @@ and run the tests with `PLAYWRIGHT_BROWSERS_PATH` set to that folder.
   local food should keep numbers in range naturally. Use `python3 tests/scenarios.py 6 30` to see the later
   numbers.
 - Gentle seasonal swings.
-- Over an hour, primus plus 1–3 new species in total, each clearly different in body (not just colour) and lasting
-  a good while once formed. At most 3 alive at once. Species never merge back. Use `python3 tests/study.py 60 4 3`
-  (75 hour-long runs, about 20 minutes) to check this.
+- Species are four ways of life (README section 10): *natans* (water), *silvicola* (thicket), *campestris* (plains)
+  and *vulgaris* (in between), so at most 4 alive and every species looks different. Over an hour, most runs should
+  see 1–3 new species appear and last a good while once formed; some runs staying one species is fine. Use
+  `python3 tests/study.py 60 4 3` (75 hour-long runs, about 30 minutes) to check this.
 - Extinction should happen now and then, even for ordinary designs: Sam wants it to be a real risk, especially
   early on while a population is small and local. Don't add safety nets that rescue struggling populations.
   Extreme designs dying out is expected.
