@@ -249,7 +249,7 @@ const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
 const BAND_AT = [0.27, 0.58, 1];
 // open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
 // strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
-// per open cell of a lone tree or small clump, [base, extra on the most fertile ground]. reed: chance of a reed mark per low cell by lakes and rivers
+// per open cell of a lone tree or small clump, [base, extra on the most fertile ground]
 const OPENLAND = {
   wash: [
     [
@@ -271,7 +271,6 @@ const OPENLAND = {
   ],
   hill: 0.13,
   lone: [0.02, 0.06],
-  reed: 0.55,
 };
 // contour lines: [colour, width px] for ordinary lines and for the bold index lines (every third). halo: a soft
 // band [colour, width px] drawn round each rock before it, so contours fade out just before reaching it (null: none)

@@ -629,7 +629,7 @@ function renderTerrain() {
   if (S) for (const c of S.creatures) c.rt = 0;
 }
 // the open land's details: softened fertility for the meadow / dry-ground wash, hill shading as a small image, lone
-// trees and small clumps on fertile ground, and reed marks on low ground by lakes and rivers
+// trees and small clumps on fertile ground
 function landDetail(w, V) {
   const N = GW * GH,
     T = w.type,
@@ -648,7 +648,6 @@ function landDetail(w, V) {
       lone: new Path2D(),
       loneShade: new Path2D(),
       loneShadow: new Path2D(),
-      reed: new Path2D(),
     };
   let f = new Float32Array(N);
   for (let i = 0; i < N; i++) f[i] = fz(i);
@@ -673,23 +672,6 @@ function landDetail(w, V) {
       }
       L.loneShadow.moveTo(x + rr * 1.45, y + rr * 0.4);
       L.loneShadow.arc(x + rr * 0.35, y + rr * 0.4, rr * 1.1, 0, TAU);
-    }
-  }
-  const sea = openSea(T),
-    dLake = distField(i => (T[i] === 0 && !sea[i]) || T[i] === 4);
-  for (let i = 0; i < N; i++) {
-    if (T[i] !== 1) continue;
-    const x = ((i % GW) + r()) * CS,
-      y = (((i / GW) | 0) + r()) * CS;
-    if (dLake[i] < 2.5 * CS && w.hgt[i] < w.level + 0.06) {
-      if (r() > OPENLAND.reed || onRock(x, y, 4)) continue;
-      // marsh: a short base line with reeds rising from it
-      L.reed.moveTo(x - 3.5, y);
-      L.reed.lineTo(x + 3.5, y);
-      for (const dx of [-2, 0, 2]) {
-        L.reed.moveTo(x + dx, y - 0.5);
-        L.reed.lineTo(x + dx * 1.3, y - 3.2 - (dx ? 0 : 1));
-      }
     }
   }
   // hill shading: darker on slopes facing away from the north-west light, a faint highlight on the lit side, fading
@@ -831,11 +813,6 @@ function paintTerrain(g) {
   g.fillStyle = 'rgba(60,80,50,.13)';
   g.fill(V.trees.shadow);
   g.fill(V.landD.loneShadow);
-  clipOut(g, V.thick);
-  g.lineCap = 'round';
-  g.lineWidth = 0.85;
-  g.strokeStyle = 'rgba(45,80,90,.75)';
-  g.stroke(V.landD.reed);
   g.restore();
   g.strokeStyle = CONTOURS.line[0];
   g.lineWidth = CONTOURS.line[1];
