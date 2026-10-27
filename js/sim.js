@@ -631,7 +631,8 @@ function eat(c, f) {
   c.blk = 0;
   c.rest = 0.8 + rand() * 0.6;
   f.vis = Math.min(c.rest / 2, 1.5);
-  if (c.E >= c.cap * BREED.full && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c))) c.pb = rand() * 3;
+  if (c.E >= c.cap * BREED.full && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c)))
+    c.pb = rand() * 3;
   if (audible(c)) SND.eat();
 }
 function birth(p) {
@@ -1153,12 +1154,16 @@ function endSpecies(sp) {
   sp.spans.at(-1)[1] = S.t;
 }
 // every 5 s: a creature clearly outside its species' type (a margin or more past its border) moves to the type it
-// fits best. It joins a living species on its own; founding a new one, or bringing back one that died out, needs
-// TYPES.min creatures ready together, so until then they wait in their old species. Newborns take their parent's
-// species, so a creature near a border doesn't flick back and forth
+// fits best, but only where that species already lives: it needs TYPES.near.n of its members within TYPES.near.r px.
+// Founding a new species, or bringing back one that died out, needs TYPES.min creatures close together that are
+// each well inside the new type (TYPES.deep margins), so a new species starts clearly different and in one place.
+// Until then they stay in their old species. Newborns take their parent's species, so a creature near a border
+// doesn't flick back and forth
 function checkTypes() {
   const by = bySpecies(),
-    byName = Object.fromEntries(S.species.map(s => [s.epithet, s]));
+    byName = Object.fromEntries(S.species.map(s => [s.epithet, s])),
+    R2 = TYPES.near.r ** 2,
+    near = (c, G) => G.filter(o => (o.x - c.x) ** 2 + (o.y - c.y) ** 2 <= R2);
   for (const sp of S.species.slice()) {
     const M = by[sp.id];
     if (!M || sp.died) continue;
@@ -1166,12 +1171,29 @@ function checkTypes() {
     const own = TYPE_NAMES.indexOf(sp.epithet);
     for (const c of M) {
       const v = typeScores(c);
-      if (v[own] <= -1) (ready[TYPE_NAMES[v.indexOf(Math.max(...v))]] ??= []).push(c);
+      if (v[own] > -1) continue;
+      const k = v.indexOf(Math.max(...v));
+      (ready[TYPE_NAMES[k]] ??= []).push([c, v[k]]);
     }
-    for (const [z, G] of Object.entries(ready)) {
+    for (const [z, list] of Object.entries(ready)) {
       const to = byName[z];
-      if (to && !to.died) move(G, sp, to);
-      else if (G.length >= TYPES.min) move(G, sp, to ? revive(to) : (byName[z] = found(z, sp, G)));
+      if (to && !to.died) {
+        const there = by[to.id] || [];
+        move(
+          list.map(e => e[0]).filter(c => near(c, there).length >= TYPES.near.n),
+          sp,
+          to
+        );
+      } else {
+        // the biggest close-together group of creatures well inside the new type
+        const deep = list.filter(e => e[1] >= TYPES.deep).map(e => e[0]);
+        let G = [];
+        for (const c of deep) {
+          const g = near(c, deep);
+          if (g.length > G.length) G = g;
+        }
+        if (G.length >= TYPES.min) move(G, sp, to ? revive(to) : (byName[z] = found(z, sp, G)));
+      }
     }
     if (!sp.died && !M.some(c => c.sp === sp.id)) {
       const where = [...new Set(M.map(c => S.species[c.sp].epithet))].join(' and ');
@@ -1182,6 +1204,7 @@ function checkTypes() {
 }
 // creatures move to another species, blending into its colour and each keeping its own shade
 function move(G, from, to) {
+  if (!G.length) return;
   for (const c of G) {
     c.from = [c.hue, c.sat, c.lt];
     c.fromT = S.t;
