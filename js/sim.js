@@ -1037,8 +1037,8 @@ function logEv(m) {
 }
 
 /* stats */
-// what counts towards a new species: only the body traits that change how a creature lives (size, legs, tail,
-// mouth, roundness, and having a tail or 6 legs at all). Colour never makes a species, and width and
+// what counts towards a new species: only the body traits that change how a creature lives (size, leg length,
+// tail, mouth, roundness, and having a tail at all). Colour never makes a species, and width and
 // length count only through size, so look-alike groups don't become separate species
 const vec = c => [
   c.size * SPC.size,
@@ -1047,13 +1047,11 @@ const vec = c => [
   c.mth * MOUTH_SPLIT,
   c.round * 0.5,
   c.tail > 0 ? SHOWS.tail : 0,
-  c.legs === 6 ? SHOWS.legs : 0,
 ];
 const KEYS = [
   'w',
   'h',
   'leg',
-  'legs',
   'hab',
   'mth',
   'dTc',

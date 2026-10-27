@@ -4,7 +4,7 @@
    faster, short ones swim faster), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
    because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims a little faster,
    blocky walks a little faster). Every ability (speed, energy, range, food) comes from these.
-   Look: each species is one colour (hue, sat), and individuals vary only in shade (lt). The number of legs comes from size. */
+   Look: each species is one colour (hue, sat), and individuals vary only in shade (lt). The number of legs drawn comes from size and is only a look. */
 
 /* ---------- creatures ---------- */
 let nextId = 1;
@@ -37,19 +37,16 @@ function compute(c) {
   c.legs = c.size >= LEGS.sixFrom ? 6 : 4;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
-  // speed: bigger bodies are slower; long legs, 6 legs and a blocky body walk faster; short legs, 4 legs, a tail
-  // and a round body swim faster
+  // speed: bigger bodies are slower; long legs and a blocky body walk faster; short legs, a tail and a round body
+  // swim faster
   const base = (LEGS.base * 1.5) / (0.6 + c.size),
-    rk = 2 * c.round - 1, // -1 blocky … 1 round
-    six = c.legs === 6 ? LEGS.six : -LEGS.six;
+    rk = 2 * c.round - 1; // -1 blocky … 1 round
   c.vL =
     base *
     (LEGS.land[0] + (LEGS.land[1] - LEGS.land[0]) * c.leg) *
-    (1 + six) *
     (1 - 0.85 * c.tail) *
     (1 - ROUND.walk * rk);
-  c.vW =
-    base * (1 + LEGS.water * (1 - 2 * c.leg)) * (1 - six) * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
+  c.vW = base * (1 + LEGS.water * (1 - 2 * c.leg)) * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, about HAB.range px each way at 50%, and any
   // visible tail swims at least HAB.first px from shore

@@ -222,7 +222,6 @@ function syncCreator() {
   $('#pvStats').innerHTML = [
     [
       tag('size', x => `Size ${x.toFixed(2)}`),
-      tag(null, `${c.legs} legs`, ['4 legs', '6 legs']),
       tag('vL', x => `Land ${px(x)} px/s`),
       tag('vW', x => `Water ${px(x)} px/s`),
     ],
@@ -244,7 +243,7 @@ function syncCreator() {
     .map(r => `<div class="chiprow">${r.join('')}</div>`)
     .join('');
   $('#pvWhy').innerHTML =
-    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. From size ${LEGS.sixFrom} a creature has 6 legs, which walk a little faster and swim a little slower. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
+    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();
 }
 function drawPreview(t) {

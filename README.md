@@ -118,7 +118,7 @@ The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few
 seconds it acts out eating, so you can see its mouth snap. There is no text beside the headings or under the
 sliders. Under the preview, **tags** list every stat the sliders change, in four rows:
 
-1. Size, number of legs, land speed and water speed (px/s).
+1. Size, land speed and water speed (px/s).
 2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
 3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
@@ -183,20 +183,20 @@ what you can see.
 
   Half of a typical thicket lies within about 32 px of its edge and nine tenths within about 80 px, so a middling
   creature reaches about half of it and only small ones its heart.
-- **Legs**: 4, or 6 from size 0.9 (`LEGS.sixFrom`). Six legs walk 5% faster and swim 5% slower, four the reverse
-  (`LEGS.six`). Leg count follows size; there is no control for it.
+- **Legs**: drawn as 4, or 6 from size 0.9 (`LEGS.sixFrom`). The number is only a look: it doesn't change speed,
+  energy or speciation, and isn't shown as a stat. Leg length is the trait that matters.
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
   smallest and 26 at the biggest.
 - **Effective tail** = (tail − 0.15) ÷ 0.85, and 0 below 0.15. Everything below uses this, so 15% and below
   behave exactly alike, as a creature with no tail.
-- **Land speed** = base × (0.4 + 1.2 × legs) × (1 ± 0.05 for 6 or 4 legs) × (1 − 0.85 × tail) ×
+- **Land speed** = base × (0.4 + 1.2 × legs) × (1 − 0.85 × tail) ×
   (1 − 0.1 × (2 × roundness − 1)). Leg length takes walking from 0.4 to 1.6 times the base (`LEGS.land`).
-- **Water speed** = base × (1 + 0.15 × (1 − 2 × legs)) × (1 ∓ 0.05 for 6 or 4 legs) × (0.15 + 0.85 × tail) ×
+- **Water speed** = base × (1 + 0.15 × (1 − 2 × legs)) × (0.15 + 0.85 × tail) ×
   (1 + 0.1 × (2 × roundness − 1)). The shortest legs swim 15% faster and the longest 15% slower (`LEGS.water`);
   medium legs make no difference.
   The roundness part (`ROUND`) is ±10% at the extremes and nothing at 0.5: a fully round body swims 10% faster
   and walks 10% slower, a fully blocky one the reverse. So everything about a water creature pulls the same way:
-  short legs, four of them, a tail and a round body make smooth, round, tailed swimmers (rather like tadpoles),
+  short legs, a tail and a round body make smooth, round, tailed swimmers (rather like tadpoles),
   and long legs, no tail and a blocky body make walkers.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
@@ -272,8 +272,8 @@ near water can drift up to 15% within a run and start using a tail when the wate
 **Randomise** gives about a third of designs no tail (0–13%) and the rest a visible one (25–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 with 6 legs, goes 40 px
-into thickets, walks at about 34 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
+The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 6 legs), goes 40 px
+into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
 
 ### Colour: one per species
 
@@ -741,9 +741,8 @@ than 3 alive at once, and most new species were still alive at the end of the ho
 (× 0.5). What a creature eats (its mouth) and where it lives (its tail) count for more than how big it is or how
 long its legs are, as in real animals, where a change of diet or habitat is a classic start to a new species. Colour never makes a new
 species (each new species is given its own), and width and length count only through size, so two
-groups that only look a little different stay one species. Two features that are either there or not count extra
-(`SHOWS`), because they change how creatures live and look even when the trait behind them has barely moved: having
-a tail at all adds 0.25, and having 6 legs rather than 4 adds 0.15.
+groups that only look a little different stay one species. Having a tail at all counts extra (`SHOWS`, 0.25), because it changes how creatures live and look even when the
+tail trait has barely moved. (The number of legs drawn doesn't count: it only follows size.)
 
 **No copies.** A group that would be within 0.2 of a species already alive (`SPC.same`) doesn't split off, so a
 species can't split into a copy of one that already exists.
@@ -853,13 +852,13 @@ Collapse or expand it with the arrow. It has four tabs.
     scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, in the species' colour), all at
     one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
-    each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
+    each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
     from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the inspector
     primus has no highlights, since it didn't split from anything (on the end screen it is compared with the
     released design). A trait counts only if it
-    differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
+    differs notably: by 0.06 in size, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
@@ -1025,7 +1024,7 @@ The look is a scientific **field notebook / survey map**.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
     every member of a species has the same eyes even though shades vary slightly from creature to creature.
-  - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves. They sit in
+  - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves (only a look). They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
     mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45
@@ -1057,7 +1056,8 @@ accident.
   species gets a clearly different one, so species read at a glance and the split is a visible moment. This
   also replaced the *Creature colour* setting (body colour or species colour), since the two are now the same.
 - **Leg count follows size, leg length evolves.** Small bodies have 4 legs and big ones 6, on the sides only,
-  which keeps the front for the mouth and the back for the tail.
+  which keeps the front for the mouth and the back for the tail. The count is only a look (since October 2026):
+  it used to change speed by 5%, which made a sudden jump at size 0.9 and duplicated what size already does.
 - **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
   forest) and a shape. They are never shown, so the player has no say in the world, and no single design is
   best everywhere.
@@ -1108,7 +1108,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail or 6 legs counts |
+| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail counts |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |
