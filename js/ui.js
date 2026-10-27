@@ -555,7 +555,8 @@ function speciesTable(grey) {
   for (const sp of order) {
     const m = spAvg(sp);
     if (!m) continue;
-    // primus is compared with the released design only at the end of a run: in the inspector it has no highlights
+    // the released species is compared with the released design only at the end of a run: in the inspector it has
+    // no highlights
     const parent = sp.parent === null ? (grey ? null : 'r') : sp.parent;
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent });
   }
@@ -565,7 +566,8 @@ function speciesTable(grey) {
     k.c = Object.assign(avgCreature(k.m), { hue: s.hue, sat: s.sat, lt: s.lt });
   }
   const byKey = new Map(cols.map(k => [k.key, k]));
-  // the one or two traits that differ most from the parent, if they differ notably (none on primus)
+  // the one or two traits that differ most from the parent, if they differ notably (none on the released species in
+  // the inspector)
   for (const k of cols) {
     const p = byKey.get(k.parent);
     k.hl = p
@@ -592,7 +594,7 @@ function speciesTable(grey) {
       // the released design has no population of its own in the inspector, so its cell is left empty
       k => (k.sp ? (grey ? S.creatures.filter(c => c.sp === k.sp.id).length : k.sp.peak) : grey ? '' : START),
     ],
-    ['Time alive', k => (k.sp ? fmtT((k.sp.died ?? S.t) - k.sp.born) : '–')],
+    ['Time alive', k => (k.sp ? fmtT(aliveFor(k.sp)) : '–')],
   ];
   // fixed column widths, so the table doesn't shift as the species change
   const first = labelWidth([...info.map(r => r[0]), ...SP_ROWS.map(r => r[0])]);

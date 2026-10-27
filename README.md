@@ -1,8 +1,9 @@
 # EvoQuest
 
 Design a species, release 20 of them onto a randomly generated island world, and watch the world decide what
-they become. Food, terrain, seasons and world events shape their bodies over generations. Groups that get cut
-off, or that take up a different way of life, can split into new species.
+they become. Food, terrain, seasons and world events shape their bodies over generations. Every species lives one
+of four ways (in the water, in the thickets, on the plains or in between), and creatures that take up another way
+of life become that species.
 
 **Play online:** https://sam-sheridan.github.io/evoquest/
 
@@ -92,8 +93,8 @@ between panes and Esc closes the intro. The creatures carry on behind the panes,
 3. **Eat, breed, survive**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
    caption for each step (loops every 9 seconds, `INTRO.loop`).
 4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
-5. **Evolve into new species**: a family tree growing across the picture, with primus carrying on and *natans* and
-   *magnus* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
+5. **Evolve into new species**: a family tree growing across the picture, with *vulgaris* carrying on and *natans*
+   and *campestris* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
    tapping a creature. Its last button, *Get Started*, closes the intro. Back and Next stay the same size on every pane, so the dots
    never move.
 
@@ -280,13 +281,13 @@ into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers
 Colour has **no effect on survival**, and it doesn't evolve. Each species is a single colour, so species can be
 told apart on the map at a glance:
 
-- **Primus** is the colour you chose in the creator.
-- **A new species** gets the one of the 7 creator colours that looks most unlike every species alive at that
-  moment (`newColour()`, using a weighted RGB distance). With at most 3 species alive there is always a clear
-  choice. Colours of extinct species can come back on long runs.
+- **The released species** is the colour you chose in the creator.
+- **A new species** gets the one of the 7 creator colours that looks most unlike every species so far
+  (`newColour()`, using a weighted RGB distance). With at most four species in a run, each keeps its own colour,
+  including one that dies out and comes back.
 - **Individuals** differ only in shade: each newborn is up to 4 lightness points lighter or darker than its
   species' colour (`SHADE`), so a crowd doesn't look cloned. The shade doesn't build up over generations.
-- **At a split**, the new species' creatures blend from the old colour to the new one over 1.5 seconds
+- **When a creature moves to another species**, it blends from the old colour to the new one over 1.5 seconds
   (`SPLIT_FADE`), round the colour wheel the short way so they stay bright rather than passing through grey.
 
 The same colour is used for the species everywhere: on the map, in the Species tab, the Stats chart, the family
@@ -714,72 +715,60 @@ that stays above water don't shift.
 
 ## 10. Speciation and naming
 
-### When a new species forms
+### Four ways of life
 
-Every 5 seconds, each living species is checked. A species can only split if:
+Every species is one of four types, each a way of life with its own Latin name (`TYPES`):
 
-- it has at least 20 members
-- it is at least 90 seconds old (`SPC.age`)
-- at least 110 seconds have passed since it last split (`SPC.cool`)
+| Species | Way of life | Body |
+|---|---|---|
+| *natans* | water | a tail of at least 50% (counting from where a tail starts to show), whatever its size or mouth |
+| *silvicola* | thickets | small (size 0.8 or less) with a beak-like mouth (0.4 or less, on the beak 0 to straw 1 scale), and not water |
+| *campestris* | plains | large (size 1.0 or more), any mouth, and not water |
+| *vulgaris* | in between | everything else |
 
-Two kinds of split are looked for:
+Water comes first: a creature with a clear tail is *natans* whatever else it is. So there are never more than four
+species alive at once, and two species never look alike.
 
-1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
-   on. If the second-biggest group has at least 12 members (`SPC.min`) and differs enough in traits from the biggest group
-   (more than `SPC.geo` = 0.22), that is a candidate split.
-2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
-   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
-   separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
-   cluster must have at least 12 members.
+The **released species** is whichever type the creator's design falls into, and keeps the colour you chose. There
+is no *primus*: release a water creature and the run starts with *natans*.
 
-The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
-becomes a new species.
+This is the "ecological" idea of a species (a group with its own way of life) rather than "creatures that can
+interbreed", which doesn't apply here: reproduction is asexual, each newborn a slightly changed copy of one parent.
+(Sam chose this in October 2026, replacing splits found by trait clusters, which could leave one species holding
+several quite different body types.)
 
-**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.9 × (living species − 1)
-(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. In 75
-hour-long test runs that lasted the hour, three in four had 1–3 new species (the rest none), none ever had more
-than 3 alive at once, and most new species were still alive at the end of the hour.
+### Moving between species
 
-**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.2,
-`SPC.size`), leg length (× 0.75, `SPC.leg`), tail (× 1.3, `SPC.tail`), mouth (× 0.9, `MOUTH_SPLIT`) and roundness
-(× 0.5). What a creature eats (its mouth) and where it lives (its tail) count for more than how big it is or how
-long its legs are, as in real animals, where a change of diet or habitat is a classic start to a new species. Colour never makes a new
-species (each new species is given its own), and width and length count only through size, so two
-groups that only look a little different stay one species. Having a tail at all counts extra (`SHOWS`, 0.25), because it changes how creatures live and look even when the
-tail trait has barely moved. (The number of legs drawn doesn't count: it only follows size.)
+Newborns take their parent's species. As traits drift, a creature can end up living another way. Every 5 seconds,
+each creature is checked:
 
-**No copies.** A group that would be within 0.2 of a species already alive (`SPC.same`) doesn't split off, so a
-species can't split into a copy of one that already exists.
+- It counts as **leaving** its species once it is clearly outside that species' type: at least one margin past the
+  border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). A creature near a border doesn't
+  flick back and forth.
+- It must stay clearly outside for **20 seconds** (`TYPES.hold`). Then it moves to the type it now fits best,
+  blending into that species' colour over 1.5 seconds (`SPLIT_FADE`) and keeping its own shade.
+- It **joins a living species on its own**. To **found a new species** (or bring back one that died out), at least
+  **12** creatures of one species must be ready to move to it together (`TYPES.min`). Until then they wait in their
+  old species, so a few in-between creatures can sit in a species for a while.
+- When the last members of a species move to others, the log says so ("The last Blorbus vulgaris have become
+  natans"). When a species dies out and a group later takes up its way of life again, it **comes back** under the
+  same name and colour, with a notification, and the family tree shows each stretch it was alive.
 
-Species never merge back together.
+Because creatures can move in both directions, groups from different species can end up in one type: species here
+describe how creatures live, not a single line of descent. The family tree shows where each species first came
+from.
 
 ### Names
 
 - **Genus** comes from your species name: lower-cased, letters only, a trailing "s" and vowels removed, then
   "-us" added. "Blorbs" becomes *Blorbus*.
-- The **founding species** is always *primus*.
-- A **new species** is named after the trait that most separates it from its parent:
-
-| Name | Meaning |
-|---|---|
-| *natans* | more aquatic |
-| *terrestris* | more land-living |
-| *sorbens* | a more straw-like mouth ("sipping") |
-| *rostratus* | a more beak-like mouth ("beaked") |
-| *longipes* | longer-legged |
-| *brevipes* | shorter-legged |
-| *magnus* | bigger |
-| *minimus* | smaller |
-| *rotundus* | rounder ("a better swimmer") |
-| *acutus* | blockier ("a better walker") |
-
-- *insularis* is used first if the new group was cut off on an island (not the main landmass).
-- If those names are all taken, the fallbacks are *novus*, *alter*, *tertius* and *remotus*.
+- The **epithet** is the type: *natans* (swimming), *silvicola* (woodland-dwelling), *campestris* (of the plains)
+  or *vulgaris* (common).
+- Each species gets its colour when it first appears: the palette colour most unlike every species so far, so all
+  of a run's species keep different colours.
 
 A notification headed **"A new species has formed!"** welcomes it by name, for example "Welcome the first Blorbus
-natans." It doesn't say how the new species differs: one changed trait can't tell you how well it does overall (shorter
-legs swim faster, but not if the tail shrank too), so the Species tab is the place to compare them. Its Latin name
-still hints at its biggest change. The event log keeps the same line.
+natans." The event log keeps the same line.
 
 ---
 
@@ -802,8 +791,8 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Branching Out | Witness a new species form |
 | Land and Sea | An entirely land species (on average it never enters water) and an entirely water species (on average it never leaves water) alive at once |
 | Crowded Tree | Three species alive at once |
-| Changing of the Guard | A newer species outlives primus |
-| Tree of Life | Six species over one run |
+| Changing of the Guard | A newer species outlives the one you released |
+| Tree of Life | All four species in one run |
 
 ---
 
@@ -858,10 +847,10 @@ Collapse or expand it with the arrow. It has four tabs.
     one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
-    instead. In each species' column, the one or two traits that most set it apart from the species it split
-    from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the inspector
-    primus has no highlights, since it didn't split from anything (on the end screen it is compared with the
-    released design). A trait counts only if it
+    instead. In each species' column, the one or two traits that most set it apart from the species it first
+    came from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the
+    inspector the released species has no highlights, since it didn't come from anything (on the end screen it is
+    compared with the released design). A trait counts only if it
     differs notably: by 0.06 in size, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
@@ -925,11 +914,12 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died), and the released design as the first column, headed **Released** as in
-  the inspector. Here primus's one or two most changed traits are highlighted against the released design, the
-  same way other species are against their parent.
+  the inspector. Here the released species' one or two most changed traits are highlighted against the released
+  design, the same way other species are against the species they came from.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
-  runs, so the labels don't overlap). Branches show where each split from its parent. A
-  thick line means still alive at the end, and a tick marks extinction.
+  runs, so the labels don't overlap). Branches show which species each first came from. A
+  thick line means still alive at the end, and a tick marks each time it died out (a species that came back has
+  more than one stretch).
 - **Achievements**: every achievement, the ones earned this run in full and the rest greyed out.
 - **Watch replay** plays the whole run back at 12 recorded moments per second. A moment is recorded each
   second of game time, and the gap between recordings doubles on very long runs to save memory.
@@ -1062,7 +1052,7 @@ accident.
   an oval, and regions differ in thicket, rock and wetland.
 - **Body traits are selected; colour marks the species.** Colour used to drift by chance, to show how long
   groups had been apart, but the drift was slow and hard to see. Now each species has one fixed colour and a new
-  species gets a clearly different one, so species read at a glance and the split is a visible moment. This
+  species gets a clearly different one, so species read at a glance and a new species is a visible moment. This
   also replaced the *Creature colour* setting (body colour or species colour), since the two are now the same.
 - **Leg count follows size, leg length evolves.** Small bodies have 4 legs and big ones 6, on the sides only,
   which keeps the front for the mouth and the back for the tail. The count is only a look (since October 2026):
@@ -1086,7 +1076,8 @@ accident.
   walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
-- **Species don't merge back.** Instead, splitting gets harder as more species are alive.
+- **Species are ways of life.** Four fixed types, so species always look different, there are never more than four
+  alive, and the names mean the same in every run. Creatures move between them as they change (see section 10).
 - **Meteors are occasional (about 1 in 7 events)** and dramatic.
 - **Almost no player tools during a run.** You design, then watch. The one exception is controlling a single
   creature's movement: it follows every normal rule, so it lets you feel the world's pressures without steering
@@ -1117,7 +1108,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail counts |
+| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to leave its species, `hold` for how long, `min` for how many to found one |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |

@@ -214,10 +214,6 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.25 };
-const MOUTH_SPLIT = 0.9; // how much a difference in mouths counts towards a new species (see SPC for the others)
-// features that are either there or not count extra towards a new species, since they make creatures look
-// different: having a tail at all
-const SHOWS = { tail: 0.25 };
 // speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
 // base px/s; bigger bodies are slower, smaller ones faster.
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
@@ -344,10 +340,10 @@ const OKABE = [
   ['Vermilion', '#D55E00', 26, 100, 42],
   ['Reddish purple', '#CC79A7', 327, 46, 64],
 ];
-// each species is one colour: primus keeps the creator's colour, and a new species takes the palette colour most
-// unlike every living species'. Individuals differ only in shade, up to SHADE lightness points either way
+// each species is one colour: the released species keeps the creator's colour, and each new one takes the palette
+// colour most unlike every species so far. Individuals differ only in shade, up to SHADE lightness points either way
 const SHADE = 4;
-// seconds a new species' creatures take to blend from the old colour to the new one
+// seconds a creature that moves to another species takes to blend from the old colour to the new one
 const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
 // eyes are white on a species whose starting body is darker than this lightness, black otherwise
@@ -456,27 +452,20 @@ const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 };
 
-/* ---- speciation ---- */
-// geo: trait difference needed between groups on separate land; eco: between two clusters on the same land
-// ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
-// age / cool: seconds a species must exist, and wait after a split, before it can split again
-// extra: how much harder each additional living species makes the next split
-// min: fewest creatures a new species can start with; same: a group this close (in trait difference) to a species
-// already alive doesn't split off; size, leg, tail: how much size, leg length and tail count in the trait difference
-// (what a creature eats and where it lives count more than how big it is or how long its legs are)
-const SPC = {
-  geo: 0.22,
-  eco: 0.4,
-  ratio: 1.8,
-  streak: 4,
-  age: 90,
-  cool: 110,
-  extra: 0.9,
+/* ---- species: four ways of life ---- */
+// every species is one of four types, named by its epithet: water (natans) has at least water.tail of tail (0 none,
+// 1 full); thicket (silvicola) is no bigger than thicket.size with a mouth no more than thicket.mouth (0 beak,
+// 1 straw), and isn't water; plains (campestris) is at least plains.size, and isn't water; everything else is the
+// middle type (vulgaris). margin: how far past a border (in each trait) a creature must be to count as clearly
+// another type; hold: seconds it must stay clearly that type before it moves to that species; min: creatures that
+// must be ready together to found a species (or bring back one that died out); joining a living one needs only one
+const TYPES = {
+  water: { tail: 0.5 },
+  thicket: { size: 0.8, mouth: 0.4 },
+  plains: { size: 1.0 },
+  margin: { tail: 0.08, size: 0.04, mouth: 0.08 },
+  hold: 20,
   min: 12,
-  same: 0.2,
-  size: 1.2,
-  leg: 0.75,
-  tail: 1.3,
 };
 
 /* ---- intro ---- */

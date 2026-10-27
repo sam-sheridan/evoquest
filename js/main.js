@@ -463,5 +463,5 @@ window.EvoQuestDebug = {
   setDesign: v => {
     Object.assign(D, v);
   },
-  config: { GROW, SPC, CRW, EVENTS },
+  config: { GROW, TYPES, CRW, EVENTS },
 };
