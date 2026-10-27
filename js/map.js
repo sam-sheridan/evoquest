@@ -164,7 +164,7 @@ function addLoop(path, p) {
   path.closePath();
 }
 // rock, drawn as angular crags: straightened outlines, the slopes split into flat faces (plain where lit from the
-// north-west, hatched in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
+// north-west, a plain darker tone in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
 // just inside the edge pointing uphill. rf is the rock pattern (rock where it is at least w.rThr).
 function rocks(w, rf, land) {
   const N = GW * GH,
@@ -629,7 +629,7 @@ function renderTerrain() {
   if (S) for (const c of S.creatures) c.rt = 0;
 }
 // the open land's details: softened fertility for the meadow / dry-ground wash, hill shading as a small image, lone
-// trees and small clumps on fertile ground, grass tufts on meadows, and reed marks on low ground by lakes and rivers
+// trees and small clumps on fertile ground
 function landDetail(w, V) {
   const N = GW * GH,
     T = w.type,
@@ -648,8 +648,6 @@ function landDetail(w, V) {
       lone: new Path2D(),
       loneShade: new Path2D(),
       loneShadow: new Path2D(),
-      grass: new Path2D(),
-      reed: new Path2D(),
     };
   let f = new Float32Array(N);
   for (let i = 0; i < N; i++) f[i] = fz(i);
@@ -674,29 +672,6 @@ function landDetail(w, V) {
       }
       L.loneShadow.moveTo(x + rr * 1.45, y + rr * 0.4);
       L.loneShadow.arc(x + rr * 0.35, y + rr * 0.4, rr * 1.1, 0, TAU);
-    }
-  }
-  const sea = openSea(T),
-    dLake = distField(i => (T[i] === 0 && !sea[i]) || T[i] === 4);
-  for (let i = 0; i < N; i++) {
-    if (T[i] !== 1) continue;
-    const x = ((i % GW) + r()) * CS,
-      y = (((i / GW) | 0) + r()) * CS;
-    if (dLake[i] < 2.5 * CS && w.hgt[i] < w.level + 0.06) {
-      if (r() > OPENLAND.reed || onRock(x, y, 4)) continue;
-      // marsh: a short base line with reeds rising from it
-      L.reed.moveTo(x - 3.5, y);
-      L.reed.lineTo(x + 3.5, y);
-      for (const dx of [-2, 0, 2]) {
-        L.reed.moveTo(x + dx, y - 0.5);
-        L.reed.lineTo(x + dx * 1.3, y - 3.2 - (dx ? 0 : 1));
-      }
-    } else if (fz(i) > 0.45 && r() < OPENLAND.grass * fz(i) && !onRock(x, y, 4)) {
-      // grass: three short strokes fanning upwards
-      for (const a of [-0.5, 0, 0.5]) {
-        L.grass.moveTo(x + a * 1.2, y);
-        L.grass.lineTo(x + a * 3.4, y - 3.4 + Math.abs(a) * 1.2);
-      }
     }
   }
   // hill shading: darker on slopes facing away from the north-west light, a faint highlight on the lit side, fading
@@ -838,13 +813,6 @@ function paintTerrain(g) {
   g.fillStyle = 'rgba(60,80,50,.13)';
   g.fill(V.trees.shadow);
   g.fill(V.landD.loneShadow);
-  clipOut(g, V.thick);
-  g.lineCap = 'round';
-  g.lineWidth = 0.85;
-  g.strokeStyle = 'rgba(60,90,45,.7)';
-  g.stroke(V.landD.grass);
-  g.strokeStyle = 'rgba(45,80,90,.75)';
-  g.stroke(V.landD.reed);
   g.restore();
   g.strokeStyle = CONTOURS.line[0];
   g.lineWidth = CONTOURS.line[1];
@@ -881,30 +849,7 @@ function paintTerrain(g) {
   g.lineJoin = 'round';
   g.stroke(V.chev);
 }
-// hatching for shaded rock faces, as a repeating image rather than drawn lines, so it adds no drawing points (Safari
-// stops drawing the land's layers when they hold too many). The tile is drawn at 4 times the size it covers, so the
-// lines stay crisp when zoomed in
-let hatchTile = null;
-function hatchPattern() {
-  if (!hatchTile) {
-    const c = document.createElement('canvas'),
-      s = Math.round(ROCKS.hatch * Math.SQRT2 * 4);
-    c.width = c.height = s;
-    const g = c.getContext('2d');
-    g.strokeStyle = 'rgba(40,36,30,.5)';
-    g.lineWidth = 2.8;
-    g.beginPath();
-    for (const k of [-s, 0, s]) {
-      g.moveTo(k, s);
-      g.lineTo(k + s, 0);
-    }
-    g.stroke();
-    hatchTile = g.createPattern(c, 'repeat');
-    hatchTile.setTransform(new DOMMatrix().scale(0.25));
-  }
-  return hatchTile;
-}
-// rock: faces, hatching, tiers and ridges inside the straightened outline (cut off at the coast), then the
+// rock: faces, tiers and ridges inside the straightened outline (cut off at the coast), then the
 // outline and the skirt of strokes. In winter the upper tiers are snow
 function paintRock(g, se) {
   const R = world.vec.rock;
@@ -924,9 +869,7 @@ function paintRock(g, se) {
   });
   g.lineCap = 'round';
   g.lineJoin = 'round';
-  // zoomed out, the hatching's lines would be finer than the screen's pixels and show as a check pattern, so the
-  // shaded faces get a plain fill of the same overall tone instead
-  g.fillStyle = g.getTransform().a >= ROCKS.hatchFrom ? hatchPattern() : ROCKS.hatchFlat;
+  g.fillStyle = ROCKS.shade;
   g.fill(R.face[2]);
   g.strokeStyle = 'rgba(40,36,30,.55)';
   g.lineWidth = 0.9;

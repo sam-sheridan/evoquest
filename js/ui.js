@@ -546,9 +546,9 @@ const labelWidth = labels => {
   return Math.ceil(Math.max(...labels.map(l => g.measureText(l).width))) + 10;
 };
 // grey: in the inspector (extinct species greyed out); the released design is always the first column, headed
-// Released in the inspector and Starting design at the end of a run
+// Released in the inspector and at the end of a run
 function speciesTable(grey) {
-  const start = { name: 'Starting design', m: S.orig, key: 'r' },
+  const start = { name: 'Released', m: S.orig, key: 'r' },
     cols = [start];
   // living species first, extinct ones at the far right
   const order = [
@@ -558,11 +558,11 @@ function speciesTable(grey) {
   for (const sp of order) {
     const m = spAvg(sp);
     if (!m) continue;
-    // primus is compared with the starting design only at the end of a run: in the inspector it has no highlights
+    // primus is compared with the released design only at the end of a run: in the inspector it has no highlights
     const parent = sp.parent === null ? (grey ? null : 'r') : sp.parent;
     cols.push({ sp, m, key: sp.id, ext: grey && !!sp.died, parent });
   }
-  // each picture is in its species' colour (the starting design's for that column)
+  // each picture is in its species' colour (the released design's for that column)
   for (const k of cols) {
     const s = k.sp ?? S.design;
     k.c = Object.assign(avgCreature(k.m), { hue: s.hue, sat: s.sat, lt: s.lt });
@@ -605,14 +605,12 @@ function speciesTable(grey) {
     .map(k =>
       k.sp
         ? `<th${ext(k)}><span class="tag" style="background:${k.sp.tag}"></span><span class="latin">${k.sp.epithet}${k.ext ? ' †' : ''}</span></th>`
-        : grey
-          ? `<th class="sd">Released</th>`
-          : `<th class="sd">Starting<br>design</th>`
+        : `<th class="sd">Released</th>`
     )
     .join('')}</tr></thead><tbody><tr class="pic"><td></td>${cols
     .map(
       (k, i) =>
-        `<td${ext(k)}><canvas data-pic="${i}" aria-label="${k.sp ? `Average ${k.sp.epithet}` : grey ? 'Released design' : 'Average starting design'}"></canvas></td>`
+        `<td${ext(k)}><canvas data-pic="${i}" aria-label="${k.sp ? `Average ${k.sp.epithet}` : 'Released design'}"></canvas></td>`
     )
     .join('')}</tr>${info
     .map(([l, f]) => `<tr><td>${l}</td>${cols.map(k => `<td${ext(k)}>${f(k)}</td>`).join('')}</tr>`)

@@ -856,8 +856,9 @@ Collapse or expand it with the arrow. It has four tabs.
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), leg number (an average, such as 4.7), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it split
-    from are highlighted in orange, with a tooltip saying so (there is no note under the table). Primus has no
-    highlights, since it didn't split from anything. A trait counts only if it
+    from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the inspector
+    primus has no highlights, since it didn't split from anything (on the end screen it is compared with the
+    released design). A trait counts only if it
     differs notably: by 0.06 in size, 0.6 legs, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
@@ -915,8 +916,9 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
   3 / 15).
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
-  (none greyed out, since all have died), and the **starting design** as the first column. Primus isn't
-  highlighted against it; compare the two columns by eye.
+  (none greyed out, since all have died), and the released design as the first column, headed **Released** as in
+  the inspector. Here primus's one or two most changed traits are highlighted against the released design, the
+  same way other species are against their parent.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
   runs, so the labels don't overlap). Branches show where each split from its parent. A
   thick line means still alive at the end, and a tick marks extinction.
@@ -977,8 +979,8 @@ The look is a scientific **field notebook / survey map**.
     also the background beyond the map, so the map has no visible border.
   - **Open land** (`OPENLAND`) is pale, with fertile meadows washed green and poor dry ground washed straw, fading
     into each other (drawn as a small smoothed image, one pixel per cell, so it adds nothing to Safari's limit). In
-    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows, small ink grass tufts dot
-    fertile ground, and reed marks show the low wet ground by lakes and rivers. A very light hill shading (also a
+    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows (there are no grass tufts or
+    reed marks: Sam's choice, October 2026). A very light hill shading (also a
     small image) darkens slopes facing away from the north-west light and fades out at the water's edge.
   - Thickets are woodland: a soft green floor with ink-drawn trees on
     top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
@@ -990,16 +992,15 @@ The look is a scientific **field notebook / survey map**.
     thickets: no tree stands where its crown would reach onto rock, and any crown edge that still overlaps is cut
     off where the rock begins. (When the world is built, ground that is both thicket and rock becomes thicket.)
   - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
-    slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
+    slopes are split into flat faces: plain where lit from the north-west, a darker plain tone where shaded (`ROCKS.shade`), with ink along the
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
     to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
     Meteor crater walls take their height from the crater's ring, rising to its crest. A
     ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
     shaded side. Where rock meets water it lowers over its last 3 cells (`ROCKS.shore`) and ends in sea cliffs: the
     coast gets the rock's ink line and a row of strokes pointing inland. In winter the tiers are snow. The rock's base is a darker
-    stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather
-    than drawn lines, so it adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
-    get a plain fill of the same tone instead, as the fine lines would show as a check pattern.
+    stone colour than the plains, and the tiers lighten towards the top. Shaded faces look the same at every zoom: there
+    is no hatching (Sam's choice, October 2026).
   - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
