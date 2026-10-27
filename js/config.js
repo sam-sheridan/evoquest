@@ -289,9 +289,7 @@ const CONTOURS = {
 // rising towards 1 for the tallest, so even low rocks get faces and a tier. shore: over how many cells rock lowers
 // towards water, ending in sea cliffs. flat: faces rising less than this share of relief count as flat and stay
 // plain.
-// hatch: gap (px) between hatching lines on shaded faces, measured across the lines; hatchFrom: the zoom (screen
-// pixels per world px) below which shaded faces get the plain hatchFlat colour instead, as finer lines would show
-// as a check pattern. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
+// shade: the plain fill of shaded faces, at every zoom. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
 // outlines, each lightened by tier. tick: gap (px) between the strokes round the inside of the edge. face:
 // colours of lit, half-lit and shaded faces, dark enough that the rock's base stands apart from the plains
 const ROCKS = {
@@ -302,10 +300,8 @@ const ROCKS = {
   minPeak: 0.5,
   shore: 3,
   flat: 0.14,
-  hatch: 3.4,
   tiers: [0.33, 0.62],
-  hatchFrom: 1.6,
-  hatchFlat: '#b0a693',
+  shade: '#b0a693',
   tier: 'rgba(255,252,245,.3)',
   tick: 5,
   face: ['#d2c9b8', '#c6bdab', '#b9af9c'],

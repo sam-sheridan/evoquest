@@ -990,16 +990,15 @@ The look is a scientific **field notebook / survey map**.
     thickets: no tree stands where its crown would reach onto rock, and any crown edge that still overlaps is cut
     off where the rock begins. (When the world is built, ground that is both thicket and rock becomes thicket.)
   - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
-    slopes are split into flat faces: plain where lit from the north-west, hatched where shaded, with ink along the
+    slopes are split into flat faces: plain where lit from the north-west, a darker plain tone where shaded (`ROCKS.shade`), with ink along the
     ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
     to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
     Meteor crater walls take their height from the crater's ring, rising to its crest. A
     ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
     shaded side. Where rock meets water it lowers over its last 3 cells (`ROCKS.shore`) and ends in sea cliffs: the
     coast gets the rock's ink line and a row of strokes pointing inland. In winter the tiers are snow. The rock's base is a darker
-    stone colour than the plains, and the tiers lighten towards the top. The hatching is a repeating image rather
-    than drawn lines, so it adds nothing to Safari's limit; zoomed out (below 1.6 screen pixels per world px, `ROCKS.hatchFrom`) shaded faces
-    get a plain fill of the same tone instead, as the fine lines would show as a check pattern.
+    stone colour than the plains, and the tiers lighten towards the top. Shaded faces look the same at every zoom: there
+    is no hatching (Sam's choice, October 2026).
   - Rivers are pale blue with a
     blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
     so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers

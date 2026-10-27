@@ -164,7 +164,7 @@ function addLoop(path, p) {
   path.closePath();
 }
 // rock, drawn as angular crags: straightened outlines, the slopes split into flat faces (plain where lit from the
-// north-west, hatched in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
+// north-west, a plain darker tone in the shade, inked along ridges), paler tiers at set heights, and a ring of short strokes
 // just inside the edge pointing uphill. rf is the rock pattern (rock where it is at least w.rThr).
 function rocks(w, rf, land) {
   const N = GW * GH,
@@ -881,30 +881,7 @@ function paintTerrain(g) {
   g.lineJoin = 'round';
   g.stroke(V.chev);
 }
-// hatching for shaded rock faces, as a repeating image rather than drawn lines, so it adds no drawing points (Safari
-// stops drawing the land's layers when they hold too many). The tile is drawn at 4 times the size it covers, so the
-// lines stay crisp when zoomed in
-let hatchTile = null;
-function hatchPattern() {
-  if (!hatchTile) {
-    const c = document.createElement('canvas'),
-      s = Math.round(ROCKS.hatch * Math.SQRT2 * 4);
-    c.width = c.height = s;
-    const g = c.getContext('2d');
-    g.strokeStyle = 'rgba(40,36,30,.5)';
-    g.lineWidth = 2.8;
-    g.beginPath();
-    for (const k of [-s, 0, s]) {
-      g.moveTo(k, s);
-      g.lineTo(k + s, 0);
-    }
-    g.stroke();
-    hatchTile = g.createPattern(c, 'repeat');
-    hatchTile.setTransform(new DOMMatrix().scale(0.25));
-  }
-  return hatchTile;
-}
-// rock: faces, hatching, tiers and ridges inside the straightened outline (cut off at the coast), then the
+// rock: faces, tiers and ridges inside the straightened outline (cut off at the coast), then the
 // outline and the skirt of strokes. In winter the upper tiers are snow
 function paintRock(g, se) {
   const R = world.vec.rock;
@@ -924,9 +901,7 @@ function paintRock(g, se) {
   });
   g.lineCap = 'round';
   g.lineJoin = 'round';
-  // zoomed out, the hatching's lines would be finer than the screen's pixels and show as a check pattern, so the
-  // shaded faces get a plain fill of the same overall tone instead
-  g.fillStyle = g.getTransform().a >= ROCKS.hatchFrom ? hatchPattern() : ROCKS.hatchFlat;
+  g.fillStyle = ROCKS.shade;
   g.fill(R.face[2]);
   g.strokeStyle = 'rgba(40,36,30,.55)';
   g.lineWidth = 0.9;
