@@ -27,7 +27,9 @@ function newGame(design, seed) {
     speed: 1, // testing speed from Settings: 1×, 2×, 4× or 10× (fast forward multiplies on top)
     paused: false,
     over: false, // lineage extinct
-    hist: [], // trait averages sampled every 2 s, for the charts
+    hist: [], // trait averages every histStep seconds, for the charts
+    histStep: HIST.step,
+    cur: null, // the latest sample (taken every 2 s), for achievements
     sampleT: 0,
     frames: [], // positions recorded for the replay
     frameT: 0,
@@ -810,7 +812,7 @@ function step(dt) {
   }
   // (during Extinction, the end screen waits until its last meteor has fallen)
   if (!S.creatures.length && !(S.doom && S.doom.t < DOOM.end)) {
-    sample();
+    sample(true);
     record();
     endRun();
   }
@@ -1093,7 +1095,9 @@ function bySpecies() {
   for (const c of S.creatures) (by[c.sp] ??= []).push(c);
   return by;
 }
-function sample() {
+// every 2 s: species counts and extinctions, and the latest averages; a chart point is kept only every histStep
+// seconds (and always at the start and end of a run), so the charts are evenly spaced
+function sample(last) {
   const by = bySpecies(),
     e = { t: S.t, total: S.creatures.length, sp: {}, all: summ(S.creatures) };
   for (const sp of S.species) {
@@ -1101,7 +1105,8 @@ function sample() {
     if (!sp.died) {
       sp.n = M.length;
       sp.peak = Math.max(sp.peak, sp.n);
-      if (sp.n) e.sp[sp.id] = summ(M);
+      if (sp.n)
+        e.sp[sp.id] = sp.last = summ(M); // (last: its averages when last seen alive)
       else {
         sp.died = S.t;
         if (S.creatures.length) {
@@ -1111,8 +1116,13 @@ function sample() {
       }
     }
   }
-  S.hist.push(e);
-  if (S.hist.length > 1200) S.hist = S.hist.filter((_, i) => i % 2 === 0);
+  S.cur = e;
+  // (samples come about every 2 s, so a little slack keeps the step from slipping to the next one)
+  if (last || !S.hist.length || S.t - S.hist.at(-1).t >= S.histStep - 1) S.hist.push(e);
+  if (S.hist.length > HIST.max) {
+    S.hist = S.hist.filter((_, i) => i % 2 === 0);
+    S.histStep *= 2;
+  }
 }
 function record() {
   const C = S.creatures,
@@ -1307,7 +1317,7 @@ function split(sp, small, rest, reason, island) {
 }
 
 /* achievements (named 'badges' in the code) */
-const live = () => Object.values(S.hist.at(-1).sp);
+const live = () => Object.values(S.cur.sp);
 const BADGES = [
   {
     id: 'yr1',

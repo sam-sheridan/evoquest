@@ -874,6 +874,11 @@ Collapse or expand it with the arrow. It has four tabs.
     released design's value. A chart shows at most the last 20 minutes (`CHART_SPAN`). After that a **slider**
     appears under it: drag it left to look back through earlier time, and right to the end to follow the present
     again.
+  - **Even spacing.** The charts keep one point every 6 seconds for the whole run (`HIST.step`), so the start of
+    an hours-long run looks the same as the latest minutes. (Earlier, history was halved whenever it grew long,
+    so the oldest part kept getting coarser while the newest stayed fine.) Only after 12 hours (`HIST.max`, 7,200
+    points) is every other point dropped and the spacing doubled, evenly across the whole run. Counts,
+    extinctions and achievements are still checked every 2 seconds.
 - **Specimen**: tap any creature on the map to select it. The camera follows it automatically (dragging the map
   stops following). The tab shows its:
   - generation, parent, offspring and meals
