@@ -15,8 +15,8 @@ const TITLE_MUSIC = { src: 'audio/title.mp3', loop: 43.636349, vol: 0.35, fadeIn
 // (from) and where it reaches full loudness (full)
 const ZOOM_MUSIC = {
   src: 'audio/zoom.mp3',
-  loop: 21.818186,
-  vol: 0.35,
+  loop: 10.909093,
+  vol: 1,
   fadeIn: 1.5,
   fadeOut: 1.5,
   from: 1.6,
