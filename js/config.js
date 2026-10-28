@@ -1,8 +1,10 @@
 /* EvoQuest configuration: every number worth tuning lives here. */
 
 /* ---- sound ---- */
-const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume)
-const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
+// Sam's ambient notes: the file, how many notes it holds and the seconds between their starts (2 bars at 88 bpm)
+const AMBIENT = { src: 'audio/ambient.mp3', notes: 8, spacing: 5.454545 };
+const AMB_VOL = 0.09; // loudness of an ambient note (1 = as recorded); peaks about as loud as the old sine notes
+const AMB_ECHO = 0.036; // loudness of an ambient note's quieter octave echo (40% of the note, as before)
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
 // length (s), loudness
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };

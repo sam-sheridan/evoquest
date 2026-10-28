@@ -1034,12 +1034,12 @@ playing on another device or browser, starts the list fresh.
 
 ## 14. Sound
 
-The title music and the zoom music are Sam's own, made in GarageBand. Every other sound is generated live in the browser.
+The title music, the zoom music and the ambient notes are Sam's own, made in GarageBand. Every other sound is generated live in the browser.
 
 | Sound | Details |
 |---|---|
 | **Title music** | Sam's track (`audio/title.mp3`), a 16-bar loop at 88 bpm, plays on repeat on the title screen, the intro panes and the creator, at `TITLE_MUSIC.vol` (0.35). It fades in over 1.5 s and fades out over 1.5 s when a species is released, and starts again when the creator comes back after a run. Browsers only start sound after a click or key press, so on first load it begins with the first one (usually *Start* on the title screen). The *Sound* setting turns it off too. |
-| **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going. |
+| **Ambient notes** | Sam's recorded notes (`audio/ambient.mp3`: D4 F4 G4 C5 D5 F5 G5 C6, one every 2 bars at 88 bpm in one file; the game plays the slice for each note). Every 1.2 s, a 60% chance of one at random, at `AMB_VOL` (0.09, peaking about as loud as the generated sine notes they replaced in October 2026, which were A3 B3 D4 E4 G4 A4 B4). 35% of the time an echo follows 0.2 s later at 40% of the loudness (`AMB_ECHO`): the same note at double speed, so an octave up and half as long. Plays while a run is going, not while paused. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
@@ -1208,7 +1208,7 @@ accident.
   evolution.
 - **Max 3 creatures per food.** This stops crowds piling onto one berry.
 - **Colours come from the Okabe–Ito palette** for colour-blind accessibility.
-- **The music is original.** Sam made the title and zoom music in GarageBand; the ambient note set was written for the game.
+- **The music is original.** Sam made the title music, the zoom music and the ambient notes in GarageBand.
 
 ---
 
@@ -1268,8 +1268,8 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
-| `audio/` | Music files: `title.mp3` (the title music) and `zoom.mp3` (the zoom music) |
-| `js/audio.js` | All sound: the title and zoom music, and the generated ambient notes, creature sounds and event effects |
+| `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music) and `ambient.mp3` (the ambient notes) |
+| `js/audio.js` | All sound: the title and zoom music, the ambient notes, and the generated creature sounds and event effects |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |

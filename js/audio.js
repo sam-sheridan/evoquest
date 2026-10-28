@@ -117,15 +117,6 @@ function audible(c) {
   if (ok) lastSnd = n;
   return ok;
 }
-// every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quiet octave echo
-const NOTES = [220, 247, 294, 330, 392, 440, 494];
-setInterval(() => {
-  if (sound && S && !S.paused && !S.over && rand() < 0.6) {
-    const f = NOTES[(rand() * NOTES.length) | 0];
-    tone(f, 1.4, 'sine', AMB_VOL);
-    if (rand() < 0.35) tone(f * 2, 0.9, 'sine', AMB_ECHO, 0.2);
-  }
-}, 1200);
 // the Sound setting turns all sound on or off; turning it back on always starts a fresh engine, so it is a sure
 // cure for silence
 $('#sSound').onclick = () => {
@@ -253,20 +244,24 @@ function track(cfg) {
   return m;
 }
 const titleMusic = track(TITLE_MUSIC),
-  zoomMusic = track(ZOOM_MUSIC);
+  zoomMusic = track(ZOOM_MUSIC),
+  ambientNotes = track(AMBIENT);
+// the decoded sound, or null while it is still loading; decoded once, it also plays on a later fresh engine (see
+// resetAudio)
+function decoded(m) {
+  if (!m.buf && m.bytes && AC) {
+    AC.decodeAudioData(
+      m.bytes,
+      b => (m.buf = b),
+      () => {}
+    );
+    m.bytes = null;
+  }
+  return m.buf;
+}
 // start the track from the beginning, fading in to vol
 function musicStart(m, vol) {
-  if (!m.buf) {
-    // decoded once; the decoded music also plays on a later fresh engine (see resetAudio)
-    if (m.bytes)
-      AC.decodeAudioData(
-        m.bytes,
-        b => (m.buf = b),
-        () => {}
-      );
-    m.bytes = null;
-    return;
-  }
+  if (!decoded(m)) return;
   m.ctx = AC;
   m.src = AC.createBufferSource();
   m.gain = AC.createGain();
@@ -315,3 +310,24 @@ setInterval(() => {
     lvl = run && !S.paused ? clamp((cam.z - ZOOM_MUSIC.from) / (ZOOM_MUSIC.full - ZOOM_MUSIC.from), 0, 1) : 0;
   musicKeep(zoomMusic, run, lvl * ZOOM_MUSIC.vol);
 }, 100);
+// Sam's ambient notes (D4 F4 G4 C5 D5 F5 G5 C6, one every 2 bars in one file): every 1.2 s, a 60% chance of one
+// at random, sometimes with a quieter echo an octave up (the same note at double speed, so also half as long)
+function ambientNote(k, when, rate, vol) {
+  const s = AC.createBufferSource(),
+    g = AC.createGain(),
+    // each slice starts just before its note, in the silence after the one before
+    from = Math.max(0, k * AMBIENT.spacing - 0.05);
+  s.buffer = ambientNotes.buf;
+  s.playbackRate.value = rate;
+  g.gain.value = vol;
+  s.connect(g).connect(OUT);
+  s.start(AC.currentTime + when, from, AMBIENT.spacing);
+}
+setInterval(() => {
+  if (!AC || !decoded(ambientNotes)) return;
+  if (sound && S && !S.paused && !S.over && rand() < 0.6) {
+    const k = (rand() * AMBIENT.notes) | 0;
+    ambientNote(k, 0, 1, AMB_VOL);
+    if (rand() < 0.35) ambientNote(k, 0.2, 2, AMB_ECHO);
+  }
+}, 1200);
