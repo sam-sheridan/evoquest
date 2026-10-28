@@ -223,13 +223,23 @@ const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 0.9 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
 // stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
-const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
+// ease: softens both of those extra costs for bodies smaller than 0.9 (0 = full cost, 1 = none), leaving big bodies'
+// savings as they are
+const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1, ease: 0 };
 // thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
 //   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
 //   is nuts (nuts: [share at the edge, share from deep in]) and the trees on the map get bigger and closer together
-const THICKET = { edge: 16, depth: 33, deep: 48, nuts: [0.2, 0.8] };
+//   slow: moving through a thicket is slow.by slower for bodies of size slow.big or more, easing to no slower at all
+//   for size slow.small or less, since small creatures slip through the undergrowth
+const THICKET = {
+  edge: 16,
+  depth: 33,
+  deep: 48,
+  nuts: [0.2, 0.8],
+  slow: { by: 0.15, small: 0.75, big: 1.0 },
+};
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

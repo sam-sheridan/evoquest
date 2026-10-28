@@ -227,7 +227,9 @@ const ageing = c =>
   c.age <= OLD.from ? 1 : 1 - ((1 - OLD.slowest) * (c.age - OLD.from)) / (LIFE - OLD.from);
 function speedIn(c, t, i, ok) {
   if (!ok) return 7;
-  return (isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * 0.85 : c.vL) * ageing(c);
+  const s = THICKET.slow,
+    thick = 1 - s.by * clamp((c.size - s.small) / (s.big - s.small), 0, 1);
+  return (isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * thick : c.vL) * ageing(c);
 }
 function canEnter(c, hereOk, x, y) {
   if (!inside(x, y)) return false;
