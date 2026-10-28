@@ -1093,6 +1093,12 @@ accident.
   the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
   best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
   still evolve a small tail, to wade out for shoreline algae, which is fine.
+- **Energy still favours bigger bodies, for now** (October 2026). A more natural energy rule was tried, where total
+  energy use grows with body size as in real animals (small animals need less food in all). It made small bodies
+  win in every world, so every design shrank to about size 0.7 and *campestris* almost vanished: nothing in the
+  game yet gives big bodies the advantages they have in nature (escaping predators, coping with cold, winning
+  fights over food). The older rule, with the habitat changes above, kept designs the most distinct of anything
+  tested, so it stays.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
   setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
