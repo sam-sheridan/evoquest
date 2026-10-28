@@ -739,38 +739,37 @@ several quite different body types.)
 
 ### Moving between species
 
-Newborns take their parent's species. As traits drift, part of a species can end up living another way. Species
-change **by group, not by creature**: every 5 seconds, each species is split into local groups (members within
-250 px of each other, in a chain, are one group: `TYPES.link`), and each group is judged by its **average** body.
+Newborns take their parent's species. As traits drift, some creatures end up living another way. Every 5 seconds:
 
-- A group **moves** once its average is clearly outside its species' type: at least one margin past the border
-  (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth), so a group near a border doesn't flick
-  back and forth. The whole group moves to the type it fits best, if that species is alive, each creature blending
-  into the new colour over 1.5 seconds (`SPLIT_FADE`) and keeping its own shade.
-- To **found a new species** (or bring back one that died out), the group needs at least **12** members
-  (`TYPES.min`) and an average **two margins** inside the new type (`TYPES.deep`: a 66% tail for *natans*, for
-  example), so a new species starts clearly different. Until then the group stays where it is.
-- A creature always follows its group, so there is never a lone *natans* in a herd of *vulgaris*, and species stay
-  herds that live somewhere. Two water herds in different places can both be *natans*. Groups are formed within
-  each species, so a water herd living right beside a land herd stays separate. A herd can carry a few odd
-  individuals (a tailed creature in a land herd): like real animals, it's the population that is judged.
+- Each creature **leans** towards a type. That is its own species' type unless it is clearly outside it: at least
+  one margin past the border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). Then it leans
+  towards the type it now fits best. The margin stops creatures near a border flicking back and forth. A creature's
+  body never changes during its life, so its lean is set by how it was born.
+- A creature leaning towards another type **joins** that species if it is alive and at least **3** other creatures
+  within **200 px** lean the same way or already belong there (`TYPES.join`, `TYPES.radius`). It blends into the new
+  colour over 1.5 seconds (`SPLIT_FADE`), keeping its own shade.
+- To **found a new species** (or bring back one that died out), at least **6** creatures leaning that way must be
+  within 200 px of one of them (`TYPES.found`), and their average must be **two margins** inside the new type
+  (`TYPES.deep`: a 66% tail for *natans*, for example), so a new species starts clearly different.
+- Only creatures living the same way count towards each other. A few small beaked creatures at a thicket's edge can
+  become *silvicola* even beside a big plains herd, while a lone creature with no like-minded neighbours stays with
+  the species around it, so you don't see one stray *natans* in a crowd of *vulgaris*. A group can take a couple of
+  checks to change completely, since creatures at its edge have fewer neighbours.
 - When the last members of a species move to others, the log says so ("The last Blorbus vulgaris have become
-  natans"). When a species dies out and a group later takes up its way of life again, it **comes back** under the
+  natans"). When a species dies out and creatures later take up its way of life again, it **comes back** under the
   same name and colour, with a notification, and the family tree shows each stretch it was alive.
 
-Because groups can move in both directions, groups from different species can end up in one type: species here
-describe how creatures live, not a single line of descent. The family tree shows where each species first came
+Because creatures can move in both directions, creatures from different species can end up in one type: species
+here describe how creatures live, not a single line of descent. The family tree shows where each species first came
 from.
 
-In 75 hour-long study runs (October 2026, with breeding at 75% energy): about a third stayed one species and the
-rest had 1–3 new species (median 21 minutes before the first), with up to 4 alive at once; 70 of 80 new species
-lasted to the end of the run. *Campestris*, *vulgaris* and *natans* appeared often, *silvicola* only once (a
-herd must average size 0.72 or less with a mouth of 0.24 or less to found it). About 50 creatures an hour changed
-species, almost all as part of a group.
+(Earlier versions, all October 2026: each creature moving on its own left stray creatures of one species inside
+crowds of another; needing members of the new species nearby left species' averages drifting from their type;
+judging whole herds by their average let big herds swallow the few thicket dwellers beside them, so *silvicola*
+almost never formed. Counting like-minded neighbours fixed all three.)
 
-(Two earlier versions judged each creature on its own. Moving freely left lone creatures of one species inside
-herds of another; needing company nearby to move left species' averages drifting away from their type. Judging
-local groups fixed both.)
+In 25 half-hour test runs (one world of each type, five designs): 14 had at least one new species, with up to 4
+alive at once, and *silvicola* appeared in 5 of them.
 
 ### Names
 
@@ -1122,7 +1121,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `link` for how close creatures must be to count as one group, `margin` for how far past a border a group's average must be to move, `min` and `deep` for how big and how clearly different a group must be to found a species |
+| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to lean elsewhere, `radius` and `join` for how many like-minded neighbours it needs to move, `found` and `deep` for how many and how clearly different they must be to found a species |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |

@@ -1153,54 +1153,63 @@ function endSpecies(sp) {
   sp.n = 0;
   sp.spans.at(-1)[1] = S.t;
 }
-// a species' members split into local groups: creatures within TYPES.link px of each other, in a chain, are one group
-function groups(M) {
-  const L2 = TYPES.link ** 2,
-    left = new Set(M),
-    out = [];
-  for (const c of M) {
-    if (!left.has(c)) continue;
-    left.delete(c);
-    const G = [c];
-    for (let i = 0; i < G.length; i++)
-      for (const o of left)
-        if ((o.x - G[i].x) ** 2 + (o.y - G[i].y) ** 2 <= L2) {
-          left.delete(o);
-          G.push(o);
-        }
-    out.push(G);
-  }
-  return out;
-}
-// every 5 s, each species is split into local groups, and each group is judged by its average body. A group whose
-// average is clearly another type (a margin or more past its species' border) moves as a whole to the type it fits
-// best, if that species is alive. Founding a new species, or bringing back one that died out, needs a group of at
-// least TYPES.min whose average is well inside the new type (TYPES.deep margins). So species stay herds that live
-// somewhere, a creature always follows its group, and a new species starts clearly different. Newborns take their
-// parent's species
+// every 5 s: each creature leans towards a type. That is its own species' type unless it is clearly outside it (a
+// margin or more past the border), when it is the type it now fits best. A creature leaning towards another type
+// moves there when at least TYPES.join other creatures within TYPES.radius px lean the same way, and that species is
+// alive. Founding a species, or bringing back one that died out, needs TYPES.found creatures leaning that way within
+// TYPES.radius px of one of them, whose average is TYPES.deep margins inside the new type. Only creatures living
+// the same way count towards each other, so a few thicket dwellers beside a big plains herd still change, while a
+// lone creature stays with the species around it. Newborns take their parent's species
 function checkTypes() {
-  const by = bySpecies(),
-    byName = Object.fromEntries(S.species.map(s => [s.epithet, s]));
-  for (const sp of S.species.slice()) {
-    const M = by[sp.id];
-    if (!M || sp.died) continue;
-    const own = TYPE_NAMES.indexOf(sp.epithet);
-    for (const G of groups(M)) {
-      const v = typeScores(summ(G));
-      if (v[own] > -1) continue;
-      const k = v.indexOf(Math.max(...v)),
-        z = TYPE_NAMES[k],
-        to = byName[z];
-      if (to && !to.died) move(G, sp, to);
-      else if (G.length >= TYPES.min && v[k] >= TYPES.deep)
-        move(G, sp, to ? revive(to) : (byName[z] = found(z, sp, G)));
-    }
-    if (!sp.died && !M.some(c => c.sp === sp.id)) {
-      const where = [...new Set(M.map(c => S.species[c.sp].epithet))].join(' and ');
-      endSpecies(sp);
-      logEv(`The last ${S.genus} ${sp.epithet} have become ${where}.`);
-    }
+  const byName = Object.fromEntries(S.species.map(s => [s.epithet, s])),
+    R2 = TYPES.radius ** 2,
+    C = S.creatures.filter(c => !c.dead),
+    lean = new Map();
+  for (const c of C) {
+    const v = typeScores(c),
+      own = TYPE_NAMES.indexOf(S.species[c.sp].epithet);
+    lean.set(c, v[own] > -1 ? TYPE_NAMES[own] : TYPE_NAMES[v.indexOf(Math.max(...v))]);
   }
+  const near = (c, z) =>
+    C.filter(o => o !== c && lean.get(o) === z && (o.x - c.x) ** 2 + (o.y - c.y) ** 2 <= R2);
+  const movers = C.filter(c => lean.get(c) !== S.species[c.sp].epithet),
+    moves = new Map(); // creature -> species it moves to
+  // joining a living species
+  for (const c of movers) {
+    const to = byName[lean.get(c)];
+    if (to && !to.died && near(c, lean.get(c)).length >= TYPES.join) moves.set(c, to);
+  }
+  // founding (or bringing back) a species: the biggest close group leaning towards it
+  for (const z of TYPE_NAMES) {
+    if (byName[z] && !byName[z].died) continue;
+    const want = movers.filter(c => lean.get(c) === z);
+    let G = [];
+    for (const c of want) {
+      const g = [c, ...near(c, z)];
+      if (g.length > G.length) G = g;
+    }
+    if (G.length < TYPES.found || typeScores(summ(G))[TYPE_NAMES.indexOf(z)] < TYPES.deep) continue;
+    const from = S.species[G[0].sp],
+      to = byName[z] ? revive(byName[z]) : (byName[z] = found(z, from, G));
+    for (const c of G) moves.set(c, to);
+  }
+  // apply the moves, grouped by the species each creature leaves and the one it joins
+  const before = new Set(C.map(c => c.sp)),
+    batches = new Map();
+  for (const [c, to] of moves) {
+    const k = c.sp + '>' + to.id;
+    if (!batches.has(k)) batches.set(k, [S.species[c.sp], to, []]);
+    batches.get(k)[2].push(c);
+  }
+  for (const [from, to, G] of batches.values()) if (from !== to) move(G, from, to);
+  for (const sp of S.species)
+    if (before.has(sp.id) && !sp.died && !C.some(c => c.sp === sp.id)) {
+      const where = [
+        ...new Set(C.filter(c => moves.has(c) && moves.get(c) !== sp).map(c => moves.get(c).epithet)),
+      ];
+      endSpecies(sp);
+      logEv(`The last ${S.genus} ${sp.epithet} have become ${where.join(' and ') || 'another species'}.`);
+    }
 }
 // creatures move to another species, blending into its colour and each keeping its own shade
 function move(G, from, to) {
