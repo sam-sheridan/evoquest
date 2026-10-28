@@ -999,7 +999,8 @@ Collapse or expand it with the arrow. It has four tabs.
 ### Map
 
 - **Drag** to pan.
-- **Scroll or pinch** to zoom. You can zoom out to a little beyond the whole world and in to 6×.
+- **Scroll or pinch** to zoom. You can zoom out to a little beyond the whole world and in to 6×. A run starts at
+  1× (`START_ZOOM`), centred on the released species.
 - A **scale bar** under the status bar shows distance in px.
 - Above 2.2× zoom, each creature shows a small **energy bar**, which turns brown below 25%.
 
@@ -1044,7 +1045,7 @@ The title music, the zoom music and the ambient notes are Sam's own, made in Gar
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
-| **Zoom music** | Sam's second track (`audio/zoom.mp3`), a 4-bar loop at 88 bpm. It plays through each run but is only heard when zoomed in: it fades in from 1× zoom, is at half loudness at 2× and reaches full loudness (`ZOOM_MUSIC.vol`, 0.9, where 1 is the track exactly as exported) at 3×. A run starts at about 1.3×, so it is faintly there from the start, and goes quiet while paused. Because it keeps running when zoomed out, zooming in again picks up wherever the track has got to rather than restarting it. It replaced a generated drum beat (50 bpm semiquavers: kick, hat, hat, hat, snare, hat, hat, hat) in October 2026. |
+| **Zoom music** | Sam's second track (`audio/zoom.mp3`), a 4-bar loop at 88 bpm. It plays through each run but is only heard when zoomed in: it fades in from 1× zoom, is at half loudness at 2× and reaches full loudness (`ZOOM_MUSIC.vol`, 0.9, where 1 is the track exactly as exported) at 3×. A run starts at 1×, so it is silent at the starting view, and it goes quiet while paused. Because it keeps running when zoomed out, zooming in again picks up wherever the track has got to rather than restarting it. It replaced a generated drum beat (50 bpm semiquavers: kick, hat, hat, hat, snare, hat, hat, hat) in October 2026. |
 
 **Adding or replacing music.** Export the loop from GarageBand as WAV (Share → Export Song to Disk), with the cycle
 region set exactly to the bars that loop. `python3 tools/music.py track.wav audio/name.mp3` converts it to MP3 and

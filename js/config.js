@@ -43,6 +43,7 @@ const LIFE = 90; // maximum lifespan in seconds
 const OLD = { from: 85, slowest: 0 };
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)
+const START_ZOOM = 1; // zoom when a species is released, centred on it (more if the whole world fits wider)
 const CS = 16; // size of one terrain cell in px
 const GW = 282; // terrain grid width in cells
 const GH = 197; // terrain grid height in cells

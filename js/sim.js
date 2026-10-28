@@ -177,7 +177,7 @@ function newGame(design, seed) {
   logEv(`Released ${START} ${design.name} on world #${seed}`);
   cam.x = home[0];
   cam.y = home[1];
-  cam.z = Math.max(fitZ() * 1.05, 1.3);
+  cam.z = Math.max(fitZ() * 1.05, START_ZOOM);
   {
     const g = tcan.getContext('2d');
     g.setTransform(TS, 0, 0, TS, 0, 0);
