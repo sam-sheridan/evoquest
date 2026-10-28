@@ -53,7 +53,7 @@ function compute(c) {
   c.dW = c.tail >= 1 ? 1e9 : c.tail > 0 ? HAB.first + HAB.range * (c.tail / (1 - c.tail)) ** 2 : 0;
   c.dL = c.tail <= 0 ? 1e9 : HAB.inland * ((1 - c.tail) / c.tail) ** 2;
   c.reach = Math.max(c.bw, c.bh) * 0.5 + 4;
-  c.cap = 30 + 25 * c.size;
+  c.cap = BURN.mass === null ? 30 + 25 * c.size : 52.5 * (c.size / 0.9) ** BURN.store;
   // for the Stats charts: distances beyond 2000 px (more than most of the map) count as 2000, and the energy burnt
   // walking flat out, without temperature or deep water
   c.dWc = Math.min(c.dW, 2000);
@@ -70,8 +70,10 @@ const tailLen = c => (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.fir
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added:
 // moving fast costs a lot, and bigger bodies burn less
 const moveBurn = (c, v) =>
-  (BURN.rest + BURN.move * (v / 30) ** 2 * Math.max(0.3, 1 + BURN.stride * (0.9 - c.size))) *
-  (1 + BURN.size * (0.9 - c.size));
+  BURN.mass === null
+    ? (BURN.rest + BURN.move * (v / 30) ** 2 * Math.max(0.3, 1 + BURN.stride * (0.9 - c.size))) *
+      (1 + BURN.size * (0.9 - c.size))
+    : (BURN.rest + BURN.move * (v / 30) ** 2) * (c.size / 0.9) ** BURN.mass;
 // deep water costs more for creatures that aren't fully aquatic
 function burn(c, v) {
   const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
