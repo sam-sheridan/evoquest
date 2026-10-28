@@ -1,14 +1,32 @@
 /* EvoQuest configuration: every number worth tuning lives here. */
 
 /* ---- sound ---- */
-const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
-const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
-const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
+// Sam's ambient notes: the file, how many notes it holds and the seconds between their starts (2 bars at 88 bpm)
+const AMBIENT = { src: 'audio/ambient.mp3', notes: 8, spacing: 5.454545 };
+const AMB_VOL = 0.2; // loudness of an ambient note (1 = as recorded), when zoomed out (see ZOOM_MUSIC)
+const AMB_ECHO = 0.08; // loudness of an ambient note's quieter octave echo (40% of the note)
+// the zoom where the ambient notes have faded out: they fade from ZOOM_MUSIC.from (full) to here (silent), so they
+// are gone while the zoom music is still rising
+const AMB_GONE = 2;
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
 // length (s), loudness
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };
 // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
 const AUDIO_CHECK = 2;
+// Sam's title music, played on repeat on the title screen, the intro panes and the creator (made with
+// tools/music.py): file, loop length (s, printed by tools/music.py), loudness, and seconds to fade in and out
+const TITLE_MUSIC = { src: 'audio/title.mp3', loop: 43.636349, vol: 0.35, fadeIn: 1.5, fadeOut: 1.5 };
+// Sam's zoom music, heard during a run when zoomed in: as TITLE_MUSIC, plus the zoom where it starts to fade in
+// (from) and where it reaches full loudness (full); the ambient notes fade out as it fades in (see AMB_GONE)
+const ZOOM_MUSIC = {
+  src: 'audio/zoom.mp3',
+  loop: 10.909093,
+  vol: 0.9,
+  fadeIn: 1.5,
+  fadeOut: 1.5,
+  from: 1,
+  full: 3,
+};
 
 /* ---- settings and background play ---- */
 // the password for the testing tools in Settings (change it here; it can't be changed in the game)
@@ -25,6 +43,7 @@ const LIFE = 90; // maximum lifespan in seconds
 const OLD = { from: 85, slowest: 0 };
 const W = 4512; // world width in px (GW cells of CS px)
 const H = 3152; // world height in px (GH cells of CS px)
+const START_ZOOM = 1; // zoom when a species is released, centred on it (more if the whole world fits wider)
 const CS = 16; // size of one terrain cell in px
 const GW = 282; // terrain grid width in cells
 const GH = 197; // terrain grid height in cells

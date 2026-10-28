@@ -5,8 +5,11 @@ Usage:
     python3 tools/build.py --fragment   -> dist/evoquest-fragment.html (no <html>/<head> wrapper, for hosts that add their own)
 
 The bundle inlines css/style.css and every script listed in index.html, in the same order,
-wrapped in one function so nothing leaks into the page's global scope.
+wrapped in one function so nothing leaks into the page's global scope. Sound files in audio/ go inside the
+page too (as AUDIO_DATA), so the single file plays the music without the audio folder beside it.
 """
+import base64
+import json
 import os
 import re
 import sys
@@ -26,6 +29,13 @@ def build(fragment=False):
     if not scripts:
         sys.exit('No <script src> tags found in index.html')
     js = '\n'.join(f'// ---- {s} ----\n' + read(s) for s in scripts)
+    adir = os.path.join(ROOT, 'audio')
+    audio = {}
+    for name in sorted(os.listdir(adir)) if os.path.isdir(adir) else []:
+        with open(os.path.join(adir, name), 'rb') as f:
+            audio[f'audio/{name}'] = base64.b64encode(f.read()).decode('ascii')
+    if audio:
+        js = 'const AUDIO_DATA = ' + json.dumps(audio) + ';\n' + js
     # The debug hook is only for automated tests; leave it out of the shared build.
     js = re.sub(r'\n// read-only window into the running game.*?\nwindow\.EvoQuestDebug = .*?\n};\n', '\n', js, flags=re.S)
     css = read('css/style.css')
