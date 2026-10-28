@@ -56,6 +56,11 @@ Read the relevant section before changing a mechanic.
   than adding penalties. Known gap: nothing yet gives big bodies the advantages they have in nature, which is why
   a natural energy rule (small bodies need less food) made everything shrink and was left out.
 
+- Sam's own music shipped on 28 October 2026 (README section 14): a title track on the title screen, intro and
+  creator, a zoom track that fades in as you zoom (replacing the generated drum beat) and eight recorded ambient notes
+  that fade out as it comes in. He makes them in GarageBand and uploads WAVs; `tools/music.py` converts a loop. The
+  creature sounds, chime, warning beep and event effects are still generated. A run now starts at 1× zoom.
+
 ## How a batch of changes works
 
 Sam isn't comfortable with git yet, so Claude does all of it.
