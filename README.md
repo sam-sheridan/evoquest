@@ -385,7 +385,7 @@ creatures are left at all.
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
 | Land | It is within its walking range of water (always true with no tail, 15% or less; a 40% tail still walks over 1,000 px from water). | Land speed |
-| Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed |
+| Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed for size 1.0 or more, easing to full land speed at size 0.75 or less: small creatures slip through the undergrowth (`THICKET.slow`) |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
 | Rock | Never. | – |
@@ -1198,7 +1198,10 @@ python3 tests/smoke.py
 python3 tests/scenarios.py 6 15
 ```
 
-- **`smoke.py`** clicks through every feature (starting with every pane of the intro) and prints PASS or FAIL.
+- **`smoke.py`** clicks through every feature (starting with every pane of the intro) and prints PASS or FAIL. Its
+  random numbers come from a fixed seed, so it plays out much the same way each time, and if the major events it
+  forces happen to wipe the population out, it releases again on the same world (up to three tries) rather than
+  failing on a chance extinction.
 - **`scenarios.py [runs] [minutes]`** runs full simulations as fast as possible across six test designs and
   reports population, seasonal swing, extinctions, new species, how much land was explored at 10 minutes, the
   population at 10 minutes and after 20, and the time per simulation step.

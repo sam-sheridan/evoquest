@@ -19,6 +19,10 @@ with sync_playwright() as p:
     pg = browser.new_page(viewport={'width': 1280, 'height': 800})
     errors = []
     pg.on('pageerror', lambda e: errors.append(str(e)))
+    # the game's random numbers come from a fixed seed, so the test plays out much the same way every time
+    pg.add_init_script('''(() => { let s = 1074;
+        Math.random = () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })()''')
     pg.goto('file://' + os.path.abspath(page_file))
     time.sleep(1)
 
@@ -43,11 +47,20 @@ with sync_playwright() as p:
     pg.click('#go')
     time.sleep(0.3)
 
-    # run 2.5 minutes of simulation, then force one of every major world event
-    pg.evaluate("""() => { const q = window.EvoQuestDebug;
-        for (let i = 0; i < 3000; i++) q.step(0.05);
-        for (const k of ['flood', 'drought', 'quake', 'meteor']) q.triggerEvent(k, true); }""")
-    time.sleep(1.5)
+    # run 2.5 minutes of simulation, then force one of every major world event. Those can occasionally wipe the
+    # population out by chance (the end screen would then cover the controls), so in that case release again on the
+    # same world and try once more, up to three times in all; that's the test's setup, not a fault in the game
+    for attempt in range(3):
+        pg.evaluate("""() => { const q = window.EvoQuestDebug;
+            for (let i = 0; i < 3000 && !q.state.over; i++) q.step(0.05);
+            for (const k of ['flood', 'drought', 'quake', 'meteor']) if (!q.state.over) q.triggerEvent(k, true); }""")
+        time.sleep(1.5)
+        if not pg.evaluate('() => window.EvoQuestDebug.state.over'):
+            break
+        pg.click('#eSame')
+        time.sleep(0.3)
+        pg.click('#go')
+        time.sleep(0.3)
 
     # inspector tabs, chart options and map colour toggle
     for tab in ['sp', 'stats', 'one', 'world']:

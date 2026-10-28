@@ -69,11 +69,9 @@ const legLen = c => (2.45 + c.leg * 2.75) * (1 - c.tail * 0.4);
 const tailLen = c => (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0);
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added:
 // moving fast costs a lot, and bigger bodies burn less
-const moveBurn = (c, v) => {
-  // how much smaller (or, negative, bigger) than a middling body, with BURN.ease softening the small side
-  const d = c.size < 0.9 ? (0.9 - c.size) * (1 - BURN.ease) : 0.9 - c.size;
-  return (BURN.rest + BURN.move * (v / 30) ** 2 * Math.max(0.3, 1 + BURN.stride * d)) * (1 + BURN.size * d);
-};
+const moveBurn = (c, v) =>
+  (BURN.rest + BURN.move * (v / 30) ** 2 * Math.max(0.3, 1 + BURN.stride * (0.9 - c.size))) *
+  (1 + BURN.size * (0.9 - c.size));
 // deep water costs more for creatures that aren't fully aquatic
 function burn(c, v) {
   const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
