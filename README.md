@@ -771,11 +771,10 @@ crowds of another; needing members of the new species nearby left species' avera
 judging whole herds by their average let big herds swallow the few thicket dwellers beside them, so *silvicola*
 almost never formed. Counting like-minded neighbours fixed all three.)
 
-In 75 hour-long study runs (October 2026): 54 had at least one new species (median 18 minutes before the
-first), with up to 4 alive at once, and 88 of 103 new species lasted to the end of the run. New species by type:
-*campestris* 37, *vulgaris* 28, *natans* 27, *silvicola* 11. By world type, archipelagos had the most runs with a new
-species (13 of 15) and forest worlds the fewest (7 of 15); *silvicola* appeared most on archipelagos (4) and
-supercontinents (3) and never as a new species on highlands. 9 times a species died out and came back.
+In 75 hour-long study runs (October 2026, with the habitat changes in section 16): 60 had at least one new species
+(median 14 minutes before the first), with up to 4 alive at once, and 102 of 118 new species lasted to the end of the
+run. New species by type: *campestris* 46, *vulgaris* 32, *natans* 31, *silvicola* 9. Every world type had runs
+with each type. 15 times a species died out and came back. 8 of the 75 runs died out altogether.
 
 ### Names
 
