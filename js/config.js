@@ -19,8 +19,8 @@ const ZOOM_MUSIC = {
   vol: 1,
   fadeIn: 1.5,
   fadeOut: 1.5,
-  from: 1.6,
-  full: 3.2,
+  from: 1.3,
+  full: 3,
 };
 
 /* ---- settings and background play ---- */
