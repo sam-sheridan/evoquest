@@ -307,12 +307,20 @@ setInterval(() => {
   // the zoom music runs for the whole run, so zooming in and out doesn't restart it: silent when zoomed out, and
   // fading in from ZOOM_MUSIC.from to full loudness at ZOOM_MUSIC.full (silent while paused)
   const run = sound && !menus && S && !S.over && !S.replay,
-    lvl = run && !S.paused ? clamp((cam.z - ZOOM_MUSIC.from) / (ZOOM_MUSIC.full - ZOOM_MUSIC.from), 0, 1) : 0;
-  musicKeep(zoomMusic, run, lvl * ZOOM_MUSIC.vol);
+    zoomed = clamp((cam.z - ZOOM_MUSIC.from) / (ZOOM_MUSIC.full - ZOOM_MUSIC.from), 0, 1);
+  musicKeep(zoomMusic, run, run && !S.paused ? zoomed * ZOOM_MUSIC.vol : 0);
+  // the ambient notes fade out as the zoom music fades in, notes still ringing included
+  if (ambBus && ambBus.context === AC) ambBus.gain.setTargetAtTime(1 - zoomed, AC.currentTime, 0.4);
 }, 100);
 // Sam's ambient notes (D4 F4 G4 C5 D5 F5 G5 C6, one every 2 bars in one file): every 1.2 s, a 60% chance of one
 // at random, sometimes with a quieter echo an octave up (the same note at double speed, so also half as long)
+let ambBus = null;
 function ambientNote(k, when, rate, vol) {
+  // all the notes go through one loudness control, which follows the zoom (see the music loop above)
+  if (!ambBus || ambBus.context !== AC) {
+    ambBus = AC.createGain();
+    ambBus.connect(OUT);
+  }
   const s = AC.createBufferSource(),
     g = AC.createGain(),
     // each slice starts just before its note, in the silence after the one before
@@ -320,7 +328,7 @@ function ambientNote(k, when, rate, vol) {
   s.buffer = ambientNotes.buf;
   s.playbackRate.value = rate;
   g.gain.value = vol;
-  s.connect(g).connect(OUT);
+  s.connect(g).connect(ambBus);
   s.start(AC.currentTime + when, from, AMBIENT.spacing);
 }
 setInterval(() => {
