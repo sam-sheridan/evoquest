@@ -309,8 +309,9 @@ setInterval(() => {
   const run = sound && !menus && S && !S.over && !S.replay,
     zoomed = clamp((cam.z - ZOOM_MUSIC.from) / (ZOOM_MUSIC.full - ZOOM_MUSIC.from), 0, 1);
   musicKeep(zoomMusic, run, run && !S.paused ? zoomed * ZOOM_MUSIC.vol : 0);
-  // the ambient notes fade out as the zoom music fades in, notes still ringing included
-  if (ambBus && ambBus.context === AC) ambBus.gain.setTargetAtTime(1 - zoomed, AC.currentTime, 0.4);
+  // the ambient notes fade out as the zoom music fades in, gone by AMB_GONE, notes still ringing included
+  const amb = 1 - clamp((cam.z - ZOOM_MUSIC.from) / (AMB_GONE - ZOOM_MUSIC.from), 0, 1);
+  if (ambBus && ambBus.context === AC) ambBus.gain.setTargetAtTime(amb, AC.currentTime, 0.4);
 }, 100);
 // Sam's ambient notes (D4 F4 G4 C5 D5 F5 G5 C6, one every 2 bars in one file): every 1.2 s, a 60% chance of one
 // at random, sometimes with a quieter echo an octave up (the same note at double speed, so also half as long)
