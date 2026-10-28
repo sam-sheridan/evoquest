@@ -1,5 +1,5 @@
-/* All sound, made live with the Web Audio API: ambient notes, small creature sounds, world-event effects and
-   the beat that plays when zoomed in. */
+/* All sound: Sam's music (the title music, and the music that plays when zoomed in), and, made live with the
+   Web Audio API, ambient notes, small creature sounds and world-event effects. */
 
 /* ---------- sound ---------- */
 let AC = null,
@@ -45,7 +45,7 @@ function playOut() {
 function resetAudio() {
   if (outEl) outEl.pause();
   if (AC && AC.close) AC.close().catch(() => {});
-  AC = OUT = outEl = beatBus = noiseBuf = null;
+  AC = OUT = outEl = noiseBuf = null;
   ensureAudio();
 }
 // browsers pause a page's sound while it is hidden or the device sleeps (Safari calls this "interrupted"), so wake
@@ -134,84 +134,16 @@ $('#sSound').onclick = () => {
   syncSettings();
   if (sound) SND.birth();
 };
-let beatBus = null,
-  noiseBuf = null,
-  beatNext = 0,
-  beatStep = 0;
-function beatInit() {
-  if (beatBus || !AC) return;
-  beatBus = AC.createGain();
-  beatBus.gain.value = 0;
-  beatBus.connect(OUT);
+// a half-second of white noise, the raw material of the world event effects
+let noiseBuf = null;
+function noiseInit() {
+  if (noiseBuf || !AC) return;
   noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 }
-function noise(t, dur, type, freq, q, vol) {
-  const s = AC.createBufferSource(),
-    f = AC.createBiquadFilter(),
-    g = AC.createGain();
-  s.buffer = noiseBuf;
-  f.type = type;
-  f.frequency.value = freq;
-  f.Q.value = q;
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  s.connect(f).connect(g).connect(beatBus);
-  s.start(t);
-  s.stop(t + dur + 0.02);
-}
-function kick(t) {
-  const o = AC.createOscillator(),
-    g = AC.createGain();
-  o.type = 'sine';
-  o.frequency.setValueAtTime(140, t);
-  o.frequency.exponentialRampToValueAtTime(48, t + 0.14);
-  g.gain.setValueAtTime(0.9, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
-  o.connect(g).connect(beatBus);
-  o.start(t);
-  o.stop(t + 0.26);
-}
-function snare(t) {
-  noise(t, 0.13, 'bandpass', 1800, 0.9, 0.5);
-  const o = AC.createOscillator(),
-    g = AC.createGain();
-  o.type = 'triangle';
-  o.frequency.setValueAtTime(330, t);
-  o.frequency.exponentialRampToValueAtTime(190, t + 0.08);
-  g.gain.setValueAtTime(0.35, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
-  o.connect(g).connect(beatBus);
-  o.start(t);
-  o.stop(t + 0.12);
-}
-function hat(t, acc) {
-  noise(t, acc ? 0.05 : 0.035, 'highpass', 7500, 0.7, acc ? 0.28 : 0.18);
-}
-// 50 bpm, semiquavers: one step every 0.3 s
-setInterval(() => {
-  if (!AC || !sound) return;
-  beatInit();
-  const on = S && !S.paused && !S.over && !S.replay,
-    lvl = on ? clamp((cam.z - 1.6) / 1.6, 0, 1) * BEAT_VOL : 0;
-  beatBus.gain.setTargetAtTime(lvl, AC.currentTime, 0.4);
-  if (lvl <= 0.001 && beatBus.gain.value < 0.002) {
-    beatNext = 0;
-    return;
-  }
-  if (beatNext < AC.currentTime) beatNext = AC.currentTime + 0.05;
-  while (beatNext < AC.currentTime + 0.3) {
-    const s = beatStep % 8;
-    if (s === 0) kick(beatNext);
-    else if (s === 4) snare(beatNext);
-    else hat(beatNext, s === 2 || s === 6);
-    beatNext += 0.3;
-    beatStep++;
-  }
-}, 60);
 function sfxNoise(t, dur, type, f0, f1, q, vol) {
-  beatInit();
+  noiseInit();
   const s = AC.createBufferSource(),
     f = AC.createBiquadFilter(),
     g = AC.createGain();
@@ -299,70 +231,87 @@ setInterval(() => {
     if (S.nextEvent - S.t > 0.5) tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
   }
 }, 50);
-/* ---------- title music ---------- */
-// Sam's title music loops while the title screen, the intro panes or the creator is showing, and fades out when a
-// species is released. Browsers only start sound after a click or key press, so on first load it begins with the
-// first one. The file is the loop plus its first second again (tools/music.py): looping between 0.5 s and 0.5 s +
-// the loop's length stays inside real music, whatever silence a browser's decoder adds at the start.
-let musicBuf = null,
-  musicBytes = null,
-  musicSrc = null,
-  musicGain = null,
-  musicCtx = null;
-// the single-file build carries the file inside the page (AUDIO_DATA, added by tools/build.py)
-if (typeof AUDIO_DATA !== 'undefined' && AUDIO_DATA[TITLE_MUSIC.src]) {
-  const s = atob(AUDIO_DATA[TITLE_MUSIC.src]),
-    b = new Uint8Array(s.length);
-  for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
-  musicBytes = b.buffer;
-} else
-  fetch(TITLE_MUSIC.src)
-    .then(r => (r.ok ? r.arrayBuffer() : null))
-    .then(b => (musicBytes = b))
-    .catch(() => {});
-function musicWanted() {
-  return sound && (!$('#intro').hidden || !$('#creator').hidden);
+/* ---------- music ---------- */
+// Sam's music, made in GarageBand: the title music loops while the title screen, the intro panes or the creator
+// is showing; the zoom music plays through a run and is heard when zoomed in. Browsers only start sound after a
+// click or key press, so on first load the title music begins with the first one. Each file is the loop plus its
+// first second again (tools/music.py): looping between 0.5 s and 0.5 s + the loop's length stays inside real
+// music, whatever silence a browser's decoder adds at the start.
+function track(cfg) {
+  const m = { cfg, buf: null, bytes: null, src: null, gain: null, ctx: null, started: 0 };
+  // the single-file build carries the files inside the page (AUDIO_DATA, added by tools/build.py)
+  if (typeof AUDIO_DATA !== 'undefined' && AUDIO_DATA[cfg.src]) {
+    const s = atob(AUDIO_DATA[cfg.src]),
+      b = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    m.bytes = b.buffer;
+  } else
+    fetch(cfg.src)
+      .then(r => (r.ok ? r.arrayBuffer() : null))
+      .then(b => (m.bytes = b))
+      .catch(() => {});
+  return m;
 }
-// the first click or key press on the title screen starts the sound engine, so the music can begin
-addEventListener('click', () => !AC && musicWanted() && ensureAudio(), true);
-addEventListener('keydown', () => !AC && musicWanted() && ensureAudio(), true);
-function musicStop() {
-  if (!musicSrc) return;
-  const t = musicCtx.currentTime;
-  musicGain.gain.cancelScheduledValues(t);
-  musicGain.gain.setValueAtTime(musicGain.gain.value, t);
-  musicGain.gain.linearRampToValueAtTime(0, t + TITLE_MUSIC.fadeOut);
-  try {
-    musicSrc.stop(t + TITLE_MUSIC.fadeOut + 0.05);
-  } catch (e) {}
-  musicSrc = musicGain = null;
-}
-setInterval(() => {
-  // a fresh sound engine (see resetAudio) needs the music started again on it
-  if (musicSrc && musicCtx !== AC) musicSrc = musicGain = null;
-  if (!musicWanted() || !AC) return musicStop();
-  if (musicSrc) return;
-  if (!musicBuf) {
-    // decoded once; the decoded music also plays on a later fresh engine
-    if (musicBytes)
+const titleMusic = track(TITLE_MUSIC),
+  zoomMusic = track(ZOOM_MUSIC);
+// start the track from the beginning, fading in to vol
+function musicStart(m, vol) {
+  if (!m.buf) {
+    // decoded once; the decoded music also plays on a later fresh engine (see resetAudio)
+    if (m.bytes)
       AC.decodeAudioData(
-        musicBytes,
-        b => (musicBuf = b),
+        m.bytes,
+        b => (m.buf = b),
         () => {}
       );
-    musicBytes = null;
+    m.bytes = null;
     return;
   }
-  musicCtx = AC;
-  musicSrc = AC.createBufferSource();
-  musicGain = AC.createGain();
-  musicSrc.buffer = musicBuf;
-  musicSrc.loop = true;
-  musicSrc.loopStart = 0.5;
-  musicSrc.loopEnd = 0.5 + TITLE_MUSIC.loop;
-  const t = AC.currentTime;
-  musicGain.gain.setValueAtTime(0, t);
-  musicGain.gain.linearRampToValueAtTime(TITLE_MUSIC.vol, t + TITLE_MUSIC.fadeIn);
-  musicSrc.connect(musicGain).connect(OUT);
-  musicSrc.start(t);
-}, 200);
+  m.ctx = AC;
+  m.src = AC.createBufferSource();
+  m.gain = AC.createGain();
+  m.src.buffer = m.buf;
+  m.src.loop = true;
+  m.src.loopStart = 0.5;
+  m.src.loopEnd = 0.5 + m.cfg.loop;
+  const t = (m.started = AC.currentTime);
+  m.gain.gain.setValueAtTime(0, t);
+  m.gain.gain.linearRampToValueAtTime(vol, t + m.cfg.fadeIn);
+  m.src.connect(m.gain).connect(OUT);
+  m.src.start(t);
+}
+// fade the track out and stop it
+function musicStop(m) {
+  if (!m.src) return;
+  const t = m.ctx.currentTime;
+  m.gain.gain.cancelScheduledValues(t);
+  m.gain.gain.setValueAtTime(m.gain.gain.value, t);
+  m.gain.gain.linearRampToValueAtTime(0, t + m.cfg.fadeOut);
+  try {
+    m.src.stop(t + m.cfg.fadeOut + 0.05);
+  } catch (e) {}
+  m.src = m.gain = null;
+}
+// play the track while on is true, at vol; a fresh sound engine (see resetAudio) needs it started again on it
+function musicKeep(m, on, vol) {
+  if (m.src && m.ctx !== AC) m.src = m.gain = null;
+  if (!on || !AC) return musicStop(m);
+  if (!m.src) return musicStart(m, vol);
+  // already playing: follow vol smoothly once the fade-in is done
+  if (AC.currentTime > m.started + m.cfg.fadeIn) m.gain.gain.setTargetAtTime(vol, AC.currentTime, 0.4);
+}
+function menusShowing() {
+  return !$('#intro').hidden || !$('#creator').hidden;
+}
+// the first click or key press on the title screen starts the sound engine, so the title music can begin
+addEventListener('click', () => !AC && sound && menusShowing() && ensureAudio(), true);
+addEventListener('keydown', () => !AC && sound && menusShowing() && ensureAudio(), true);
+setInterval(() => {
+  const menus = menusShowing();
+  musicKeep(titleMusic, sound && menus, TITLE_MUSIC.vol);
+  // the zoom music runs for the whole run, so zooming in and out doesn't restart it: silent when zoomed out, and
+  // fading in from ZOOM_MUSIC.from to full loudness at ZOOM_MUSIC.full (silent while paused)
+  const run = sound && !menus && S && !S.over && !S.replay,
+    lvl = run && !S.paused ? clamp((cam.z - ZOOM_MUSIC.from) / (ZOOM_MUSIC.full - ZOOM_MUSIC.from), 0, 1) : 0;
+  musicKeep(zoomMusic, run, lvl * ZOOM_MUSIC.vol);
+}, 100);

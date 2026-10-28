@@ -101,7 +101,7 @@ with sync_playwright() as p:
     pg.click('#sSound')
     pg.click('#bSet')
 
-    # zoom in (sharp map layer and beat), select a creature, zoom back out
+    # zoom in (sharp map layer and zoom music), select a creature, zoom back out
     pg.mouse.move(640, 400)
     for _ in range(8):
         pg.mouse.wheel(0, -300)

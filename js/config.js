@@ -1,9 +1,8 @@
 /* EvoQuest configuration: every number worth tuning lives here. */
 
 /* ---- sound ---- */
-const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume), about level with the zoomed-in beat's snare
+const AMB_VOL = 0.07; // loudness of an ambient note (1 = full volume)
 const AMB_ECHO = 0.028; // loudness of an ambient note's quieter octave echo
-const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales every drum)
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
 // length (s), loudness
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };
@@ -12,6 +11,17 @@ const AUDIO_CHECK = 2;
 // Sam's title music, played on repeat on the title screen, the intro panes and the creator (made with
 // tools/music.py): file, loop length (s, printed by tools/music.py), loudness, and seconds to fade in and out
 const TITLE_MUSIC = { src: 'audio/title.mp3', loop: 43.636349, vol: 0.35, fadeIn: 1.5, fadeOut: 1.5 };
+// Sam's zoom music, heard during a run when zoomed in: as TITLE_MUSIC, plus the zoom where it starts to fade in
+// (from) and where it reaches full loudness (full)
+const ZOOM_MUSIC = {
+  src: 'audio/zoom.mp3',
+  loop: 21.818186,
+  vol: 0.35,
+  fadeIn: 1.5,
+  fadeOut: 1.5,
+  from: 1.6,
+  full: 3.2,
+};
 
 /* ---- settings and background play ---- */
 // the password for the testing tools in Settings (change it here; it can't be changed in the game)

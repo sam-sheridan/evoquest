@@ -913,7 +913,7 @@ Your species' colour, name and genus, then: creatures alive · species alive · 
 | Fast forward (⏩) | Runs the game at 8×. It works like a battery holding up to 40 real seconds (`FAST`): it drains while on, switches itself off when empty, and refills while off, from empty to full in 2 minutes. Press it to start and press again to stop; it can be started whenever at least a second is stored. A ring round the icon shows the charge; hover to see how much is stored. It is greyed out while a testing speed above 1× is set. |
 | Notepad | **Event log**: the last 50 events, seasons, achievements and new species, with times. |
 | Medal | **Achievements** for this run (the menu shows how many you have). |
-| Cog | **Settings**: *Extinction (end run)* (press it twice, the second time when it says "Click again to confirm": one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: ambient notes, creature sounds, event effects and the zoomed-in beat). **Testing tools** show only a password box until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the testing options appear until the page is reloaded, an orange cross means it's wrong and they stay hidden. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
+| Cog | **Settings**: *Extinction (end run)* (press it twice, the second time when it says "Click again to confirm": one huge meteor lands among the creatures a second later, five small ones follow, and about 3 seconds after pressing every creature is dead and the end screen appears (`DOOM`). It's a way to start again rather than a world event, so it leaves no craters), *Sound* on/off (all sound: the music, ambient notes, creature sounds and event effects). **Testing tools** show only a password box until you enter the password (`TEST_PASSWORD`, 1234 to begin with) and press *Unlock*: a green tick means it's right and the testing options appear until the page is reloaded, an orange cross means it's wrong and they stay hidden. The password can't be changed in the game; to change it, edit `TEST_PASSWORD` in `js/config.js`. It only keeps the tools out of casual reach, since anyone reading the code can find it. **Testing: speed** sets 1×, 2×, 4× or 10×, handy for checking things quickly. **Testing** event buttons fire a flood, drought, earthquake or meteor straight away, normal or major (the *Major* toggle). They always do exactly what they say, even past the usual land limits, and don't move the next scheduled event (which kind it will be is chosen again, since the land may have changed). |
 | ? | **Help**: pauses the game and puts a short label beside each part of the screen (your species, the controls, the inspector's tabs, the season clock, the world event sign and the map), with an orange outline round the part it explains. Labels move clear of each other, and parts hidden behind something (the season clock under an open inspector on a phone) get none. Press ? again to take the labels away and carry on (still paused if the game was paused before). It closes by itself if the run ends. |
 
 ### Bottom left: season clock, temperature and world event sign
@@ -1034,17 +1034,17 @@ playing on another device or browser, starts the list fresh.
 
 ## 14. Sound
 
-The title music is Sam's own, made in GarageBand. Every other sound is generated live in the browser.
+The title music and the zoom music are Sam's own, made in GarageBand. Every other sound is generated live in the browser.
 
 | Sound | Details |
 |---|---|
 | **Title music** | Sam's track (`audio/title.mp3`), a 16-bar loop at 88 bpm, plays on repeat on the title screen, the intro panes and the creator, at `TITLE_MUSIC.vol` (0.35). It fades in over 1.5 s and fades out over 1.5 s when a species is released, and starts again when the creator comes back after a run. Browsers only start sound after a click or key press, so on first load it begins with the first one (usually *Start* on the title screen). The *Sound* setting turns it off too. |
-| **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going, at about the loudness of the zoomed-in beat's snare. |
+| **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
-| **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
+| **Zoom music** | Sam's second track (`audio/zoom.mp3`), an 8-bar loop at 88 bpm. It plays through each run but is only heard when zoomed in: it fades in from 1.6× zoom and reaches full loudness (`ZOOM_MUSIC.vol`, 0.35) at 3.2×, and goes quiet while paused. Because it keeps running when zoomed out, zooming in again picks up wherever the track has got to rather than restarting it. It replaced a generated drum beat (50 bpm semiquavers: kick, hat, hat, hat, snare, hat, hat, hat) in October 2026. |
 
 **Adding or replacing music.** Export the loop from GarageBand as WAV (Share → Export Song to Disk), with the cycle
 region set exactly to the bars that loop. `python3 tools/music.py track.wav audio/name.mp3` converts it to MP3 and
@@ -1208,7 +1208,7 @@ accident.
   evolution.
 - **Max 3 creatures per food.** This stops crowds piling onto one berry.
 - **Colours come from the Okabe–Ito palette** for colour-blind accessibility.
-- **The music is original.** The ambient note set and the zoom beat were written for the game.
+- **The music is original.** Sam made the title and zoom music in GarageBand; the ambient note set was written for the game.
 
 ---
 
@@ -1268,8 +1268,8 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
-| `audio/` | Music files: `title.mp3`, the title music |
-| `js/audio.js` | All sound: the title music, and the generated ambient notes, creature sounds, event effects and zoomed-in beat |
+| `audio/` | Music files: `title.mp3` (the title music) and `zoom.mp3` (the zoom music) |
+| `js/audio.js` | All sound: the title and zoom music, and the generated ambient notes, creature sounds and event effects |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |
