@@ -124,7 +124,7 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
 3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
    worth).
-4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it crosses rivers.
+4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it swims or wades across rivers.
 
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
 design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
@@ -201,21 +201,22 @@ what you can see.
   and long legs, no tail and a blocky body make walkers.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
-  anywhere in water. Everything in between has two limits (`HAB.range` = 200):
-  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.first`), so every visible tail gets into
-    at least the first band of water
-  - it walks at most 200 × ((1 − tail) ÷ tail)² px from water
+  anywhere in water. Everything in between has two limits:
+  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.range`, `HAB.first`), so every visible tail
+    gets into at least the first band of water
+  - it walks at most 70 × ((1 − tail) ÷ tail)² px from water (`HAB.inland`; 200 before October 2026): amphibious
+    creatures stay near the water's edge, leaving the interior to true walkers
 
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
   | 0–15% | 0 | never enters water | anywhere |
   | 16% | just above 0 | 16 px | anywhere |
-  | 32% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
-  | 41% | 0.3 | 53 px | 1089 px |
-  | 49% | 0.4 | 105 px | 450 px |
-  | 58% | 0.5 | 216 px | 200 px |
-  | 66% | 0.6 | 466 px | 89 px |
-  | 83% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
+  | 32% | 0.2 | 29 px | 1120 px |
+  | 41% | 0.3 | 53 px | 381 px |
+  | 49% | 0.4 | 105 px | 158 px |
+  | 58% | 0.5 | 216 px | 70 px |
+  | 66% | 0.6 | 466 px | 31 px |
+  | 83% | 0.8 | 3216 px (anywhere, in practice) | 4 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
 
   Water is always at least one cell (16 px) from land and land from water, so a limit under 16 px means never. Every
@@ -224,9 +225,11 @@ what you can see.
 
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
-- **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
-  more is needed to swim that fast, depending on legs and roundness.
+- **River crossing.** Swimming across a river's current needs water speed of at least 14 px/s (`RIVER`), and the
+  creature must swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
+  more is needed to swim that fast, depending on legs and roundness. Every other creature **wades** across instead,
+  at 35% of its walking speed (`WADE.speed`), as land animals ford streams, so rivers slow walkers down but no
+  longer trap them on one piece of land. The creator's chip says "Swims rivers" or "Wades rivers".
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
 
@@ -384,7 +387,7 @@ creatures are left at all.
 
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
-| Land | It is within its walking range of water (always true with no tail, 15% or less; a 40% tail still walks over 1,000 px from water). | Land speed |
+| Land | It is within its walking range of water (always true with no tail, 15% or less; a 32% tail still walks over 1,000 px from water). | Land speed |
 | Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed for size 1.0 or more, easing to full land speed at size 0.75 or less: small creatures slip through the undergrowth (`THICKET.slow`) |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
@@ -590,7 +593,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 |---|---|---|
 | **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -872,7 +875,7 @@ Collapse or expand it with the arrow. It has four tabs.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
     second walking flat out, without temperature or deep water), Energy store, Into thickets (how far, in px) or
-    Crosses rivers (the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
+    Swims rivers (the share of a species that can swim across a river rather than wade, never shown above 100%). One line per species, of the species' average. Distances
     beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, and thicket reach beyond
     200 px counts as 200, so a few unlimited
     creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
@@ -1083,6 +1086,14 @@ accident.
   cold-adapted groups end up stranded apart ("sky islands"), which encourages new species.
 - **Being in between costs something.** Only no tail or a full tail goes anywhere in its element, so a 50% tail
   is a jack of all trades, master of none.
+- **Each way of life owns part of the world** (October 2026). With evolution switched off, a half-tailed creature
+  used to support 5 to 10 times the population of a walker or a swimmer in every world type: it walked over most of
+  the land, grazed the shoreline algae, and swam across the rivers that trapped walkers, so every design drifted to
+  the same middle body. Rather than penalise the middle, three natural changes give the specialists back their
+  ground: open-water algae beds only strong swimmers reach (as fish have the open sea), amphibians that stay near
+  the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
+  best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
+  still evolve a small tail, to wade out for shoreline algae, which is fine.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
   setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple

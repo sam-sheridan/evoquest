@@ -128,7 +128,7 @@ const METRICS = [
   ['burnW', 'Energy use', 1, '/s'],
   ['cap', 'Energy store', 0, ''],
   ['dTc', 'Into thickets', 0, ' px'],
-  ['river', 'Crosses rivers', 0, '%'],
+  ['river', 'Swims rivers', 0, '%'],
 ];
 $('#metrics').innerHTML = METRICS.map(([k, l]) => `<button data-m="${k}">${l}</button>`).join('');
 $('#metrics').onclick = e => {
@@ -850,7 +850,7 @@ function syncUI() {
        ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
        ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
        ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
-       ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to cross.</span>
+       ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to swim across; slower creatures wade.</span>
        ${sw('#b9cfd7', '#151918')}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
        ${sw('#ddd8ce', '#151918', '<ellipse cx="11" cy="7" rx="6" ry="3.5" fill="#c6bfb1" stroke="#7d776b"/><ellipse cx="11" cy="7" rx="2.5" ry="1.4" fill="#b9b1a2" stroke="#7d776b"/>')}<span><b>Rock.</b> Impassable.</span>
       </div>

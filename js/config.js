@@ -184,7 +184,7 @@ const SEA = {
   deepCost: 0.8,
   drought: 0.4,
   beyond: 0.5,
-  open: 0,
+  open: 0.5,
   openFrom: 200,
 };
 // temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
@@ -204,10 +204,10 @@ const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth 
 // far it walks from water onto land (amphibious animals stay near the water's edge); both limits grow quickly towards
 // either end. first: every visible tail swims at least this far from shore (one cell, so into the first band of
 // water), on top of the curve
-const HAB = { range: 200, inland: 200, first: 16 };
+const HAB = { range: 200, inland: 70, first: 16 };
 // wading: a creature too weak a swimmer to cross a river's current (RIVER) can still wade across one at this share of
 // its walking speed, as land animals ford streams (0: it can't)
-const WADE = { speed: 0 };
+const WADE = { speed: 0.35 };
 // tail: min = the tail trait (hab) from which a tail shows and counts; below it the creature has no tail. From min
 // to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
