@@ -191,10 +191,10 @@ function newGame(design, seed) {
   syncUI(true);
 }
 // does the ground suit this food? berries and nuts need land or thicket, algae shallow water (rivers or the sea's
-// shelf)
+// shelf), except the open-water beds (SEA.open), which grow in deep water
 function suits(f) {
   const t = world.type[f.i];
-  return f.kind === 'w' ? isWater(t) && !world.deep[f.i] : t === 1 || t === 2;
+  return f.kind === 'w' ? isWater(t) && (f.open || !world.deep[f.i]) : t === 1 || t === 2;
 }
 function edible(f) {
   return f.active && !f.gone;
@@ -216,7 +216,8 @@ function regrow(f) {
 function allowed(c, i, t) {
   if (t === 3) return false;
   if (isWater(t)) {
-    if (t === 4 && c.vW < RIVER) return false;
+    // a river too strong to swim can still be waded across (WADE)
+    if (t === 4 && c.vW < RIVER) return WADE.speed > 0;
     return world.dLand[i] <= c.dW;
   }
   if (t === 2 && world.dThick[i] > c.dT) return false;
@@ -229,7 +230,8 @@ function speedIn(c, t, i, ok) {
   if (!ok) return 7;
   const s = THICKET.slow,
     thick = 1 - s.by * clamp((c.size - s.small) / (s.big - s.small), 0, 1);
-  return (isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * thick : c.vL) * ageing(c);
+  const river = c.vW < RIVER ? Math.max(c.vW, c.vL * WADE.speed) : c.vW * 0.75;
+  return (t === 4 ? river : isWater(t) ? c.vW : t === 2 ? c.vL * thick : c.vL) * ageing(c);
 }
 function canEnter(c, hereOk, x, y) {
   if (!inside(x, y)) return false;

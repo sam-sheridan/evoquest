@@ -168,7 +168,8 @@ const REGIONS = { strength: 1.3 };
 // deep. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance from shore (algaeFade
 // px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones). drought: share of
 // the world type's algae that waits, dormant, in the deep water just beyond the shelf (up to beyond shelf widths
-// past its edge), growing once a drought pulls the shallows out to it
+// past its edge), growing once a drought pulls the shallows out to it. open: algae beds out in open water, as a share of
+// the world type's algae, at least openFrom px from any land: food only strong swimmers reach, as fish have the open sea
 const SEA = {
   shelf: 0.3,
   minWidth: 110,
@@ -183,6 +184,8 @@ const SEA = {
   deepCost: 0.8,
   drought: 0.4,
   beyond: 0.5,
+  open: 0,
+  openFrom: 200,
 };
 // temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
@@ -197,10 +200,14 @@ const TEMP = {
   heatCost: 0.15,
 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land); high ground is cold
-// tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
-// the limit grows quickly towards either end. first: every visible tail swims at least this far from shore (one
-// cell, so into the first band of water), on top of the curve
-const HAB = { range: 200, first: 16 };
+// tail (once called habitat): range = how far (px) a 50% tail goes from shore into water; inland: the same for how
+// far it walks from water onto land (amphibious animals stay near the water's edge); both limits grow quickly towards
+// either end. first: every visible tail swims at least this far from shore (one cell, so into the first band of
+// water), on top of the curve
+const HAB = { range: 200, inland: 200, first: 16 };
+// wading: a creature too weak a swimmer to cross a river's current (RIVER) can still wade across one at this share of
+// its walking speed, as land animals ford streams (0: it can't)
+const WADE = { speed: 0 };
 // tail: min = the tail trait (hab) from which a tail shows and counts; below it the creature has no tail. From min
 // to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
