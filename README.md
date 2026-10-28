@@ -184,7 +184,7 @@ what you can see.
 
   Half of a typical thicket lies within about 32 px of its edge and nine tenths within about 80 px, so a middling
   creature reaches about half of it and only small ones its heart.
-- **Legs**: drawn as 4, or 6 from size 0.9 (`LEGS.sixFrom`). The number is only a look: it doesn't change speed,
+- **Legs**: drawn as 4, or 6 from size 1.0 (`LEGS.sixFrom`), the same size at which a body counts as *campestris*. The number is only a look: it doesn't change speed,
   energy or speciation, and isn't shown as a stat. Leg length is the trait that matters.
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
   smallest and 26 at the biggest.
@@ -273,7 +273,7 @@ near water can drift up to 15% within a run and start using a tail when the wate
 **Randomise** gives about a third of designs no tail (0–13%) and the rest a visible one (25–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 6 legs), goes 40 px
+The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 4 legs), goes 40 px
 into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
 
 ### Colour: one per species
@@ -1039,7 +1039,7 @@ The look is a scientific **field notebook / survey map**.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
     every member of a species has the same eyes even though shades vary slightly from creature to creature.
-  - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves (only a look). They sit in
+  - Legs: 4, or 6 from size 1.0 (`LEGS.sixFrom`, 0.9 before October 2026), so they follow size and change as it evolves (only a look). They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
     mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45

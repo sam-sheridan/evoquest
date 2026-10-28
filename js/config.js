@@ -219,7 +219,7 @@ const MOUTH = { nut: 1.25, bonus: 0.25 };
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
 //   share faster and the longest this share slower (medium legs make no difference)
 //   sixFrom: the size from which a creature is drawn with 6 legs rather than 4 (only a look: it changes nothing)
-const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 0.9 };
+const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 1.0 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
 // stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
