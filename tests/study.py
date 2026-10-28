@@ -83,8 +83,13 @@ RUN = (
   }
   const avg = a => (a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : null);
   const last = S.hist.at(-1), first = S.orig;
-  // each species' type, from its last recorded average body
+  // each species' type
   const types = S.species.map(sp => sp.epithet);
+  // how spread out bodies are at the end (standard deviation across every living creature), and what share of
+  // them lives each way (by body, whatever species they belong to)
+  const C = S.creatures, sd = k => { const m = C.reduce((a, c) => a + c[k], 0) / C.length; return +Math.sqrt(C.reduce((a, c) => a + (c[k] - m) ** 2, 0) / C.length).toFixed(3); };
+  const endSpread = C.length > 1 ? { size: sd('size'), hab: sd('hab'), mth: sd('mth'), leg: sd('leg') } : null;
+  const endTypes = C.length ? Object.fromEntries(TYPE_NAMES.map(z => [z, +(C.filter(c => typeOf(c) === z).length / C.length).toFixed(2)])) : null;
   const drift = last && last.total ? Object.fromEntries(['size', 'leg', 'hab', 'mth', 'round'].map(k => [k, +(last.all[k] - first[k]).toFixed(2)])) : null;
   return {
     design: designName, released: { size: +first.size.toFixed(2), leg: +first.leg.toFixed(2), hab: +first.hab.toFixed(2), mth: +first.mth.toFixed(2), round: +first.round.toFixed(2) },
@@ -94,7 +99,7 @@ RUN = (
     newSpecies: S.species.length - 1, maxLiveSpecies: maxLive, splits, speciesTypes: types, moved, returns,
     // every species' life: when it formed, when it died out (null if still alive at the end) and its peak
     species: S.species.map(sp => ({ born: Math.round(sp.born), died: sp.died === null || (S.over && sp.died === S.t) ? null : Math.round(sp.died), peak: sp.peak })),
-    explored10, drift, maxGen: S.maxGen, events: S.events, msPerStep: +((performance.now() - t0) / Math.max(1, steps)).toFixed(2),
+    explored10, drift, endSpread, endTypes, maxGen: S.maxGen, events: S.events, msPerStep: +((performance.now() - t0) / Math.max(1, steps)).toFixed(2),
   };
 }"""
 )
@@ -170,6 +175,19 @@ if __name__ == '__main__':
     print(f"  released as: {dict(Counter(r['releasedType'] for r in results))}")
     print(f"  species that appeared (besides the released one): {dict(Counter(t for r in results for t in r['speciesTypes'][1:]))}")
     print(f"  new species per run: {dict(sorted(Counter(r['newSpecies'] for r in results).items()))}")
+    # convergence: on each world, how different the designs still are from each other at the end (the spread of
+    # their average bodies; bigger means the starting design still matters), and how spread out each run's bodies are
+    import statistics
+    ends = {}
+    for r in results:
+        if r['drift']:
+            ends.setdefault(r['seed'], []).append({k: r['released'][k] + r['drift'][k] for k in ('size', 'hab', 'mth')})
+    between = [statistics.mean(statistics.pstdev([e[k] for e in E]) for k in ('size', 'hab', 'mth')) for E in ends.values() if len(E) > 1]
+    within = [statistics.mean(r['endSpread'][k] for k in ('size', 'hab', 'mth')) for r in results if r.get('endSpread')]
+    if between:
+        print(f"  designs' end bodies differ by (average spread between designs on a world): {statistics.mean(between):.3f}")
+    if within:
+        print(f"  bodies within a run differ by (average spread): {statistics.mean(within):.3f}")
     mh = [r['moved'] / max(0.25, r['minutes'] / 60) for r in results]
     print(f"  creatures moving between species per hour: median {sorted(mh)[len(mh) // 2]:.0f}; species coming back: {sum(r['returns'] for r in results)}")
     for m, label in [('pop10', '10 minutes'), ('pop20', '20 minutes'), ('pop30', '30 minutes'), ('popEnd', 'the end')]:
