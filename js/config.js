@@ -9,6 +9,9 @@ const BEAT_VOL = 0.22; // loudness of the zoomed-in beat at full zoom (scales ev
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };
 // seconds between checks that the sound engine's clock is moving (a frozen one is replaced on the next click)
 const AUDIO_CHECK = 2;
+// Sam's title music, played on repeat on the title screen, the intro panes and the creator (made with
+// tools/music.py): file, loop length (s, printed by tools/music.py), loudness, and seconds to fade in and out
+const TITLE_MUSIC = { src: 'audio/title.mp3', loop: 43.636349, vol: 0.35, fadeIn: 1.5, fadeOut: 1.5 };
 
 /* ---- settings and background play ---- */
 // the password for the testing tools in Settings (change it here; it can't be changed in the game)

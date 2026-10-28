@@ -299,3 +299,70 @@ setInterval(() => {
     if (S.nextEvent - S.t > 0.5) tone(WARN_BEEP.f, WARN_BEEP.dur, 'sine', WARN_BEEP.vol);
   }
 }, 50);
+/* ---------- title music ---------- */
+// Sam's title music loops while the title screen, the intro panes or the creator is showing, and fades out when a
+// species is released. Browsers only start sound after a click or key press, so on first load it begins with the
+// first one. The file is the loop plus its first second again (tools/music.py): looping between 0.5 s and 0.5 s +
+// the loop's length stays inside real music, whatever silence a browser's decoder adds at the start.
+let musicBuf = null,
+  musicBytes = null,
+  musicSrc = null,
+  musicGain = null,
+  musicCtx = null;
+// the single-file build carries the file inside the page (AUDIO_DATA, added by tools/build.py)
+if (typeof AUDIO_DATA !== 'undefined' && AUDIO_DATA[TITLE_MUSIC.src]) {
+  const s = atob(AUDIO_DATA[TITLE_MUSIC.src]),
+    b = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+  musicBytes = b.buffer;
+} else
+  fetch(TITLE_MUSIC.src)
+    .then(r => (r.ok ? r.arrayBuffer() : null))
+    .then(b => (musicBytes = b))
+    .catch(() => {});
+function musicWanted() {
+  return sound && (!$('#intro').hidden || !$('#creator').hidden);
+}
+// the first click or key press on the title screen starts the sound engine, so the music can begin
+addEventListener('click', () => !AC && musicWanted() && ensureAudio(), true);
+addEventListener('keydown', () => !AC && musicWanted() && ensureAudio(), true);
+function musicStop() {
+  if (!musicSrc) return;
+  const t = musicCtx.currentTime;
+  musicGain.gain.cancelScheduledValues(t);
+  musicGain.gain.setValueAtTime(musicGain.gain.value, t);
+  musicGain.gain.linearRampToValueAtTime(0, t + TITLE_MUSIC.fadeOut);
+  try {
+    musicSrc.stop(t + TITLE_MUSIC.fadeOut + 0.05);
+  } catch (e) {}
+  musicSrc = musicGain = null;
+}
+setInterval(() => {
+  // a fresh sound engine (see resetAudio) needs the music started again on it
+  if (musicSrc && musicCtx !== AC) musicSrc = musicGain = null;
+  if (!musicWanted() || !AC) return musicStop();
+  if (musicSrc) return;
+  if (!musicBuf) {
+    // decoded once; the decoded music also plays on a later fresh engine
+    if (musicBytes)
+      AC.decodeAudioData(
+        musicBytes,
+        b => (musicBuf = b),
+        () => {}
+      );
+    musicBytes = null;
+    return;
+  }
+  musicCtx = AC;
+  musicSrc = AC.createBufferSource();
+  musicGain = AC.createGain();
+  musicSrc.buffer = musicBuf;
+  musicSrc.loop = true;
+  musicSrc.loopStart = 0.5;
+  musicSrc.loopEnd = 0.5 + TITLE_MUSIC.loop;
+  const t = AC.currentTime;
+  musicGain.gain.setValueAtTime(0, t);
+  musicGain.gain.linearRampToValueAtTime(TITLE_MUSIC.vol, t + TITLE_MUSIC.fadeIn);
+  musicSrc.connect(musicGain).connect(OUT);
+  musicSrc.start(t);
+}, 200);

@@ -1034,16 +1034,24 @@ playing on another device or browser, starts the list fresh.
 
 ## 14. Sound
 
-All sound is generated live in the browser. There are no audio files.
+The title music is Sam's own, made in GarageBand. Every other sound is generated live in the browser.
 
 | Sound | Details |
 |---|---|
+| **Title music** | Sam's track (`audio/title.mp3`), a 16-bar loop at 88 bpm, plays on repeat on the title screen, the intro panes and the creator, at `TITLE_MUSIC.vol` (0.35). It fades in over 1.5 s and fades out over 1.5 s when a species is released, and starts again when the creator comes back after a run. Browsers only start sound after a click or key press, so on first load it begins with the first one (usually *Start* on the title screen). The *Sound* setting turns it off too. |
 | **Ambient notes** | Every 1.2 s, a 60% chance of one soft note from A3 B3 D4 E4 G4 A4 B4, sometimes with a quieter octave echo. Plays while a run is going, at about the loudness of the zoomed-in beat's snare. |
 | **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
 | **Zoom beat** | A drum pattern at 50 bpm in semiquavers (one step every 0.3 s): kick, hat, hat, hat, snare, hat, hat, hat. It fades in from 1.6× zoom and reaches full volume at 3.2×. |
+
+**Adding or replacing music.** Export the loop from GarageBand as WAV (Share → Export Song to Disk), with the cycle
+region set exactly to the bars that loop. `python3 tools/music.py track.wav audio/name.mp3` converts it to MP3 and
+prints the loop length for `js/config.js`. The MP3 holds the loop followed by its first second again: MP3 decoders
+add a few milliseconds of silence at the start (different amounts in different browsers), so the game loops between
+0.5 s and 0.5 s + the loop length, where there is always real music, and the repeat has no gap.
+`tools/build.py` puts the files in `audio/` inside the single-file build.
 
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
 back into view, and on the next tap or key press if the browser insists on one.
@@ -1260,13 +1268,15 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
-| `js/audio.js` | All sound, generated live: ambient notes, creature sounds, event effects, zoomed-in beat |
+| `audio/` | Music files: `title.mp3`, the title music |
+| `js/audio.js` | All sound: the title music, and the generated ambient notes, creature sounds, event effects and zoomed-in beat |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |
 | `js/intro.js` | The intro: title screen and the five panes explaining the game |
 | `js/main.js` | Camera, input, rendering each frame, the main loop |
-| `tools/build.py` | Bundles everything into one HTML file in `dist/` |
+| `tools/build.py` | Bundles everything, music included, into one HTML file in `dist/` |
+| `tools/music.py` | Converts a looping WAV from GarageBand into the game's MP3 (see [Sound](#14-sound)) |
 | `tests/smoke.py` | Clicks through every feature and fails on any error |
 | `tests/scenarios.py` | Runs many simulations headlessly and reports population and speciation |
 
