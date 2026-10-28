@@ -788,6 +788,90 @@ with each type. 15 times a species died out and came back. 8 of the 75 runs died
 A notification headed **"A new species has formed!"** welcomes it by name, for example "Welcome the first Blorbus
 natans." The event log keeps the same line.
 
+### The earlier species system (live until 28 October 2026)
+
+Kept here in case it is wanted back. Until 28 October 2026 species were **family lines found by splitting**, not
+the four ways of life: a species split in two when part of it was cut off on separate land, or drifted into a
+clearly separate cluster of traits. The founding species was always *primus*, and new species were named after
+the trait that most set them apart. Its strengths were variety (any combination of traits could become a species,
+with a name describing how it changed) and a true family tree. It was replaced because it could leave one species
+holding several quite different body types while another species looked almost the same, its rules were hard to
+predict, and splits got much harder as more species were alive.
+
+**To bring it back:** the whole game as it was is commit `1f8ffd9` on `main` (the last commit before the four types
+were merged). The species code is `checkSpeciation`, `kmeans2`, `split`, `EPI`, `vec`, `centroid` and `dist` in
+`js/sim.js`, and `SPC`, `MOUTH_SPLIT` and `SHOWS` in `js/config.js`; the founding species and *primus* are in
+`newGame` in `js/sim.js`. Later changes would need joining up by hand: species' `spans` (dying out and coming back),
+`aliveFor`, the four-type achievements, the intro's family tree names and the study test, which records new species
+by hooking `found` rather than `split`. The description below is the README's own from that time.
+
+#### When a new species forms
+
+Every 5 seconds, each living species is checked. A species can only split if:
+
+- it has at least 20 members
+- it is at least 90 seconds old (`SPC.age`)
+- at least 110 seconds have passed since it last split (`SPC.cool`)
+
+Two kinds of split are looked for:
+
+1. **Geographic: cut off on separate land.** Members standing on land are grouped by which landmass they are
+   on. If the second-biggest group has at least 12 members (`SPC.min`) and differs enough in traits from the biggest group
+   (more than `SPC.geo` = 0.22), that is a candidate split.
+2. **Ecological: a different way of life.** If there is no geographic split, the members are sorted into the
+   two most distinct trait clusters. The clusters must differ by more than `SPC.eco` (0.4) and be clearly
+   separate, with the gap between them at least 1.8 times the spread within them (`SPC.ratio`). The smaller
+   cluster must have at least 12 members.
+
+The same candidate must hold for **4 checks in a row**, about 20 seconds (`SPC.streak`). Then the smaller group
+becomes a new species.
+
+**More species make splitting harder.** Both thresholds are multiplied by 1 + 0.9 × (living species − 1)
+(`SPC.extra`). With 2 species alive, splits need 90% more difference, and with 3 alive, 180% more. In 75
+hour-long test runs that lasted the hour, three in four had 1–3 new species (the rest none), none ever had more
+than 3 alive at once, and most new species were still alive at the end of the hour.
+
+**Trait difference** is measured only on the body traits that change how a creature lives: size (× 1.2,
+`SPC.size`), leg length (× 0.75, `SPC.leg`), tail (× 1.3, `SPC.tail`), mouth (× 0.9, `MOUTH_SPLIT`) and roundness
+(× 0.5). What a creature eats (its mouth) and where it lives (its tail) count for more than how big it is or how
+long its legs are, as in real animals, where a change of diet or habitat is a classic start to a new species. Colour never makes a new
+species (each new species is given its own), and width and length count only through size, so two
+groups that only look a little different stay one species. Having a tail at all counts extra (`SHOWS`, 0.25), because it changes how creatures live and look even when the
+tail trait has barely moved. (The number of legs drawn doesn't count: it only follows size.)
+
+**No copies.** A group that would be within 0.2 of a species already alive (`SPC.same`) doesn't split off, so a
+species can't split into a copy of one that already exists.
+
+Species never merge back together.
+
+#### Names
+
+- **Genus** comes from your species name: lower-cased, letters only, a trailing "s" and vowels removed, then
+  "-us" added. "Blorbs" becomes *Blorbus*.
+- The **founding species** is always *primus*.
+- A **new species** is named after the trait that most separates it from its parent:
+
+| Name | Meaning |
+|---|---|
+| *natans* | more aquatic |
+| *terrestris* | more land-living |
+| *sorbens* | a more straw-like mouth ("sipping") |
+| *rostratus* | a more beak-like mouth ("beaked") |
+| *longipes* | longer-legged |
+| *brevipes* | shorter-legged |
+| *magnus* | bigger |
+| *minimus* | smaller |
+| *rotundus* | rounder ("a better swimmer") |
+| *acutus* | blockier ("a better walker") |
+
+- *insularis* is used first if the new group was cut off on an island (not the main landmass).
+- If those names are all taken, the fallbacks are *novus*, *alter*, *tertius* and *remotus*.
+
+A notification headed **"A new species has formed!"** welcomes it by name, for example "Welcome the first Blorbus
+natans." It doesn't say how the new species differs: one changed trait can't tell you how well it does overall (shorter
+legs swim faster, but not if the tail shrank too), so the Species tab is the place to compare them. Its Latin name
+still hints at its biggest change. The event log keeps the same line.
+
 ---
 
 ## 11. Achievements
