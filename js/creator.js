@@ -234,9 +234,9 @@ function syncCreator() {
     ],
     [
       tag('dT', x => `${x} px into thickets`),
-      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Crosses rivers' : 'Blocked by rivers', [
-        'Crosses rivers',
-        'Blocked by rivers',
+      tag(null, c.vW >= RIVER && c.dW >= 16 ? 'Swims rivers' : 'Wades rivers', [
+        'Swims rivers',
+        'Wades rivers',
       ]),
     ],
   ]

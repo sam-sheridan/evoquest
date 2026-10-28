@@ -6,9 +6,10 @@ Usage:  python3 tests/study.py [minutes] [workers] [worlds per type] [results fi
 For each world type it picks worlds with a mix of shapes, and on every world it releases five designs: a middling
 one, a fully random one (as Randomise makes), a small beaked walker, a big long-legged walker and a water creature.
 Each run records, as one line of JSON: population at 10, 20 and 30 minutes and at the end, time over 100, seasonal swing, new
-species (when, and how each split happened), most species alive at once, extinction (when, and what killed them),
-exploration at 10 minutes, how far each body trait moved, and which creature type each species ended up as
-(nut-cracker, strider, dabbler, sipper or other). A summary is printed at the end.
+species (when, which of the four types, and where the founding group lived), how many creatures moved between
+species and how often a species came back, most species alive at once, extinction (when, and what killed them),
+exploration at 10 minutes, how far each body trait moved, and the type of every species. A summary is printed at
+the end.
 
 Needs Python 3 and Playwright:  pip install playwright && playwright install chromium
 """
@@ -35,25 +36,9 @@ DESIGNS = {
     'water creature': {'w': 3.8, 'h': 4.5, 'leg': 0.05, 'hab': 0.97, 'mth': 0.97, 'round': 0.95},
 }
 
-# which creature type an average body is (see the field guide): water creatures by their tail, land ones by size,
-# legs and mouth
-CLASSIFY = """
-const kindOf = m => {
-  const t = Math.max(0, (m.hab - TAIL.min) / (1 - TAIL.min));
-  if (t >= 0.75) return 'sipper';
-  if (t >= 0.25) return 'dabbler';
-  if (m.size <= 0.85 && m.mth <= 0.4) return 'nut-cracker';
-  if (m.size >= 0.95 && m.leg >= 0.6) return 'strider';
-  return 'other';
-};
-"""
-
 RUN = (
     """([steps, designName]) => {
   const q = window.EvoQuestDebug, S = q.state, w = q.world;
-"""
-    + CLASSIFY
-    + """
   // lakes: water not joined to the open sea at the map's edge (worked out when a split happens)
   const lakeMask = () => {
     const N = GW * GH, sea = new Uint8Array(N), st = [];
@@ -63,17 +48,21 @@ RUN = (
         if (xx < 0 || yy < 0 || xx >= GW || yy >= GH || sea[k] || w.type[k] !== 0) continue; sea[k] = 1; st.push(k); } }
     return i => w.type[i] === 0 && !sea[i];
   };
-  // record every split: when, how, and where the new group was living
+  // record every new species: when, which type, and where the founding group was living; and how often creatures
+  // move between species, and species come back
   const splits = [];
-  // (the game's own split is kept once, so the recorder doesn't stack up over many runs in one page)
-  const split0 = (window._split0 ||= split);
-  split = (sp, small, rest, reason, island) => {
-    const inLake = lakeMask(), cells = small.map(c => cellI(c.x, c.y));
-    splits.push({ t: Math.round(S.t), reason: reason.startsWith('diverged') ? 'cut off on separate land' : 'way of life',
-      island, inWater: +(cells.filter(i => isWater(w.type[i])).length / cells.length).toFixed(2),
+  let moved = 0, returns = 0;
+  // (the game's own functions are kept once, so the recorders don't stack up over many runs in one page)
+  const found0 = (window._found0 ||= found), move0 = (window._move0 ||= move), revive0 = (window._revive0 ||= revive);
+  found = (z, parent, G) => {
+    const inLake = lakeMask(), cells = G.map(c => cellI(c.x, c.y));
+    splits.push({ t: Math.round(S.t), type: z, from: parent.epithet,
+      inWater: +(cells.filter(i => isWater(w.type[i])).length / cells.length).toFixed(2),
       inLake: +(cells.filter(inLake).length / cells.length).toFixed(2), alive: S.species.filter(s => !s.died).length + 1 });
-    return split0(sp, small, rest, reason, island);
+    return found0(z, parent, G);
   };
+  move = (G, from, to) => { moved += G.length; return move0(G, from, to); };
+  revive = sp => { returns++; return revive0(sp); };
   const seasons = [[], [], [], []], pops = {}, over = [0, 0], BW = Math.ceil(GW / 4), seen = new Uint8Array(BW * Math.ceil(GH / 4));
   let maxLive = 1, explored10 = null;
   const marks = [600, 1200, 1800], t0 = performance.now();
@@ -94,18 +83,23 @@ RUN = (
   }
   const avg = a => (a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : null);
   const last = S.hist.at(-1), first = S.orig;
-  // each species' type, from its last recorded average body
-  const types = S.species.map(sp => { const e = [...S.hist].reverse().find(e => e.sp[sp.id]); return e ? kindOf(e.sp[sp.id]) : null; });
+  // each species' type
+  const types = S.species.map(sp => sp.epithet);
+  // how spread out bodies are at the end (standard deviation across every living creature), and what share of
+  // them lives each way (by body, whatever species they belong to)
+  const C = S.creatures, sd = k => { const m = C.reduce((a, c) => a + c[k], 0) / C.length; return +Math.sqrt(C.reduce((a, c) => a + (c[k] - m) ** 2, 0) / C.length).toFixed(3); };
+  const endSpread = C.length > 1 ? { size: sd('size'), hab: sd('hab'), mth: sd('mth'), leg: sd('leg') } : null;
+  const endTypes = C.length ? Object.fromEntries(TYPE_NAMES.map(z => [z, +(C.filter(c => typeOf(c) === z).length / C.length).toFixed(2)])) : null;
   const drift = last && last.total ? Object.fromEntries(['size', 'leg', 'hab', 'mth', 'round'].map(k => [k, +(last.all[k] - first[k]).toFixed(2)])) : null;
   return {
     design: designName, released: { size: +first.size.toFixed(2), leg: +first.leg.toFixed(2), hab: +first.hab.toFixed(2), mth: +first.mth.toFixed(2), round: +first.round.toFixed(2) },
-    releasedType: kindOf(first), minutes: Math.round(S.t / 6) / 10, extinct: S.over, extinctAt: S.over ? Math.round(S.t) : null,
+    releasedType: typeOf(first), minutes: Math.round(S.t / 6) / 10, extinct: S.over, extinctAt: S.over ? Math.round(S.t) : null,
     deathBy: S.deathBy, pop10: pops[600] ?? 0, pop20: pops[1200] ?? 0, pop30: pops[1800] ?? 0, popEnd: S.over ? 0 : S.creatures.length,
     pctOver100: over[1] ? Math.round((100 * over[0]) / over[1]) : 0, seasonAverages: seasons.map(avg),
-    newSpecies: S.species.length - 1, maxLiveSpecies: maxLive, splits, speciesTypes: types,
+    newSpecies: S.species.length - 1, maxLiveSpecies: maxLive, splits, speciesTypes: types, moved, returns,
     // every species' life: when it formed, when it died out (null if still alive at the end) and its peak
     species: S.species.map(sp => ({ born: Math.round(sp.born), died: sp.died === null || (S.over && sp.died === S.t) ? null : Math.round(sp.died), peak: sp.peak })),
-    explored10, drift, maxGen: S.maxGen, events: S.events, msPerStep: +((performance.now() - t0) / Math.max(1, steps)).toFixed(2),
+    explored10, drift, endSpread, endTypes, maxGen: S.maxGen, events: S.events, msPerStep: +((performance.now() - t0) / Math.max(1, steps)).toFixed(2),
   };
 }"""
 )
@@ -177,6 +171,25 @@ if __name__ == '__main__':
     print(f"  extinct: {len(results) - len(alive)} of {len(results)}")
     per15 = [r['newSpecies'] / max(0.25, r['minutes'] / 15) for r in results]
     print(f"  new species per 15 minutes (average): {sum(per15) / len(per15):.2f}; most alive at once: {max(r['maxLiveSpecies'] for r in results)}")
+    from collections import Counter
+    print(f"  released as: {dict(Counter(r['releasedType'] for r in results))}")
+    print(f"  species that appeared (besides the released one): {dict(Counter(t for r in results for t in r['speciesTypes'][1:]))}")
+    print(f"  new species per run: {dict(sorted(Counter(r['newSpecies'] for r in results).items()))}")
+    # convergence: on each world, how different the designs still are from each other at the end (the spread of
+    # their average bodies; bigger means the starting design still matters), and how spread out each run's bodies are
+    import statistics
+    ends = {}
+    for r in results:
+        if r['drift']:
+            ends.setdefault(r['seed'], []).append({k: r['released'][k] + r['drift'][k] for k in ('size', 'hab', 'mth')})
+    between = [statistics.mean(statistics.pstdev([e[k] for e in E]) for k in ('size', 'hab', 'mth')) for E in ends.values() if len(E) > 1]
+    within = [statistics.mean(r['endSpread'][k] for k in ('size', 'hab', 'mth')) for r in results if r.get('endSpread')]
+    if between:
+        print(f"  designs' end bodies differ by (average spread between designs on a world): {statistics.mean(between):.3f}")
+    if within:
+        print(f"  bodies within a run differ by (average spread): {statistics.mean(within):.3f}")
+    mh = [r['moved'] / max(0.25, r['minutes'] / 60) for r in results]
+    print(f"  creatures moving between species per hour: median {sorted(mh)[len(mh) // 2]:.0f}; species coming back: {sum(r['returns'] for r in results)}")
     for m, label in [('pop10', '10 minutes'), ('pop20', '20 minutes'), ('pop30', '30 minutes'), ('popEnd', 'the end')]:
         v = [r[m] for r in alive]
         if v:

@@ -424,17 +424,17 @@ const PANES = [
   {
     h: 'Evolve into new species',
     p: [
-      'Traits that help in this world spread, and ones that don’t fade away. When a group gets cut off, or takes up a different way of life, it can split into a new species with its own colour and Latin name.',
+      'Traits that help in this world spread, and ones that don’t fade away. Every species lives one of four ways: in the water, in the thickets, out on the plains, or somewhere in between. When a group takes up a different way of life, it becomes that species, with its own colour and Latin name.',
       'There’s nothing to win: the run lasts until the last creature dies. Drag to look around, scroll or pinch to zoom, and tap a creature to follow it.',
     ],
-    // a small family tree: primus carries on, and two new species branch off it
+    // a small family tree: the released species carries on, and two others branch off it
     draw(g, t, s) {
       if (!s.sp) {
         const G = genus(D.name || 'Blorbs');
         s.sp = [
           [
             introCreature({ w: 3.5, h: 4, leg: 0.5, hab: 0.08, mth: 0.5, round: 0.5, ...okabe(0) }, 8),
-            `${G} primus`,
+            `${G} vulgaris`,
             120,
           ],
           [
@@ -444,7 +444,7 @@ const PANES = [
           ],
           [
             introCreature({ w: 6.2, h: 6.6, leg: 0.85, hab: 0.05, mth: 0.1, round: 0.15, ...okabe(5) }, 10),
-            `${G} magnus`,
+            `${G} campestris`,
             198,
           ],
         ];

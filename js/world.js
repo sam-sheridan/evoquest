@@ -336,6 +336,23 @@ function genWorld(seed, att = 0) {
     if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < 1 + SEA.beyond) beyond.push(i);
   for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
     put(beyond[(rl2() * beyond.length) | 0]);
+  // and algae beds out in open water, far from any land, that only strong swimmers reach (SEA.open)
+  const open = [],
+    ro = mulberry32(seed * 53 + 11);
+  for (let i = 0; i < GW * GH; i++)
+    if (world.type[i] === 0 && sea[i] && !border(i) && world.dLand[i] >= SEA.openFrom) open.push(i);
+  for (let k = Math.round(T.food[1] * SEA.open); k > 0 && open.length; k--) {
+    const i = open[(ro() * open.length) | 0];
+    world.sites.push({
+      x: ((i % GW) + ro()) * CS,
+      y: (((i / GW) | 0) + ro()) * CS,
+      i,
+      kind: 'w',
+      open: true,
+      active: true,
+      t: 0,
+    });
+  }
 }
 // no ground should be sealed off by rock where nothing can reach it: a pocket of land (or water) walled in by rock
 // gets a pass 2 cells wide cut through to the nearest open ground, and a tiny one (under 6 cells, all land) is

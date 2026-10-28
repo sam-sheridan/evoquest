@@ -65,25 +65,24 @@ function newGame(design, seed) {
     f.t = 0;
     f.cl = 0;
   });
+  const probe = { ...design };
+  enforce(probe);
+  compute(probe);
+  // the released species is whichever of the four types its design falls into
   S.species.push({
     id: 0,
-    epithet: 'primus',
-    hue: design.hue, // the species' colour, the creator's choice for primus
+    epithet: typeOf(probe),
+    hue: design.hue, // the species' colour, the creator's choice for the released species
     sat: design.sat,
     tag: col(design),
     parent: null,
     born: 0,
     died: null,
-    reason: 'founding population',
+    spans: [[0, null]], // [from, to] for each time it was alive (a species can die out and come back)
     lt: design.lt, // the species' lightness: also sets its eye colour
     n: START,
     peak: START,
-    streak: 0,
-    key: null,
   });
-  const probe = { ...design };
-  enforce(probe);
-  compute(probe);
   // the release spot: lots of food the design can eat nearby (RELEASE.near), and lots more it can reach from there
   // without leaving the ground it's allowed on (RELEASE.reach), so it isn't put in a rich dead end such as a strip of
   // shallows at the map's edge
@@ -192,10 +191,10 @@ function newGame(design, seed) {
   syncUI(true);
 }
 // does the ground suit this food? berries and nuts need land or thicket, algae shallow water (rivers or the sea's
-// shelf)
+// shelf), except the open-water beds (SEA.open), which grow in deep water
 function suits(f) {
   const t = world.type[f.i];
-  return f.kind === 'w' ? isWater(t) && !world.deep[f.i] : t === 1 || t === 2;
+  return f.kind === 'w' ? isWater(t) && (f.open || !world.deep[f.i]) : t === 1 || t === 2;
 }
 function edible(f) {
   return f.active && !f.gone;
@@ -217,7 +216,8 @@ function regrow(f) {
 function allowed(c, i, t) {
   if (t === 3) return false;
   if (isWater(t)) {
-    if (t === 4 && c.vW < RIVER) return false;
+    // a river too strong to swim can still be waded across (WADE)
+    if (t === 4 && c.vW < RIVER) return WADE.speed > 0;
     return world.dLand[i] <= c.dW;
   }
   if (t === 2 && world.dThick[i] > c.dT) return false;
@@ -228,7 +228,10 @@ const ageing = c =>
   c.age <= OLD.from ? 1 : 1 - ((1 - OLD.slowest) * (c.age - OLD.from)) / (LIFE - OLD.from);
 function speedIn(c, t, i, ok) {
   if (!ok) return 7;
-  return (isWater(t) ? c.vW * (t === 4 ? 0.75 : 1) : t === 2 ? c.vL * 0.85 : c.vL) * ageing(c);
+  const s = THICKET.slow,
+    thick = 1 - s.by * clamp((c.size - s.small) / (s.big - s.small), 0, 1);
+  const river = c.vW < RIVER ? Math.max(c.vW, c.vL * WADE.speed) : c.vW * 0.75;
+  return (t === 4 ? river : isWater(t) ? c.vW : t === 2 ? c.vL * thick : c.vL) * ageing(c);
 }
 function canEnter(c, hereOk, x, y) {
   if (!inside(x, y)) return false;
@@ -632,7 +635,8 @@ function eat(c, f) {
   c.blk = 0;
   c.rest = 0.8 + rand() * 0.6;
   f.vis = Math.min(c.rest / 2, 1.5);
-  if (c.E >= c.cap * 0.85 && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c))) c.pb = rand() * 3;
+  if (c.E >= c.cap * BREED.full && c.pb < 0 && c.age >= MATURE && rand() < breedChance(crowd(c)))
+    c.pb = rand() * 3;
   if (audible(c)) SND.eat();
 }
 function birth(p) {
@@ -803,7 +807,7 @@ function step(dt) {
   S.spT += dt;
   if (S.spT >= 5) {
     S.spT = 0;
-    checkSpeciation();
+    checkTypes();
   }
   S.frameT += dt;
   if (S.frameT >= S.frameStep) {
@@ -1049,17 +1053,6 @@ function logEv(m) {
 }
 
 /* stats */
-// what counts towards a new species: only the body traits that change how a creature lives (size, leg length,
-// tail, mouth, roundness, and having a tail at all). Colour never makes a species, and width and
-// length count only through size, so look-alike groups don't become separate species
-const vec = c => [
-  c.size * SPC.size,
-  c.leg * SPC.leg,
-  c.hab * SPC.tail,
-  c.mth * MOUTH_SPLIT,
-  c.round * 0.5,
-  c.tail > 0 ? SHOWS.tail : 0,
-];
 const KEYS = [
   'w',
   'h',
@@ -1108,7 +1101,7 @@ function sample(last) {
       if (sp.n)
         e.sp[sp.id] = sp.last = summ(M); // (last: its averages when last seen alive)
       else {
-        sp.died = S.t;
+        endSpecies(sp);
         if (S.creatures.length) {
           logEv(`${S.genus} ${sp.epithet} went extinct.`);
           toast(`${S.genus} ${sp.epithet} went extinct.`, 'Extinction');
@@ -1137,183 +1130,149 @@ function record() {
   }
 }
 
-/* speciation */
-const dist = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
-const centroid = M => {
-  const s = new Array(vec(M[0]).length).fill(0);
-  for (const c of M) {
-    const v = vec(c);
-    for (let i = 0; i < v.length; i++) s[i] += v[i];
-  }
-  return s.map(v => v / M.length);
-};
-function kmeans2(M) {
-  const P = M.map(vec),
-    cen = centroid(M);
-  let a = P.reduce((b, p) => (dist(p, cen) > dist(b, cen) ? p : b), P[0]),
-    b = P.reduce((q, p) => (dist(p, a) > dist(q, a) ? p : q), P[0]);
-  let lab = [];
-  for (let it = 0; it < 8; it++) {
-    lab = P.map(p => (dist(p, a) <= dist(p, b) ? 0 : 1));
-    const A = P.filter((_, i) => !lab[i]),
-      B = P.filter((_, i) => lab[i]);
-    if (!A.length || !B.length) return null;
-    const m = G => G[0].map((_, k) => G.reduce((s, p) => s + p[k], 0) / G.length);
-    a = m(A);
-    b = m(B);
-  }
-  let wss = 0;
-  P.forEach((p, i) => {
-    wss += dist(p, lab[i] ? b : a) ** 2;
-  });
-  const within = Math.sqrt(wss / P.length) || 1e-6,
-    d = dist(a, b);
-  return { d, ratio: d / within, groups: [M.filter((_, i) => !lab[i]), M.filter((_, i) => lab[i])] };
+/* species: four ways of life */
+// the four types, as [epithet, how far a creature is inside that type's area]. Each distance is in margins
+// (TYPES.margin): 0 on the border, 1 clearly inside, negative outside. Water comes first: a creature with a clear
+// tail is natans whatever its size or mouth
+const TYPE_NAMES = ['natans', 'silvicola', 'campestris', 'vulgaris'];
+function typeScores(c) {
+  const T = TYPES,
+    m = T.margin,
+    tail = c.tail ?? clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1),
+    water = (tail - T.water.tail) / m.tail,
+    thicket = Math.min((T.thicket.size - c.size) / m.size, (T.thicket.mouth - c.mth) / m.mouth, -water),
+    plains = Math.min((c.size - T.plains.size) / m.size, -water);
+  return [water, thicket, plains, -Math.max(water, thicket, plains)];
 }
-function checkSpeciation() {
-  const by = bySpecies();
-  const hard = 1 + SPC.extra * (S.species.filter(s => !s.died).length - 1);
-  for (const sp of S.species) {
-    if (sp.died) continue;
-    const M = by[sp.id] || [];
-    if (M.length < 20 || S.t - sp.born < SPC.age || S.t - (sp.lastSplit || -99) < SPC.cool) {
-      sp.streak = 0;
-      continue;
-    }
-    let key = null,
-      small = null,
-      reason = '',
-      island = false;
-    const g = new Map();
-    for (const c of M) {
-      if (!inside(c.x, c.y)) continue;
-      const i = cellI(c.x, c.y),
-        t = world.type[i];
-      if (t !== 1 && t !== 2) continue;
-      const k = world.comp[i];
-      if (!g.has(k)) g.set(k, []);
-      g.get(k).push(c);
-    }
-    const gs = [...g.entries()].sort((x, y) => y[1].length - x[1].length);
-    if (gs.length >= 2 && gs[1][1].length >= SPC.min) {
-      const d = dist(centroid(gs[0][1]), centroid(gs[1][1]));
-      if (d > SPC.geo * hard) {
-        key = 'geo' + gs[0][0] + '-' + gs[1][0];
-        small = gs[1][1];
-        reason = 'diverged after being cut off on separate land';
-        island = gs[1][0] !== world.main;
-      }
-    }
-    if (!key) {
-      const r = kmeans2(M);
-      if (
-        r &&
-        r.d > SPC.eco * hard &&
-        r.ratio > SPC.ratio &&
-        Math.min(r.groups[0].length, r.groups[1].length) >= SPC.min
-      ) {
-        key = 'eco';
-        small = r.groups[0].length < r.groups[1].length ? r.groups[0] : r.groups[1];
-        reason = 'split into a different way of life';
-      }
-    }
-    if (key && key === sp.key) sp.streak++;
-    else {
-      sp.key = key;
-      sp.streak = key ? 1 : 0;
-    }
-    // a group that would copy a species already alive stays where it is
-    if (sp.streak >= SPC.streak) {
-      const mid = centroid(small);
-      if (S.species.some(o => !o.died && o !== sp && by[o.id] && dist(mid, centroid(by[o.id])) < SPC.same)) {
-        sp.streak = 0;
-        sp.key = null;
-        continue;
-      }
-      split(
-        sp,
-        small,
-        M.filter(c => !small.includes(c)),
-        reason,
-        island
-      );
-      sp.streak = 0;
-      sp.key = null;
-      break;
-    }
-  }
+// the type a creature (or design) falls into
+function typeOf(c) {
+  const v = typeScores(c);
+  return TYPE_NAMES[v.indexOf(Math.max(...v))];
 }
-const EPI = [
-  ['hab', 1, 'natans'],
-  ['hab', -1, 'terrestris'],
-  ['mth', 1, 'sorbens'],
-  ['mth', -1, 'rostratus'],
-  ['leg', 1, 'longipes'],
-  ['leg', -1, 'brevipes'],
-  ['size', 1, 'magnus'],
-  ['size', -1, 'minimus'],
-  ['round', 1, 'rotundus'],
-  ['round', -1, 'acutus'],
-];
-// a new species' colour: the palette colour most unlike every living species'
+// how long a species has been alive in all, across any times it died out and came back
+const aliveFor = sp => sp.spans.reduce((a, [b, e]) => a + (e ?? S.t) - b, 0);
+// a species dies out (or every member has moved to another type): close its time span
+function endSpecies(sp) {
+  sp.died = S.t;
+  sp.n = 0;
+  sp.spans.at(-1)[1] = S.t;
+}
+// every 5 s: each creature leans towards a type. That is its own species' type unless it is clearly outside it (a
+// margin or more past the border), when it is the type it now fits best. A creature leaning towards another type
+// moves there when at least TYPES.join other creatures within TYPES.radius px lean the same way, and that species is
+// alive. Founding a species, or bringing back one that died out, needs TYPES.found creatures leaning that way within
+// TYPES.radius px of one of them, whose average is TYPES.deep margins inside the new type. Only creatures living
+// the same way count towards each other, so a few thicket dwellers beside a big plains herd still change, while a
+// lone creature stays with the species around it. Newborns take their parent's species
+function checkTypes() {
+  const byName = Object.fromEntries(S.species.map(s => [s.epithet, s])),
+    R2 = TYPES.radius ** 2,
+    C = S.creatures.filter(c => !c.dead),
+    lean = new Map();
+  for (const c of C) {
+    const v = typeScores(c),
+      own = TYPE_NAMES.indexOf(S.species[c.sp].epithet);
+    lean.set(c, v[own] > -1 ? TYPE_NAMES[own] : TYPE_NAMES[v.indexOf(Math.max(...v))]);
+  }
+  const near = (c, z) =>
+    C.filter(o => o !== c && lean.get(o) === z && (o.x - c.x) ** 2 + (o.y - c.y) ** 2 <= R2);
+  const movers = C.filter(c => lean.get(c) !== S.species[c.sp].epithet),
+    moves = new Map(); // creature -> species it moves to
+  // joining a living species
+  for (const c of movers) {
+    const to = byName[lean.get(c)];
+    if (to && !to.died && near(c, lean.get(c)).length >= TYPES.join) moves.set(c, to);
+  }
+  // founding (or bringing back) a species: the biggest close group leaning towards it
+  for (const z of TYPE_NAMES) {
+    if (byName[z] && !byName[z].died) continue;
+    const want = movers.filter(c => lean.get(c) === z);
+    let G = [];
+    for (const c of want) {
+      const g = [c, ...near(c, z)];
+      if (g.length > G.length) G = g;
+    }
+    if (G.length < TYPES.found || typeScores(summ(G))[TYPE_NAMES.indexOf(z)] < TYPES.deep) continue;
+    const from = S.species[G[0].sp],
+      to = byName[z] ? revive(byName[z]) : (byName[z] = found(z, from, G));
+    for (const c of G) moves.set(c, to);
+  }
+  // apply the moves, grouped by the species each creature leaves and the one it joins
+  const before = new Set(C.map(c => c.sp)),
+    batches = new Map();
+  for (const [c, to] of moves) {
+    const k = c.sp + '>' + to.id;
+    if (!batches.has(k)) batches.set(k, [S.species[c.sp], to, []]);
+    batches.get(k)[2].push(c);
+  }
+  for (const [from, to, G] of batches.values()) if (from !== to) move(G, from, to);
+  for (const sp of S.species)
+    if (before.has(sp.id) && !sp.died && !C.some(c => c.sp === sp.id)) {
+      const where = [
+        ...new Set(C.filter(c => moves.has(c) && moves.get(c) !== sp).map(c => moves.get(c).epithet)),
+      ];
+      endSpecies(sp);
+      logEv(`The last ${S.genus} ${sp.epithet} have become ${where.join(' and ') || 'another species'}.`);
+    }
+}
+// creatures move to another species, blending into its colour and each keeping its own shade
+function move(G, from, to) {
+  if (!G.length) return;
+  for (const c of G) {
+    c.from = [c.hue, c.sat, c.lt];
+    c.fromT = S.t;
+    c.lt = to.lt + c.lt - from.lt;
+    c.hue = to.hue;
+    c.sat = to.sat;
+    c.sp = to.id;
+  }
+  from.n -= G.length;
+  to.n += G.length;
+  to.peak = Math.max(to.peak, to.n);
+}
+// the palette colour most unlike every species so far, so each of the run's species keeps a colour of its own
 function newColour() {
-  const live = S.species.filter(s => s.died === null).map(s => hslRgb(s.hue, s.sat, s.lt));
+  const used = S.species.map(s => hslRgb(s.hue, s.sat, s.lt));
   let best = OKABE[0],
     bd = -1;
   for (const o of OKABE) {
-    const d = Math.min(...live.map(c => colDist(c, hslRgb(o[2], o[3], o[4]))));
+    const d = Math.min(...used.map(c => colDist(c, hslRgb(o[2], o[3], o[4]))));
     if (d > bd) [best, bd] = [o, d];
   }
   return best;
 }
-function split(sp, small, rest, reason, island) {
-  const a = summ(small),
-    b = summ(rest);
-  const used = new Set(S.species.map(s => s.epithet));
-  const scale = { hab: 0.15, mth: 0.15, leg: 0.15, size: 0.25, round: 0.25 };
-  const cand = EPI.map(([k, s, name]) => ({ name, v: (s * (a[k] - b[k])) / scale[k] }))
-    .filter(x => x.v > 0)
-    .sort((x, y) => y.v - x.v)
-    .map(x => x.name);
-  if (island) cand.unshift('insularis');
-  cand.push('novus', 'alter', 'tertius', 'remotus');
-  let ep = cand.find(n => !used.has(n));
-  if (!ep) ep = 'forma' + S.species.length;
-  const o = newColour();
-  const ns = {
-    at: { self: a, parent: b },
-    id: S.species.length,
-    epithet: ep,
-    hue: o[2],
-    sat: o[3],
-    lt: o[4],
-    tag: o[1],
-    parent: sp.id,
-    born: S.t,
-    died: null,
-    reason,
-    n: small.length,
-    peak: small.length,
-    streak: 0,
-    key: null,
-  };
+// a type appears for the first time, founded by a group from another species (its parent in the family tree)
+function found(z, parent, G) {
+  const o = newColour(),
+    ns = {
+      id: S.species.length,
+      epithet: z,
+      hue: o[2],
+      sat: o[3],
+      lt: o[4],
+      tag: o[1],
+      parent: parent.id,
+      born: S.t,
+      died: null,
+      spans: [[S.t, null]],
+      n: 0,
+      peak: 0,
+    };
   S.species.push(ns);
-  sp.lastSplit = S.t;
-  // the new species' creatures blend into its colour, each keeping its own shade
-  for (const c of small) {
-    c.from = [c.hue, c.sat, c.lt];
-    c.fromT = S.t;
-    c.lt = ns.lt + c.lt - sp.lt;
-    c.hue = ns.hue;
-    c.sat = ns.sat;
-    c.sp = ns.id;
-  }
-  sp.n = rest.length;
-  // no reason given: the Species tab shows how it differs
-  const m = `Welcome the first ${S.genus} ${ep}.`;
+  const m = `Welcome the first ${S.genus} ${z}.`;
   logEv('New species: ' + m);
   toast(m, 'A new species has formed!');
   SND.badge();
+  return ns;
+}
+// a type that died out comes back when a group takes up its way of life again
+function revive(sp) {
+  sp.died = null;
+  sp.spans.push([S.t, null]);
+  const m = `${S.genus} ${sp.epithet} is back.`;
+  logEv(m);
+  toast(m, 'A species has returned!');
+  return sp;
 }
 
 /* achievements (named 'badges' in the code) */
@@ -1376,10 +1335,10 @@ const BADGES = [
   {
     id: 'guard',
     name: 'Changing of the Guard',
-    d: 'A newer species outlives primus',
+    d: 'A newer species outlives the one you released',
     f: () => S.species[0].died !== null && S.species.some(s => s.id && s.died === null),
   },
-  { id: 'tree', name: 'Tree of Life', d: 'Six species over one run', f: () => S.species.length >= 6 },
+  { id: 'tree', name: 'Tree of Life', d: 'All four species in one run', f: () => S.species.length >= 4 },
 ];
 function checkBadges() {
   if (!S.creatures.length) return;

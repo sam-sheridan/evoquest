@@ -1,8 +1,9 @@
 # EvoQuest
 
 Design a species, release 20 of them onto a randomly generated island world, and watch the world decide what
-they become. Food, terrain, seasons and world events shape their bodies over generations. Groups that get cut
-off, or that take up a different way of life, can split into new species.
+they become. Food, terrain, seasons and world events shape their bodies over generations. Every species lives one
+of four ways (in the water, in the thickets, on the plains or in between), and creatures that take up another way
+of life become that species.
 
 **Play online:** https://sam-sheridan.github.io/evoquest/
 
@@ -92,8 +93,8 @@ between panes and Esc closes the intro. The creatures carry on behind the panes,
 3. **Eat, breed, survive**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
    caption for each step (loops every 9 seconds, `INTRO.loop`).
 4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
-5. **Evolve into new species**: a family tree growing across the picture, with primus carrying on and *natans* and
-   *magnus* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
+5. **Evolve into new species**: a family tree growing across the picture, with *vulgaris* carrying on and *natans*
+   and *campestris* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
    tapping a creature. Its last button, *Get Started*, closes the intro. Back and Next stay the same size on every pane, so the dots
    never move.
 
@@ -123,7 +124,7 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
 3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
    worth).
-4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it crosses rivers.
+4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it swims or wades across rivers.
 
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
 design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
@@ -183,7 +184,7 @@ what you can see.
 
   Half of a typical thicket lies within about 32 px of its edge and nine tenths within about 80 px, so a middling
   creature reaches about half of it and only small ones its heart.
-- **Legs**: drawn as 4, or 6 from size 0.9 (`LEGS.sixFrom`). The number is only a look: it doesn't change speed,
+- **Legs**: drawn as 4, or 6 from size 1.0 (`LEGS.sixFrom`), the same size at which a body counts as *campestris*. The number is only a look: it doesn't change speed,
   energy or speciation, and isn't shown as a stat. Leg length is the trait that matters.
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
   smallest and 26 at the biggest.
@@ -200,21 +201,22 @@ what you can see.
   and long legs, no tail and a blocky body make walkers.
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
-  anywhere in water. Everything in between has two limits (`HAB.range` = 200):
-  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.first`), so every visible tail gets into
-    at least the first band of water
-  - it walks at most 200 × ((1 − tail) ÷ tail)² px from water
+  anywhere in water. Everything in between has two limits:
+  - it swims at most 16 + 200 × (tail ÷ (1 − tail))² px from shore (`HAB.range`, `HAB.first`), so every visible tail
+    gets into at least the first band of water
+  - it walks at most 70 × ((1 − tail) ÷ tail)² px from water (`HAB.inland`; 200 before October 2026): amphibious
+    creatures stay near the water's edge, leaving the interior to true walkers
 
   | Tail (slider) | Effective tail | Swims from shore | Walks from water |
   |---|---|---|---|
   | 0–15% | 0 | never enters water | anywhere |
   | 16% | just above 0 | 16 px | anywhere |
-  | 32% | 0.2 | 29 px | 3200 px (anywhere, in practice) |
-  | 41% | 0.3 | 53 px | 1089 px |
-  | 49% | 0.4 | 105 px | 450 px |
-  | 58% | 0.5 | 216 px | 200 px |
-  | 66% | 0.6 | 466 px | 89 px |
-  | 83% | 0.8 | 3216 px (anywhere, in practice) | 13 px (never leaves water, in practice) |
+  | 32% | 0.2 | 29 px | 1120 px |
+  | 41% | 0.3 | 53 px | 381 px |
+  | 49% | 0.4 | 105 px | 158 px |
+  | 58% | 0.5 | 216 px | 70 px |
+  | 66% | 0.6 | 466 px | 31 px |
+  | 83% | 0.8 | 3216 px (anywhere, in practice) | 4 px (never leaves water, in practice) |
   | 100% | 1 | anywhere | never leaves water |
 
   Water is always at least one cell (16 px) from land and land from water, so a limit under 16 px means never. Every
@@ -223,9 +225,11 @@ what you can see.
 
   So a 67% creature lives along coasts and lakesides, and being in between is no longer a free pass.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
-- **River crossing.** Needs water speed of at least 14 px/s (`RIVER`). The "Crosses rivers" chip also needs
-  the creature to swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
-  more is needed to swim that fast, depending on legs and roundness.
+- **River crossing.** Swimming across a river's current needs water speed of at least 14 px/s (`RIVER`), and the
+  creature must swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
+  more is needed to swim that fast, depending on legs and roundness. Every other creature **wades** across instead,
+  at 35% of its walking speed (`WADE.speed`), as land animals ford streams, so rivers slow walkers down but no
+  longer trap them on one piece of land. The creator's chip says "Swims rivers" or "Wades rivers".
 - **Reach** = half the longest side + 4 px.
 - **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
 
@@ -272,7 +276,7 @@ near water can drift up to 15% within a run and start using a tail when the wate
 **Randomise** gives about a third of designs no tail (0–13%) and the rest a visible one (25–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 6 legs), goes 40 px
+The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 4 legs), goes 40 px
 into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
 
 ### Colour: one per species
@@ -280,13 +284,13 @@ into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers
 Colour has **no effect on survival**, and it doesn't evolve. Each species is a single colour, so species can be
 told apart on the map at a glance:
 
-- **Primus** is the colour you chose in the creator.
-- **A new species** gets the one of the 7 creator colours that looks most unlike every species alive at that
-  moment (`newColour()`, using a weighted RGB distance). With at most 3 species alive there is always a clear
-  choice. Colours of extinct species can come back on long runs.
+- **The released species** is the colour you chose in the creator.
+- **A new species** gets the one of the 7 creator colours that looks most unlike every species so far
+  (`newColour()`, using a weighted RGB distance). With at most four species in a run, each keeps its own colour,
+  including one that dies out and comes back.
 - **Individuals** differ only in shade: each newborn is up to 4 lightness points lighter or darker than its
   species' colour (`SHADE`), so a crowd doesn't look cloned. The shade doesn't build up over generations.
-- **At a split**, the new species' creatures blend from the old colour to the new one over 1.5 seconds
+- **When a creature moves to another species**, it blends from the old colour to the new one over 1.5 seconds
   (`SPLIT_FADE`), round the colour wheel the short way so they stay bright rather than passing through grey.
 
 The same colour is used for the species everywhere: on the map, in the Species tab, the Stats chart, the family
@@ -336,7 +340,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 A creature may breed when it eats **and** all of these are true:
 
 - it is at least 15 seconds old (`MATURE`)
-- its energy after eating is at least 85% of capacity
+- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20)
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
@@ -383,8 +387,8 @@ creatures are left at all.
 
 | Terrain | Allowed if… | Speed there |
 |---|---|---|
-| Land | It is within its walking range of water (always true with no tail, 15% or less; a 40% tail still walks over 1,000 px from water). | Land speed |
-| Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed |
+| Land | It is within its walking range of water (always true with no tail, 15% or less; a 32% tail still walks over 1,000 px from water). | Land speed |
+| Thicket | It is no further from the thicket's edge than its size allows (see [traits](#body-traits-shaped-by-the-world)), plus the land rule. | 85% of land speed for size 1.0 or more, easing to full land speed at size 0.75 or less: small creatures slip through the undergrowth (`THICKET.slow`) |
 | Sea | It is within its swimming range of land. | Water speed |
 | River | Water speed is at least 14 px/s, plus the sea rule. | 75% of water speed (the current) |
 | Rock | Never. | – |
@@ -589,7 +593,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 |---|---|---|
 | **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
 | **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -714,7 +718,94 @@ that stays above water don't shift.
 
 ## 10. Speciation and naming
 
-### When a new species forms
+### Four ways of life
+
+Every species is one of four types, each a way of life with its own Latin name (`TYPES`):
+
+| Species | Way of life | Body |
+|---|---|---|
+| *natans* | water | a tail of at least 50% (counting from where a tail starts to show), whatever its size or mouth |
+| *silvicola* | thickets | small (size 0.8 or less) with a beak-like mouth (0.4 or less, on the beak 0 to straw 1 scale), and not water |
+| *campestris* | plains | large (size 1.0 or more), any mouth, and not water |
+| *vulgaris* | in between | everything else |
+
+Water comes first: a creature with a clear tail is *natans* whatever else it is. So there are never more than four
+species alive at once, and two species never look alike.
+
+The **released species** is whichever type the creator's design falls into, and keeps the colour you chose. There
+is no *primus*: release a water creature and the run starts with *natans*.
+
+This is the "ecological" idea of a species (a group with its own way of life) rather than "creatures that can
+interbreed", which doesn't apply here: reproduction is asexual, each newborn a slightly changed copy of one parent.
+(Sam chose this in October 2026, replacing splits found by trait clusters, which could leave one species holding
+several quite different body types.)
+
+### Moving between species
+
+Newborns take their parent's species. As traits drift, some creatures end up living another way. Every 5 seconds:
+
+- Each creature **leans** towards a type. That is its own species' type unless it is clearly outside it: at least
+  one margin past the border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). Then it leans
+  towards the type it now fits best. The margin stops creatures near a border flicking back and forth. A creature's
+  body never changes during its life, so its lean is set by how it was born.
+- A creature leaning towards another type **joins** that species if it is alive and at least **3** other creatures
+  within **200 px** lean the same way or already belong there (`TYPES.join`, `TYPES.radius`). It blends into the new
+  colour over 1.5 seconds (`SPLIT_FADE`), keeping its own shade.
+- To **found a new species** (or bring back one that died out), at least **6** creatures leaning that way must be
+  within 200 px of one of them (`TYPES.found`), and their average must be **two margins** inside the new type
+  (`TYPES.deep`: a 66% tail for *natans*, for example), so a new species starts clearly different.
+- Only creatures living the same way count towards each other. A few small beaked creatures at a thicket's edge can
+  become *silvicola* even beside a big plains herd, while a lone creature with no like-minded neighbours stays with
+  the species around it, so you don't see one stray *natans* in a crowd of *vulgaris*. A group can take a couple of
+  checks to change completely, since creatures at its edge have fewer neighbours.
+- When the last members of a species move to others, the log says so ("The last Blorbus vulgaris have become
+  natans"). When a species dies out and creatures later take up its way of life again, it **comes back** under the
+  same name and colour, with a notification, and the family tree shows each stretch it was alive.
+
+Because creatures can move in both directions, creatures from different species can end up in one type: species
+here describe how creatures live, not a single line of descent. The family tree shows where each species first came
+from.
+
+(Earlier versions, all October 2026: each creature moving on its own left stray creatures of one species inside
+crowds of another; needing members of the new species nearby left species' averages drifting from their type;
+judging whole herds by their average let big herds swallow the few thicket dwellers beside them, so *silvicola*
+almost never formed. Counting like-minded neighbours fixed all three.)
+
+In 75 hour-long study runs (October 2026, with the habitat changes in section 16): 60 had at least one new species
+(median 14 minutes before the first), with up to 4 alive at once, and 102 of 118 new species lasted to the end of the
+run. New species by type: *campestris* 46, *vulgaris* 32, *natans* 31, *silvicola* 9. Every world type had runs
+with each type. 15 times a species died out and came back. 8 of the 75 runs died out altogether.
+
+### Names
+
+- **Genus** comes from your species name: lower-cased, letters only, a trailing "s" and vowels removed, then
+  "-us" added. "Blorbs" becomes *Blorbus*.
+- The **epithet** is the type: *natans* (swimming), *silvicola* (woodland-dwelling), *campestris* (of the plains)
+  or *vulgaris* (common).
+- Each species gets its colour when it first appears: the palette colour most unlike every species so far, so all
+  of a run's species keep different colours.
+
+A notification headed **"A new species has formed!"** welcomes it by name, for example "Welcome the first Blorbus
+natans." The event log keeps the same line.
+
+### The earlier species system (live until 28 October 2026)
+
+Kept here in case it is wanted back. Until 28 October 2026 species were **family lines found by splitting**, not
+the four ways of life: a species split in two when part of it was cut off on separate land, or drifted into a
+clearly separate cluster of traits. The founding species was always *primus*, and new species were named after
+the trait that most set them apart. Its strengths were variety (any combination of traits could become a species,
+with a name describing how it changed) and a true family tree. It was replaced because it could leave one species
+holding several quite different body types while another species looked almost the same, its rules were hard to
+predict, and splits got much harder as more species were alive.
+
+**To bring it back:** the whole game as it was is commit `1f8ffd9` on `main` (the last commit before the four types
+were merged). The species code is `checkSpeciation`, `kmeans2`, `split`, `EPI`, `vec`, `centroid` and `dist` in
+`js/sim.js`, and `SPC`, `MOUTH_SPLIT` and `SHOWS` in `js/config.js`; the founding species and *primus* are in
+`newGame` in `js/sim.js`. Later changes would need joining up by hand: species' `spans` (dying out and coming back),
+`aliveFor`, the four-type achievements, the intro's family tree names and the study test, which records new species
+by hooking `found` rather than `split`. The description below is the README's own from that time.
+
+#### When a new species forms
 
 Every 5 seconds, each living species is checked. A species can only split if:
 
@@ -753,7 +844,7 @@ species can't split into a copy of one that already exists.
 
 Species never merge back together.
 
-### Names
+#### Names
 
 - **Genus** comes from your species name: lower-cased, letters only, a trailing "s" and vowels removed, then
   "-us" added. "Blorbs" becomes *Blorbus*.
@@ -802,8 +893,8 @@ Achievements are earned per run and reset with each new run. They are checked ev
 | Branching Out | Witness a new species form |
 | Land and Sea | An entirely land species (on average it never enters water) and an entirely water species (on average it never leaves water) alive at once |
 | Crowded Tree | Three species alive at once |
-| Changing of the Guard | A newer species outlives primus |
-| Tree of Life | Six species over one run |
+| Changing of the Guard | A newer species outlives the one you released |
+| Tree of Life | All four species in one run |
 
 ---
 
@@ -858,16 +949,16 @@ Collapse or expand it with the arrow. It has four tabs.
     one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
     each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
-    instead. In each species' column, the one or two traits that most set it apart from the species it split
-    from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the inspector
-    primus has no highlights, since it didn't split from anything (on the end screen it is compared with the
-    released design). A trait counts only if it
+    instead. In each species' column, the one or two traits that most set it apart from the species it first
+    came from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the
+    inspector the released species has no highlights, since it didn't come from anything (on the end screen it is
+    compared with the released design). A trait counts only if it
     differs notably: by 0.06 in size, 0.2 in roundness, or 12 percentage points in the leg length, tail
     or mouth traits.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
     second walking flat out, without temperature or deep water), Energy store, Into thickets (how far, in px) or
-    Crosses rivers (the share of a species that can, never shown above 100%). One line per species, of the species' average. Distances
+    Swims rivers (the share of a species that can swim across a river rather than wade, never shown above 100%). One line per species, of the species' average. Distances
     beyond 2,000 px (more than most of the map, so in practice "anywhere") count as 2,000, and thicket reach beyond
     200 px counts as 200, so a few unlimited
     creatures don't swamp the average. For population, a thin black line shows the total. The dashed line is the
@@ -925,11 +1016,12 @@ When the last creature dies, the summary shows, under the *Lineage extinct* head
 - **How they died**: a bar split by starvation, old age and meteor strike.
 - **Species table**: the same table as the inspector's Species tab, with every species as it was last seen
   (none greyed out, since all have died), and the released design as the first column, headed **Released** as in
-  the inspector. Here primus's one or two most changed traits are highlighted against the released design, the
-  same way other species are against their parent.
+  the inspector. Here the released species' one or two most changed traits are highlighted against the released
+  design, the same way other species are against the species they came from.
 - **Family tree**: every species as a line through time, with a marker every minute (every few minutes on long
-  runs, so the labels don't overlap). Branches show where each split from its parent. A
-  thick line means still alive at the end, and a tick marks extinction.
+  runs, so the labels don't overlap). Branches show which species each first came from. A
+  thick line means still alive at the end, and a tick marks each time it died out (a species that came back has
+  more than one stretch).
 - **Achievements**: every achievement, the ones earned this run in full and the rest greyed out.
 - **Watch replay** plays the whole run back at 12 recorded moments per second. A moment is recorded each
   second of game time, and the gap between recordings doubles on very long runs to save memory.
@@ -1033,7 +1125,7 @@ The look is a scientific **field notebook / survey map**.
   - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
   - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
     every member of a species has the same eyes even though shades vary slightly from creature to creature.
-  - Legs: 4, or 6 from size 0.9 (`LEGS.sixFrom`), so they follow size and change as it evolves (only a look). They sit in
+  - Legs: 4, or 6 from size 1.0 (`LEGS.sixFrom`, 0.9 before October 2026), so they follow size and change as it evolves (only a look). They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
     mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45
@@ -1062,7 +1154,7 @@ accident.
   an oval, and regions differ in thicket, rock and wetland.
 - **Body traits are selected; colour marks the species.** Colour used to drift by chance, to show how long
   groups had been apart, but the drift was slow and hard to see. Now each species has one fixed colour and a new
-  species gets a clearly different one, so species read at a glance and the split is a visible moment. This
+  species gets a clearly different one, so species read at a glance and a new species is a visible moment. This
   also replaced the *Creature colour* setting (body colour or species colour), since the two are now the same.
 - **Leg count follows size, leg length evolves.** Small bodies have 4 legs and big ones 6, on the sides only,
   which keeps the front for the mouth and the back for the tail. The count is only a look (since October 2026):
@@ -1077,6 +1169,20 @@ accident.
   cold-adapted groups end up stranded apart ("sky islands"), which encourages new species.
 - **Being in between costs something.** Only no tail or a full tail goes anywhere in its element, so a 50% tail
   is a jack of all trades, master of none.
+- **Each way of life owns part of the world** (October 2026). With evolution switched off, a half-tailed creature
+  used to support 5 to 10 times the population of a walker or a swimmer in every world type: it walked over most of
+  the land, grazed the shoreline algae, and swam across the rivers that trapped walkers, so every design drifted to
+  the same middle body. Rather than penalise the middle, three natural changes give the specialists back their
+  ground: open-water algae beds only strong swimmers reach (as fish have the open sea), amphibians that stay near
+  the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
+  best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
+  still evolve a small tail, to wade out for shoreline algae, which is fine.
+- **Energy still favours bigger bodies, for now** (October 2026). A more natural energy rule was tried, where total
+  energy use grows with body size as in real animals (small animals need less food in all). It made small bodies
+  win in every world, so every design shrank to about size 0.7 and *campestris* almost vanished: nothing in the
+  game yet gives big bodies the advantages they have in nature (escaping predators, coping with cold, winning
+  fights over food). The older rule, with the habitat changes above, kept designs the most distinct of anything
+  tested, so it stays.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
   setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
@@ -1086,7 +1192,8 @@ accident.
   walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
-- **Species don't merge back.** Instead, splitting gets harder as more species are alive.
+- **Species are ways of life.** Four fixed types, so species always look different, there are never more than four
+  alive, and the names mean the same in every run. Creatures move between them as they change (see section 10).
 - **Meteors are occasional (about 1 in 7 events)** and dramatic.
 - **Almost no player tools during a run.** You design, then watch. The one exception is controlling a single
   creature's movement: it follows every normal rule, so it lets you feel the world's pressures without steering
@@ -1117,7 +1224,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How fast food regrows | `GROW` (smaller numbers mean faster regrowth and more creatures) |
 | Season length, foods and event odds per season | `SEASON_LEN`, `SEASONS` |
 | Event frequency, meteor and major odds | `EVENTS` |
-| How easily species split | `SPC` (bigger `geo`/`eco` means rarer splits, smaller `ratio` means less clearly separate groups can split, bigger `extra` means fewer species at once); `SHOWS` for how much having a tail counts |
+| Where the four species' borders are | `TYPES` (`water`, `thicket`, `plains`); `margin` for how far past a border a creature must be to lean elsewhere, `radius` and `join` for how many like-minded neighbours it needs to move, `found` and `deep` for how many and how clearly different they must be to found a species |
 | River-crossing speed | `RIVER` |
 | How far ahead creatures plan | `MAXT` |
 | How far creatures stray from home, and how fast populations spread | `HOME` |
@@ -1191,7 +1298,10 @@ python3 tests/smoke.py
 python3 tests/scenarios.py 6 15
 ```
 
-- **`smoke.py`** clicks through every feature (starting with every pane of the intro) and prints PASS or FAIL.
+- **`smoke.py`** clicks through every feature (starting with every pane of the intro) and prints PASS or FAIL. Its
+  random numbers come from a fixed seed, so it plays out much the same way each time, and if the major events it
+  forces happen to wipe the population out, it releases again on the same world (up to three tries) rather than
+  failing on a chance extinction.
 - **`scenarios.py [runs] [minutes]`** runs full simulations as fast as possible across six test designs and
   reports population, seasonal swing, extinctions, new species, how much land was explored at 10 minutes, the
   population at 10 minutes and after 20, and the time per simulation step.
@@ -1200,8 +1310,8 @@ python3 tests/scenarios.py 6 15
   - about a quarter of the land explored at 10 minutes, with a population of roughly 20–50
   - populations mostly between 40 and 100 after 20 minutes
   - gentle seasonal swings
-  - over an hour (use `study.py`), primus plus 1–3 new species, each clearly different and lasting a good while,
-    with at most 3 alive at once
+  - over an hour (use `study.py`), most runs see 1–3 new species appear and last a good while (at most 4 alive, by
+    design)
 
   Results vary from run to run, so compare batches rather than single runs.
 - **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three

@@ -5,7 +5,7 @@ function endRun() {
   S.over = true;
   S.paused = true;
   S.species.forEach(s => {
-    if (!s.died) s.died = S.t;
+    if (!s.died) endSpecies(s);
   });
   const run = {
     name: S.design.name,
@@ -131,13 +131,17 @@ function treeSVG(width) {
   }
   for (const s of order) {
     const x0 = X(s.born),
-      x1 = X(s.died ?? S.t),
       y = Y[s.id],
       alive = !s.died;
     if (s.parent !== null)
       out += `<path d="M${x0} ${Y[s.parent]}V${y}" stroke="currentColor" stroke-width="1" fill="none"/>`;
-    out += `<line x1="${x0}" y1="${y}" x2="${Math.max(x1, x0 + 2)}" y2="${y}" stroke="${s.tag}" stroke-width="${alive ? 4 : 2}" stroke-opacity="${alive ? 1 : 0.55}"/>`;
-    if (!alive) out += `<line x1="${x1}" y1="${y - 4}" x2="${x1}" y2="${y + 4}" stroke="currentColor"/>`;
+    // one line for each time it was alive (a species can die out and come back), with a mark where each ends
+    for (const [b, e] of s.spans) {
+      const a = X(b),
+        z = X(e ?? S.t);
+      out += `<line x1="${a}" y1="${y}" x2="${Math.max(z, a + 2)}" y2="${y}" stroke="${s.tag}" stroke-width="${alive ? 4 : 2}" stroke-opacity="${alive ? 1 : 0.55}"/>`;
+      if (e !== null) out += `<line x1="${z}" y1="${y - 4}" x2="${z}" y2="${y + 4}" stroke="currentColor"/>`;
+    }
     const lx = Math.min(x0 + 3, width - 200);
     out += `<text x="${lx}" y="${y - 7}" font-size="11" fill="#151918" font-family="IBM Plex Sans, sans-serif"><tspan font-style="italic">${esc(S.genus)} ${s.epithet}</tspan><tspan font-family="IBM Plex Mono, monospace" font-size="11" fill="#636d69"> ${alive ? s.n + ' alive' : '† ' + fmtT(s.died)}</tspan></text>`;
   }

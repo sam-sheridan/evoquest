@@ -32,8 +32,8 @@ Read the relevant section before changing a mechanic.
 
 ## Where things stand
 
-- Mechanics are beta-ready. The game was reworked in October 2026: one fixed colour per species (primus keeps the
-  creator's colour, each new species gets the most different one at its split), black or white eyes set per
+- Mechanics are beta-ready. The game was reworked in October 2026: one fixed colour per species (the released species keeps
+  the creator's colour, each new species gets the most different one when it appears), black or white eyes set per
   species, a redesigned creator (stat tags that fill like bars, a ? help popup, a refresh button for Randomise)
   and 15 achievements.
 - The map redesign's water and trees shipped in October 2026: the drawn bands are now the game's real shelf
@@ -43,11 +43,18 @@ Read the relevant section before changing a mechanic.
 - The rest of the map redesign shipped in October 2026 too: rocks are angular inked crags (faces, two tiers, a
   skirt of uphill strokes, sea cliffs where they meet water; no rock pieces under 6 cells), contours follow the
   land and fade before rocks, and the open land has blended meadow and dry-ground colours, very light hill
-  shading, lone trees, grass tufts and reeds. Heavy shading is always a small smoothed image (Safari's limit).
+  shading and lone trees (grass tufts, reeds and rock hatching were removed later in October 2026). Heavy shading
+  is always a small smoothed image (Safari's limit).
 - The intro shipped in October 2026: a title screen every time the game loads (wandering creatures round the name,
   "A game by Sam Sheridan" in the corner) and five panes explaining the game, reopened from the creator's EvoQuest
   title. Sam chose wandering creatures over a pinned "specimen plate" look (kept in the branch history).
 - Thickets stay as they are: Sam decided against thickets that change over time.
+- Species became four ways of life on 28 October 2026 (README section 10), replacing splits found by trait
+  clusters; the old system is written up there, with how to bring it back. The same release added natural
+  habitats (open-water algae for swimmers, amphibians near water, walkers wading rivers), breeding at 75% energy
+  and full thicket speed for small creatures. Sam wants mechanics to follow nature: fix the world's causes rather
+  than adding penalties. Known gap: nothing yet gives big bodies the advantages they have in nature, which is why
+  a natural energy rule (small bodies need less food) made everything shrink and was left out.
 
 ## How a batch of changes works
 
@@ -91,14 +98,17 @@ and run the tests with `PLAYWRIGHT_BROWSERS_PATH` set to that folder.
 ## Balance targets
 
 - About a quarter of the land explored after 10 minutes, with a population of roughly 20–50 then (creatures keep
-  to home ranges, so populations start local and spread).
+  to home ranges, so populations start local and spread). Since October 2026's faster breeding and habitats, the
+  15-minute check often runs higher (26–83 at 10 minutes, up to about 60% explored); Sam is fine with that, and
+  with lower numbers too.
 - Populations mostly 40–100 after 20 minutes. Going over 100 briefly is fine. **No hard caps.** Crowding and
   local food should keep numbers in range naturally. Use `python3 tests/scenarios.py 6 30` to see the later
   numbers.
 - Gentle seasonal swings.
-- Over an hour, primus plus 1–3 new species in total, each clearly different in body (not just colour) and lasting
-  a good while once formed. At most 3 alive at once. Species never merge back. Use `python3 tests/study.py 60 4 3`
-  (75 hour-long runs, about 20 minutes) to check this.
+- Species are four ways of life (README section 10): *natans* (water), *silvicola* (thicket), *campestris* (plains)
+  and *vulgaris* (in between), so at most 4 alive and every species looks different. Over an hour, most runs should
+  see 1–3 new species appear and last a good while once formed; some runs staying one species is fine. Use
+  `python3 tests/study.py 60 4 3` (75 hour-long runs, about 30 minutes) to check this.
 - Extinction should happen now and then, even for ordinary designs: Sam wants it to be a real risk, especially
   early on while a population is small and local. Don't add safety nets that rescue struggling populations.
   Extreme designs dying out is expected.

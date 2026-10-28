@@ -168,7 +168,8 @@ const REGIONS = { strength: 1.3 };
 // deep. Lakes are always shallow. Algae grows only on the shelf, thinning out with distance from shore (algaeFade
 // px). In deep water, creatures burn up to deepCost more energy (none for fully aquatic ones). drought: share of
 // the world type's algae that waits, dormant, in the deep water just beyond the shelf (up to beyond shelf widths
-// past its edge), growing once a drought pulls the shallows out to it
+// past its edge), growing once a drought pulls the shallows out to it. open: algae beds out in open water, as a share of
+// the world type's algae, at least openFrom px from any land: food only strong swimmers reach, as fish have the open sea
 const SEA = {
   shelf: 0.3,
   minWidth: 110,
@@ -183,6 +184,8 @@ const SEA = {
   deepCost: 0.8,
   drought: 0.4,
   beyond: 0.5,
+  open: 0.5,
+  openFrom: 200,
 };
 // temperature comes from height: the highest land is coldest (0), the lowest warmest (1), water is mild (water);
 // each season shifts it (spring, summer, autumn, winter). Below cold, creatures burn extra energy keeping warm,
@@ -197,10 +200,14 @@ const TEMP = {
   heatCost: 0.15,
 };
 const RELIEF = 1.5; // height of the ridges and hills added to land (0 = smooth land); high ground is cold
-// tail (once called habitat): range = how far (px) a 50% tail goes from shore into water, and from water onto land;
-// the limit grows quickly towards either end. first: every visible tail swims at least this far from shore (one
-// cell, so into the first band of water), on top of the curve
-const HAB = { range: 200, first: 16 };
+// tail (once called habitat): range = how far (px) a 50% tail goes from shore into water; inland: the same for how
+// far it walks from water onto land (amphibious animals stay near the water's edge); both limits grow quickly towards
+// either end. first: every visible tail swims at least this far from shore (one cell, so into the first band of
+// water), on top of the curve
+const HAB = { range: 200, inland: 70, first: 16 };
+// wading: a creature too weak a swimmer to cross a river's current (RIVER) can still wade across one at this share of
+// its walking speed, as land animals ford streams (0: it can't)
+const WADE = { speed: 0.35 };
 // tail: min = the tail trait (hab) from which a tail shows and counts; below it the creature has no tail. From min
 // to 1 the effective tail (c.tail) grows from 0 to 1, and that is what speed, range and drawing use.
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
@@ -214,16 +221,12 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.25 };
-const MOUTH_SPLIT = 0.9; // how much a difference in mouths counts towards a new species (see SPC for the others)
-// features that are either there or not count extra towards a new species, since they make creatures look
-// different: having a tail at all
-const SHOWS = { tail: 0.25 };
 // speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
 // base px/s; bigger bodies are slower, smaller ones faster.
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
 //   share faster and the longest this share slower (medium legs make no difference)
 //   sixFrom: the size from which a creature is drawn with 6 legs rather than 4 (only a look: it changes nothing)
-const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 0.9 };
+const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 1.0 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
 // stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
@@ -233,7 +236,15 @@ const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
 //   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
 //   is nuts (nuts: [share at the edge, share from deep in]) and the trees on the map get bigger and closer together
-const THICKET = { edge: 16, depth: 33, deep: 48, nuts: [0.2, 0.8] };
+//   slow: moving through a thicket is slow.by slower for bodies of size slow.big or more, easing to no slower at all
+//   for size slow.small or less, since small creatures slip through the undergrowth
+const THICKET = {
+  edge: 16,
+  depth: 33,
+  deep: 48,
+  nuts: [0.2, 0.8],
+  slow: { by: 0.15, small: 0.75, big: 1.0 },
+};
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
@@ -344,10 +355,10 @@ const OKABE = [
   ['Vermilion', '#D55E00', 26, 100, 42],
   ['Reddish purple', '#CC79A7', 327, 46, 64],
 ];
-// each species is one colour: primus keeps the creator's colour, and a new species takes the palette colour most
-// unlike every living species'. Individuals differ only in shade, up to SHADE lightness points either way
+// each species is one colour: the released species keeps the creator's colour, and each new one takes the palette
+// colour most unlike every species so far. Individuals differ only in shade, up to SHADE lightness points either way
 const SHADE = 4;
-// seconds a new species' creatures take to blend from the old colour to the new one
+// seconds a creature that moves to another species takes to blend from the old colour to the new one
 const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
 // eyes are white on a species whose starting body is darker than this lightness, black otherwise
@@ -453,30 +464,29 @@ const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founder
 // round it at pace (share of full speed) until something frees up, rather than standing still
 const AMBLE = { r: 60, pace: 0.5 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
+// breeding: a creature may breed after a meal that leaves its energy at least this share of its store full
+const BREED = { full: 0.75 };
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 };
 
-/* ---- speciation ---- */
-// geo: trait difference needed between groups on separate land; eco: between two clusters on the same land
-// ratio: how clearly separated the clusters must be; streak: consecutive 5-second checks the split must hold
-// age / cool: seconds a species must exist, and wait after a split, before it can split again
-// extra: how much harder each additional living species makes the next split
-// min: fewest creatures a new species can start with; same: a group this close (in trait difference) to a species
-// already alive doesn't split off; size, leg, tail: how much size, leg length and tail count in the trait difference
-// (what a creature eats and where it lives count more than how big it is or how long its legs are)
-const SPC = {
-  geo: 0.22,
-  eco: 0.4,
-  ratio: 1.8,
-  streak: 4,
-  age: 90,
-  cool: 110,
-  extra: 0.9,
-  min: 12,
-  same: 0.2,
-  size: 1.2,
-  leg: 0.75,
-  tail: 1.3,
+/* ---- species: four ways of life ---- */
+// every species is one of four types, named by its epithet: water (natans) has at least water.tail of tail (0 none,
+// 1 full); thicket (silvicola) is no bigger than thicket.size with a mouth no more than thicket.mouth (0 beak,
+// 1 straw), and isn't water; plains (campestris) is at least plains.size, and isn't water; everything else is the
+// middle type (vulgaris). A creature leans towards another type once it is clearly outside its species' type: margin
+// is how far past the border that is (in each trait). It moves when at least join other creatures within radius px
+// lean the same way (or already belong there), and that species is alive. Founding a species (or bringing back one
+// that died out) needs found creatures leaning that way within radius px of each other, whose average is deep
+// margins inside the new type, so a new species starts clearly different
+const TYPES = {
+  water: { tail: 0.5 },
+  thicket: { size: 0.8, mouth: 0.4 },
+  plains: { size: 1.0 },
+  margin: { tail: 0.08, size: 0.04, mouth: 0.08 },
+  radius: 200,
+  join: 3,
+  found: 6,
+  deep: 2,
 };
 
 /* ---- intro ---- */
