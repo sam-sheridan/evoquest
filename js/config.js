@@ -510,6 +510,21 @@ const DIO = {
     flower: ['#f6a5c0', '#ffe27a'],
     shadow: 'rgba(30,50,20,.2)',
   },
+  // rivers: the deeper middle [colour, width as a share of the river's half-width]; the moving surface's streaks
+  // [colour, width px], drifting downstream in lanes (offsets across the river, as shares of its half-width), each
+  // with its own dash pattern [streak, gap, ...] (px) and speed (px/s: speed, plus spread more for each lane)
+  river: {
+    deep: ['rgba(60,110,120,.16)', 0.95],
+    streak: ['rgba(255,255,255,.6)', 1.3],
+    lanes: [-0.5, 0.05, 0.5],
+    dash: [
+      [7, 26, 3, 34, 12, 41],
+      [4, 31, 9, 22, 2, 37],
+      [10, 38, 5, 27, 3, 30],
+    ],
+    speed: 20,
+    spread: 4,
+  },
   rock: {
     rise: 10,
     wall: '#5d4f63',

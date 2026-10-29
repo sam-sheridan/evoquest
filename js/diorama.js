@@ -582,13 +582,13 @@ function introTreesDio(g, list, alpha) {
   g.globalAlpha = 1;
 }
 
-/* rivers: smooth banks (see buildTerrain), a deeper middle and a moving surface */
-// D.river: the rivers' water, for clipping; D.flows: each river's runs of water as points every 6 px along its line
+/* rivers: a deeper middle and a moving surface */
+// D.river: the rivers' water, with the same stepped banks as the land's outline, for clipping; D.flows: each river's runs of water as points every 6 px along its line
 // [x, y, normal x, normal y], running downhill (from the higher end of the land it crosses to the lower), with the
 // river's half-width hw and a path along its middle
 function riverShapes(w, D) {
   const T = w.type;
-  D.river = loopsPath(i => (T[i] === 4 ? -w.rD[i] : -Math.max(w.rD[i], 0.5)), 0, 0, 0);
+  D.river = loopsPath(i => (T[i] === 0 ? -1 : w.level - w.fl[i]), 0, 0, 0);
   D.flows = [];
   D.mid = new Path2D();
   for (const ch of w.channels) {
@@ -638,17 +638,11 @@ function riverShapes(w, D) {
         );
         return q;
       };
-      const rnd = mulberry32((r[0][0] * 7 + r[0][1]) | 0);
       D.flows.push({
         r,
         hw,
         box: [Math.min(...xs) - hw, Math.min(...ys) - hw, Math.max(...xs) + hw, Math.max(...ys) + hw],
-        lanes: [-0.5, 0.05, 0.5].map(lane),
-        glints: Array.from({ length: Math.ceil(r.length / 2.5) }, () => [
-          rnd(),
-          (rnd() * 2 - 1) * 0.7,
-          14 + rnd() * 12,
-        ]),
+        lanes: DIO.river.lanes.map(lane),
       });
     }
   }
@@ -657,87 +651,37 @@ function riverShapes(w, D) {
 function paintRiverBed(g, D) {
   g.save();
   g.clip(D.river, 'evenodd');
-  g.strokeStyle = 'rgba(60,110,120,.16)';
+  g.strokeStyle = DIO.river.deep[0];
   g.lineCap = 'round';
   g.lineJoin = 'round';
   for (const f of D.flows) {
-    g.lineWidth = f.hw * 0.95;
+    g.lineWidth = f.hw * DIO.river.deep[1];
     const p = new Path2D();
     f.r.forEach((q, k) => (k ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1])));
     g.stroke(p);
   }
   g.restore();
 }
-// DRAFT: the moving surface, drawn every frame over the map. style: A streaks drifting downstream in three lanes,
-// B riffles (bowed ripple lines across the current) travelling downstream, C glints that drift and twinkle, with
-// foam along the banks
-const RIVER_DASH = [
-  [7, 26, 3, 34, 12, 41],
-  [4, 31, 9, 22, 2, 37],
-  [10, 38, 5, 27, 3, 30],
-];
-function drawRiverFlow(g, t, view, style) {
-  const D = world.vec.dio;
+// the moving surface, drawn every frame over the map: white streaks of different lengths drifting downstream in
+// lanes along the river, each lane at its own speed
+function drawRiverFlow(g, t, view) {
+  const D = world.vec.dio,
+    R = DIO.river;
   if (!D || !D.flows) return;
   g.save();
   g.clip(D.river, 'evenodd');
   g.lineCap = 'round';
-  if (style === 'C') {
-    g.strokeStyle = 'rgba(255,255,255,.4)';
-    g.lineWidth = 2.4;
-    g.stroke(D.river);
-  }
+  g.strokeStyle = R.streak[0];
+  g.lineWidth = R.streak[1];
   for (const f of D.flows) {
     const [x0, y0, x1, y1] = f.box;
     if (x1 < view[0] || y1 < view[1] || x0 > view[2] || y0 > view[3]) continue;
-    const L = f.r.length * 6;
-    if (style === 'A') {
-      g.strokeStyle = 'rgba(255,255,255,.6)';
-      g.lineWidth = 1.3;
-      f.lanes.forEach((p, k) => {
-        g.setLineDash(RIVER_DASH[k]);
-        g.lineDashOffset = -(t * (20 + k * 4) + k * 40);
-        g.stroke(p);
-      });
-      g.setLineDash([]);
-    } else if (style === 'B') {
-      g.lineWidth = 1.1;
-      for (let k = 0; k * 26 < L; k++) {
-        const s = (k * 26 + t * 18) % L,
-          i = Math.min(f.r.length - 2, (s / 6) | 0),
-          [x, y, nx, ny] = f.r[i],
-          tx = ny,
-          ty = -nx,
-          o = 0.25 * Math.sin(k * 2.3),
-          a = 0.25 + 0.3 * Math.max(0, Math.sin(k * 1.7 + t * 1.3)),
-          span = f.hw * (0.35 + 0.15 * Math.sin(k * 3.1));
-        const cx = x + nx * o * f.hw,
-          cy = y + ny * o * f.hw;
-        g.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
-        g.beginPath();
-        g.moveTo(cx - nx * span, cy - ny * span);
-        g.quadraticCurveTo(cx + tx * 5, cy + ty * 5, cx + nx * span, cy + ny * span);
-        g.stroke();
-      }
-    } else {
-      g.lineWidth = 1.2;
-      for (const [ph, o, v] of f.glints) {
-        const s = (ph * L + t * v) % L,
-          i = Math.min(f.r.length - 2, (s / 6) | 0),
-          [x, y, nx, ny] = f.r[i],
-          tx = ny,
-          ty = -nx,
-          a = Math.max(0, Math.sin(t * 2.4 + ph * 40)) ** 2;
-        if (a < 0.05) continue;
-        const cx = x + nx * o * f.hw,
-          cy = y + ny * o * f.hw;
-        g.strokeStyle = `rgba(255,255,255,${(0.9 * a).toFixed(2)})`;
-        g.beginPath();
-        g.moveTo(cx - tx * 2.5, cy - ty * 2.5);
-        g.lineTo(cx + tx * 2.5, cy + ty * 2.5);
-        g.stroke();
-      }
-    }
+    f.lanes.forEach((p, k) => {
+      g.setLineDash(R.dash[k]);
+      g.lineDashOffset = -(t * (R.speed + k * R.spread) + k * 40);
+      g.stroke(p);
+    });
   }
+  g.setLineDash([]);
   g.restore();
 }

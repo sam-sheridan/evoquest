@@ -546,17 +546,14 @@ function buildTerrain(skipDraw) {
     }
     w.type[i] = t;
   }
-  // rivers are cut cell by cell into land and thicket. rD: how far each cell is from the nearest river's edge, in
-  // cells (negative inside it), so the diorama map can draw smooth banks
-  w.rD = new Float32Array(N).fill(99);
+  // rivers are cut cell by cell into land and thicket
   for (const ch of w.channels) {
     if (ch.sea) continue;
     for (let y = 0; y < GH; y++)
       for (let x = 0; x < GW; x++) {
-        const i = y * GW + x,
-          d = distPoly(x + 0.5, y + 0.5, ch.pts) - ch.w;
-        if (d < w.rD[i]) w.rD[i] = d;
-        if (d < 0 && (w.type[i] === 1 || w.type[i] === 2)) w.type[i] = 4;
+        const i = y * GW + x;
+        if (w.type[i] !== 1 && w.type[i] !== 2) continue;
+        if (distPoly(x + 0.5, y + 0.5, ch.pts) < ch.w) w.type[i] = 4;
       }
   }
   // craters keep smooth signed distances (rim and lake) so their outlines can be drawn as curves rather than grid steps
@@ -754,16 +751,6 @@ function buildTerrain(skipDraw) {
         : Math.min(h[i], w.level - 0.004);
   }
   for (let i = 0; i < N; i++) if (w.lS[i] > -1.5 && w.type[i] !== 0) w.fl[i] = w.level - w.lS[i] * 0.03;
-  // the diorama map draws river banks as smooth curves along each river's line, as sea channels are (the cells that
-  // are river stay the same)
-  if (MAP_STYLE === 'diorama')
-    for (let i = 0; i < N; i++) {
-      const t = w.type[i],
-        d = w.rD[i];
-      if (d > 1.5) continue;
-      if (t === 4) w.fl[i] = w.level - 0.004 + Math.min(d, 0) * 0.03;
-      else if ((t === 1 || t === 2) && d >= 0) w.fl[i] = Math.min(w.fl[i], w.level + 0.004 + d * 0.03);
-    }
   if (!skipDraw) renderTerrain();
 }
 const cellI = (x, y) => ((y / CS) | 0) * GW + ((x / CS) | 0);

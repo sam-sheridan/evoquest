@@ -158,12 +158,7 @@ function renderScene(nowT) {
   }
   // the rivers' moving surface (diorama map), when zoomed in far enough to see it
   if (MAP_STYLE === 'diorama' && z * dpr > 0.5)
-    drawRiverFlow(
-      ctx,
-      t,
-      [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z],
-      window.RIVER_DRAFT || 'A'
-    );
+    drawRiverFlow(ctx, t, [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z]);
   if (!S) return;
   const lw = clamp(1.5 / z, 0.45, 1.3);
   if (S.replay) {
