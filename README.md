@@ -1150,8 +1150,8 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
     They are drawn in a dark shade of the creature's own colour.
   - Mouth: one charcoal mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
     [mouths](#mouths)).
-  - In water, the back half is tinted by the water with a light waterline, and a soft white foam trail tapers away
-    behind the tail, wiggling with it (`DIO.creature.wake`).
+  - In water, the back half is tinted by the water with a light waterline, and white arcs trail behind, spreading
+    wider the further they are from the body. (Sam tried a foam trail in October 2026 and preferred the arcs.)
   - **Hops.** A creature on land hops as it crosses onto another terrace step: lifted briefly above its shadow,
     higher and slower going up than coming down (`DIO.hop`). It is only a look: it doesn't change how creatures
     move. Sam chose this in October 2026 so creatures don't glide over the steps as if the land were flat.

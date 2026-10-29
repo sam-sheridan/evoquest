@@ -483,9 +483,6 @@ const DIO = {
     line: [0.68, -10, 0.6],
     mouth: '#2e2a27',
     water: 0.62,
-    // a swimmer's foam trail: length and width at the tail (px, for an average body), strength, and how far it
-    // wiggles with the tail (px)
-    wake: { length: 30, width: 3.4, strength: 0.32, wiggle: 1.6 },
   },
   // food: faceted gems. Each is [lit, middle, shaded] faces, ripe then regrowing; berry and algae are also the colours
   // of the dots shown when zoomed out. berry: a red gem with a leaf; nut: an acorn with a cap [ripe, regrowing];

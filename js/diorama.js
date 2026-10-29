@@ -348,21 +348,22 @@ function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
   }
   g.restore();
 }
-// a swimmer's wake: a soft foam trail behind the tail, tapering and fading, wiggling with the tail
+// a swimmer's wake: white arcs behind the tail, spreading out and fading
 function dioWake(g, c, t, L) {
-  const P = DIO.creature.wake,
-    s = Math.max(0.7, c.bw / 15),
-    tip = -L - tailLen(c) + 2,
-    len = P.length * s,
-    n = 14;
-  for (let k = n - 1; k >= 0; k--) {
-    const u = k / n,
-      y = Math.sin(t * 4 + c.id - u * 5) * u * P.wiggle * s,
-      w = ((1 - u) * P.width + 0.4) * s;
-    g.fillStyle = `rgba(255,255,255,${(P.strength * (1 - u)).toFixed(3)})`;
+  const s = Math.max(0.7, c.bw / 15),
+    ph = (t * 1.1 + c.id * 0.37) % 1;
+  g.lineWidth = 0.9;
+  g.lineCap = 'round';
+  for (let k = 0; k < 3; k++) {
+    const kk = k + ph,
+      r = (11 + kk * 3.5) * s,
+      apex = -L - tailLen(c) - 1.5 * s - kk * 2.4 * s,
+      span = 0.38 + kk * 0.11,
+      a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
+    g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
     g.beginPath();
-    g.ellipse(tip - u * len, y, len / n + 0.8, w, 0, 0, TAU);
-    g.fill();
+    g.arc(apex + r, 0, r, Math.PI - span, Math.PI + span);
+    g.stroke();
   }
 }
 
