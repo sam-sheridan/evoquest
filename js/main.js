@@ -156,8 +156,8 @@ function renderScene(nowT) {
     else if (f.a) ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
-  // the sea's and the rivers' moving surface (diorama map), when zoomed in far enough to see it
-  if (MAP_STYLE === 'diorama' && z * dpr > 0.5) {
+  // the sea's and the rivers' moving surface, when zoomed in far enough to see it
+  if (z * dpr > 0.5) {
     drawSeaMotion(ctx, t);
     drawRiverFlow(ctx, t, [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z]);
   }
@@ -200,9 +200,9 @@ function renderScene(nowT) {
     }
   }
   if (!fine) {
-    ctx.fillStyle = MAP_STYLE === 'diorama' ? DIO.food.berry : '#D55E00';
+    ctx.fillStyle = DIO.food.berry;
     ctx.fill(bR);
-    ctx.fillStyle = MAP_STYLE === 'diorama' ? DIO.food.algae : '#009E73';
+    ctx.fillStyle = DIO.food.algae;
     ctx.fill(bA);
     ctx.fillStyle = '#8a5a2b';
     ctx.fill(bN);
@@ -227,9 +227,9 @@ function renderScene(nowT) {
               lt: l0 + (c.lt - l0) * f,
             })
           : col(c);
-    // on the diorama map a creature hops over each terrace step it crosses on land
-    if (MAP_STYLE === 'diorama') c.lift = isWater(tt) ? 0 : hopLift(c, t);
-    drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt), lw / sc);
+    // a creature hops over each terrace step it crosses on land
+    c.lift = isWater(tt) ? 0 : hopLift(c, t);
+    drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt));
   }
   if (det) drawStipple(det);
   else if (stale) ctx.drawImage(detail.can2, ...stale);

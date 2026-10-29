@@ -1,7 +1,7 @@
-/* The diorama map (MAP_STYLE 'diorama'): the land as stacked terraces seen slightly from the south, like a painted
+/* The diorama map: the land as stacked terraces seen slightly from the south, like a painted
    relief model. Each step is a flat plateau with a shaded side showing below its edge; the coast drops into the sea
    as a sandy cliff, the seabed steps down through the water, trees are faceted low-poly crowns and rock is stacked
-   faceted slabs. Uses the same terrain as the notebook map (map.js); only the drawing differs. */
+   faceted slabs. map.js turns the terrain into the shapes this draws from. */
 
 // colours as [r, g, b]: from '#rrggbb', mixed, and back to a CSS colour
 const hexRGB = c => [1, 3, 5].map(k => parseInt(c.slice(k, k + 2), 16));
@@ -115,7 +115,7 @@ function dioStep(g, p, rise, side, top, lip, foot) {
   }
 }
 
-function paintDiorama(g) {
+function paintTerrain(g) {
   const V = world.vec,
     D = V.dio,
     se = S ? S.season : 0,
@@ -162,7 +162,7 @@ function paintDiorama(g) {
   g.fill(V.landD.loneShadow);
   g.restore();
   paintRiverBed(g, D);
-  paintRockDio(g, se);
+  paintRock(g, se);
   // lone trees, on the ground layer (creatures walk over them)
   g.fillStyle = DIO.trunk;
   g.fill(V.landD.trunk);
@@ -173,7 +173,7 @@ function paintDiorama(g) {
 }
 
 // rock: a slab with a dark side, faceted on top, with paler stacked tiers (snow in winter)
-function paintRockDio(g, se) {
+function paintRock(g, se) {
   const R = world.vec.rock,
     P = DIO.rock;
   g.save();
@@ -198,8 +198,8 @@ function paintRockDio(g, se) {
   g.restore();
 }
 
-// thicket trees, on their own layer over creatures (partly see-through, as in the notebook map)
-function paintStippleDio(g) {
+// thicket trees, on their own layer over creatures (partly see-through, so creatures and food show through)
+function paintStipple(g) {
   const se = S ? S.season : 0,
     keepOut = new Path2D();
   keepOut.rect(-W, -H, 3 * W, 3 * H);
@@ -255,10 +255,12 @@ function treeFacets(add, x, y, r, rnd) {
 const hslOf = fill => (fill.match(/[\d.]+/g) || [0, 60, 50]).map(Number);
 const shade = ([h, s, l], dl, ds = 0) => `hsl(${h} ${clamp(s + ds, 0, 100)}% ${clamp(l + dl, 3, 97)}%)`;
 
-// the creature drawn for the diorama map, with the same body, legs, mouth, tail and eyes as the notebook one: a
-// shadow on the ground, a raised side, four flat faces lit from the north-west, legs and outline in a dark shade
-// of its own colour, and a swimmer's back half tinted by the water
-function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
+// a creature seen from above at (x, y), scaled by sc: its body, tail, legs, mouth and eyes (legs, mouth and eyes
+// only with detail, when zoomed in), drawn low-poly: a shadow on the ground, a raised side, four flat faces lit
+// from the north-west, legs and a thin outline in a dark shade of its own colour (fill), and a swimmer's back half
+// tinted by the water. flat: drawn as a picture on paper (the creator, the species table, the title screen), not
+// standing on the map, so it casts no shadow
+function drawCreature(g, c, x, y, sc, detail, fill, t, swim, flat = false) {
   const P = DIO.creature,
     L = c.bh / 2,
     Wd = c.bw / 2,
@@ -407,7 +409,7 @@ function foodShadow(g, rx, ry) {
   g.fill();
 }
 // a berry: a red gem with a leaf; regrowing, a smaller pale one (with its leaf from half grown)
-function drawBerryDio(g, x, y, p) {
+function drawBerry(g, x, y, p) {
   const F = DIO.food,
     r = p >= 1 ? 1.35 : 0.6 + 0.5 * p;
   g.save();
@@ -426,7 +428,7 @@ function drawBerryDio(g, x, y, p) {
   g.restore();
 }
 // a nut: a faceted acorn, smaller and paler while regrowing, its cap back from half grown
-function drawNutDio(g, x, y, p) {
+function drawNut(g, x, y, p) {
   const F = DIO.food,
     k = 0.45 + 0.55 * p,
     ripe = p >= 1 ? 0 : 1;
@@ -464,7 +466,7 @@ function drawNutDio(g, x, y, p) {
 // algae: one broad blade of seaweed with rippling, frilled edges, its broad end up and a pointed stem below,
 // waving gently; regrowing, shorter and yellowish. Drawn two-tone: the whole blade in its middle green, the shaded
 // half darker
-function drawAlgaeDio(g, x, y, p) {
+function drawAlgae(g, x, y, p) {
   const A = DIO.food.blade,
     [, mid, dark] = DIO.food.algaeFaces[p >= 1 ? 0 : 1],
     L = p >= 1 ? A.length[0] : A.length[1] + (A.length[0] - A.length[1]) * 0.4 * p,
@@ -524,7 +526,7 @@ function lowPolyBlob(x, y, rx, ry, a, n = 12) {
   return p;
 }
 // a stretch of coast: land to the left of coast(y), with a beach, a low hill and the seabed stepping down
-function introCoastDio(g, coast, w, h) {
+function introCoast(g, coast, w, h) {
   const C = dioColours(0),
     cr = DIO.coast,
     side = off => {
@@ -564,7 +566,7 @@ function introCoastDio(g, coast, w, h) {
   g.fill(lowPolyBlob(60, 60, 95, 62, 0.3));
 }
 // a meadow: open grass raised a step above lower ground at the bottom left, with a higher step at the top right
-function introMeadowDio(g, w, h) {
+function introMeadow(g, w, h) {
   const C = dioColours(0),
     poly = pts => {
       const p = new Path2D();
@@ -596,7 +598,7 @@ function introMeadowDio(g, w, h) {
   dioStep(g, hi, DIO.rise, C.side[3], C.top[3], DIO.lip, DIO.foot);
 }
 // low-poly trees for the intro's thicket, a little see-through so the nuts show, drawn from the back
-function introTreesDio(g, list, alpha) {
+function introTrees(g, list, alpha) {
   const cols = DIO.trees[0];
   g.globalAlpha = alpha;
   for (const [x, y, r] of [...list].sort((a, b) => a[1] - b[1])) {

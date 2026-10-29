@@ -253,7 +253,7 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
 body trait. Between the two ends, the beak stretches into tweezers, the tweezers straighten into prongs, and from
 0.75 the prongs close together into a single straw with a slight trumpet at the end. The mouth is always drawn in
-charcoal (black ink in the notebook look). The jaws snap quickly
+charcoal. The jaws snap quickly
 while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
 when zoomed in.
 
@@ -1079,8 +1079,8 @@ species. Browsers that can't do this send sound straight to the speakers instead
 
 The world is a **diorama**: stepped, low-poly land and water like a painted relief model, with low-poly
 creatures, seen through a clean, scientific interface (as if observing a real world through a researcher's
-instruments). Sam chose this in October 2026, replacing the inked **field notebook** map; the notebook look is
-still in the code and shows with `?map=notebook` at the end of the address (see the end of this section). The
+instruments). Sam chose this in October 2026, replacing the inked **field notebook** map (see the end of this
+section). The
 diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in `js/diorama.js`.
 
 - **Text.** Two fonts from one family: IBM Plex Sans for writing and IBM Plex Mono for numbers, labels and
@@ -1112,7 +1112,7 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
 - **Thickets** have a soft green floor with **low-poly trees** on top: a jagged crown raised above its foot, filled
   in a middle green with lit faces towards the north-west and shaded faces away (`DIO.trees`, by season: orange
   and gold in autumn), with a faint shadow on the ground. Size, spacing, the see-through mix and the rule that no
-  tree reaches onto rock are as in the notebook look (`TREES`). Lone trees on open land are the same trees with a
+  tree reaches onto rock are set by `TREES`. Lone trees on open land are the same trees with a
   short trunk. (There are no pines: Sam's choice, October 2026.)
 - **Rock** is a mauve slab with a dark side below its edges, its top split into flat faces lit from the north-west,
   and paler tiers stacked on top, each with its own side (`DIO.rock`). In winter the tiers are snow. The outline,
@@ -1162,11 +1162,11 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
 - **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
   thicket) and "Eat, breed, survive" a terraced meadow.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
-- **The notebook look** (live until October 2026, and still shown with `?map=notebook`): an inked survey map with
+- **The notebook look** (live until October 2026, deleted when the diorama shipped; it is in the git history,
+  in any commit before the merge of `changes/2026-10-29-terraces`): an inked survey map with
   pale land, contour lines every ninth of the height range (every third bolder), ink-drawn scalloped trees, angular
   inked crags with hatching strokes, pale blue sea bands edged with thin lines, rivers marked with arrows, and pale
-  creatures with black ink outlines, legs and mouths. Its numbers are `OPENLAND`, `CONTOURS`, `TREES.colour` and
-  `ROCKS`, and its drawing is in `js/map.js` and `js/creatures.js`.
+  creatures with black ink outlines, legs and mouths.
 
 ---
 
@@ -1289,7 +1289,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/config.js` | **Every number worth tuning**: world size, seasons, food regrowth, crowding, speciation, events, colours |
 | `js/util.js` | Shared helpers: random numbers, maths, saved runs, noise |
 | `js/world.js` | World generation: coastlines, rivers, thickets, rocks, craters, food sites |
-| `js/map.js` | Turning the terrain into shapes, sharp and low-detail layers, food symbols, and the notebook look |
+| `js/map.js` | Turning the terrain into shapes (marching squares, rock faces, tree placement), sharp and low-detail layers |
 | `js/diorama.js` | The diorama look: terraces, sea, rivers and moving water, low-poly trees, rock, creatures and food, the intro's pictures and the World tab's key |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |

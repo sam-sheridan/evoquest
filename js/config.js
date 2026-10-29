@@ -283,57 +283,16 @@ const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 const DETAIL = 0.65;
 // sea depth bands, shallowest to deepest, and the depths (in shelf widths, see SEA) where each deeper band starts;
 // the last is the shelf's edge, where deep water starts. The deepest colour is also the background beyond the map
-// map style: 'diorama' (stepped low-poly terraces, js/diorama.js) or 'notebook' (the inked field-notebook map).
-// Adding ?map=notebook to the address shows the notebook map
-const MAP_STYLE =
-  typeof location !== 'undefined' && /[?&]map=notebook/.test(location.search) ? 'notebook' : 'diorama';
-const BAND =
-  MAP_STYLE === 'diorama'
-    ? ['#bcddd2', '#9cc7c4', '#7eaab3', '#5f879b']
-    : ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
+const BAND = ['#bcddd2', '#9cc7c4', '#7eaab3', '#5f879b'];
 const BAND_AT = [0.27, 0.58, 1];
-// open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
-// strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
-// per open cell of a lone tree or small clump, [base, extra on the most fertile ground]
-const OPENLAND = {
-  wash: [
-    [
-      [150, 190, 110, 0.36],
-      [222, 200, 140, 0.32],
-    ],
-    [
-      [160, 190, 110, 0.26],
-      [228, 196, 110, 0.36],
-    ],
-    [
-      [185, 175, 110, 0.3],
-      [220, 190, 130, 0.32],
-    ],
-    [
-      [160, 180, 150, 0.22],
-      [215, 210, 195, 0.28],
-    ],
-  ],
-  hill: 0.13,
-  lone: [0.02, 0.06],
-};
-// contour lines: [colour, width px] for ordinary lines and for the bold index lines (every third). halo: a soft
-// band [colour, width px] drawn round each rock before it, so contours fade out just before reaching it (null: none)
-const CONTOURS = {
-  line: ['rgba(70,62,50,.26)', 0.8],
-  bold: ['rgba(70,62,50,.34)', 1.1],
-  halo: ['rgba(233,236,222,.7)', 12],
-};
-// rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are turned into open
-// ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
-// edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
-// sets how steep its faces are. minPeak: every rock's peak is lifted to at least this height (on the tiers' scale),
-// rising towards 1 for the tallest, so even low rocks get faces and a tier. shore: over how many cells rock lowers
-// towards water, ending in sea cliffs. flat: faces rising less than this share of relief count as flat and stay
-// plain.
-// shade: the plain fill of shaded faces, at every zoom. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
-// outlines, each lightened by tier. tick: gap (px) between the strokes round the inside of the edge. face:
-// colours of lit, half-lit and shaded faces, dark enough that the rock's base stands apart from the plains
+// rock's shapes (its colours are in DIO.rock). minCells: pieces of rock smaller than this many cells are turned into
+// open ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline
+// may wiggle before it gets a corner (bigger = longer straight edges). mesh: size (px) of the flat faces the slopes
+// are split into. relief: how tall the rock is taken to be, which sets how steep its faces are. minPeak: every
+// rock's peak is lifted to at least this height (on the tiers' scale), rising towards 1 for the tallest, so even low
+// rocks get faces and a tier. shore: over how many cells rock lowers towards water. flat: faces rising less than this
+// share of relief count as flat and stay plain. tiers: heights (0 at the rock's edge, 1 at the highest point on the
+// map) of the tiers stacked on top
 const ROCKS = {
   minCells: 6,
   straight: 5,
@@ -343,25 +302,18 @@ const ROCKS = {
   shore: 3,
   flat: 0.14,
   tiers: [0.33, 0.62],
-  shade: '#b0a693',
-  tier: 'rgba(255,252,245,.3)',
-  tick: 5,
-  face: ['#d2c9b8', '#c6bdab', '#b9af9c'],
 };
 // thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
 // [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
 // each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees.
-// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures), as
-// [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
-// 5% almost fully solid
-// colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
-// of the three
+// alpha: how solid the crowns are (they are drawn over creatures), as [solidity, share of trees]: 40% are as
+// see-through as the first three, 35% more solid, 20% more solid again and 5% almost fully solid. (Their colours are
+// in DIO.trees.)
 const TREES = {
   r: [5.5, 10.5],
   jitter: 2.5,
   per: [0.3, 1],
   mid: 112,
-  plain: 0.3,
   alpha: [
     [0.6, 0.13],
     [0.7, 0.14],
@@ -369,12 +321,6 @@ const TREES = {
     [0.86, 0.35],
     [0.92, 0.2],
     [0.97, 0.05],
-  ],
-  colour: [
-    ['#bcd3a0', '#b0ca92', '#a3bf86'],
-    ['#b6cf96', '#a9c488', '#9cb97b'],
-    ['#c9c58e', '#bdb27a', '#a9a868'],
-    ['#bccab0', '#afbea3', '#a2b296'],
   ],
 };
 
@@ -395,11 +341,11 @@ const OKABE = [
 const SHADE = 4;
 // seconds a creature that moves to another species takes to blend from the old colour to the new one
 const SPLIT_FADE = 1.5;
-const INK = '#151918'; // the ink colour used for outlines and text
+const INK = '#151918'; // the ink colour used for text, energy bars and the interface's outlines
 // eyes are white on a species whose starting body is darker than this lightness, black otherwise
 const EYE_WHITE = 40;
 
-// the diorama map (MAP_STYLE 'diorama'): land as stacked terraces seen slightly from the south, like a painted
+// the diorama map: land as stacked terraces seen slightly from the south, like a painted
 // relief model. Every step is a flat plateau with a shaded side showing below its edge.
 //   levels: how many steps the land's height is split into (each holds about the same share of the land)
 //   rise: height (px) of each land step's side; foot: soft shadow just below each side [colour, extra px]
@@ -414,7 +360,8 @@ const EYE_WHITE = 40;
 //   sea: the seabed's steps, each rise px tall with sides mixed towards side, and a lip
 //   wash: meadow and dry-ground tints per season [red, green, blue, strength], over the steps
 //   thicket: the woodland floor's tint per season
-//   trees: per season, the colours of a tree's lit, middle and shaded faces; trunk: lone trees' trunk colour;
+//   trees: per season, the colours of a tree's lit, middle and shaded faces; lone: chance per open cell of a lone
+//   tree or small clump [base, extra on the most fertile ground]; trunk: lone trees' trunk colour;
 //   shadow: trees' shadows on the ground; temp: strength of the frosty and warm temperature washes
 //   rock: rise and wall colour of the rock's sides, its face colours (lit, half-lit, shaded), and its tiers' rise and
 //   colours
@@ -467,6 +414,7 @@ const DIO = {
     ['#c6a658', '#ac7d46', '#7d5734'],
     ['#b3baa5', '#8e9783', '#677260'],
   ],
+  lone: [0.02, 0.06],
   trunk: '#6f563f',
   shadow: 'rgba(25,49,21,.08)',
   temp: 0.55,

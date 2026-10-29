@@ -130,7 +130,7 @@ function drawCrowd(t) {
   paper(g, Wd, Hd);
   if (intro.pane >= 0) g.globalAlpha = 0.35; // behind a pane, the creatures fade back
   for (const m of [...intro.crowd].sort((a, b) => a.y - b.y)) {
-    drawCreature(g, m.c, m.x, m.y, m.k, 7, col(m.c), t, false, 1.1 / m.k, true);
+    drawCreature(g, m.c, m.x, m.y, m.k, 7, col(m.c), t, false, true);
   }
   g.globalAlpha = 1;
 }
@@ -188,7 +188,7 @@ const PANES = [
       c.walk = t * 3;
       c.rest = t % 5 < 1.6 ? 1 : 0;
       c.dir = -0.3 + Math.sin(t * 0.6) * 0.25;
-      drawCreature(g, c, 280, 112, k, 7, col(c), t, false, 1.1 / k, true);
+      drawCreature(g, c, 280, 112, k, 7, col(c), t, false, true);
       note(
         g,
         `Size ${c.size.toFixed(2)} · ${legTxt(c.leg)} legs · Tail ${tailTxt(c.hab).split(' ·')[0]} · ${mouthTxt(c.mth)}`,
@@ -214,34 +214,8 @@ const PANES = [
           5
         );
       }
-      const coast = y => 318 + 16 * Math.sin(y / 38) + 8 * Math.sin(y / 15 + 1),
-        shape = (off, colr) => {
-          g.beginPath();
-          g.moveTo(0, 0);
-          for (let y = 0; y <= PIC_H; y += 5) g.lineTo(coast(y) + off, y);
-          g.lineTo(0, PIC_H);
-          g.closePath();
-          g.fillStyle = colr;
-          g.fill();
-          g.strokeStyle = off ? 'rgba(77,115,133,.35)' : INK;
-          g.lineWidth = off ? 0.8 : 1.2;
-          g.beginPath();
-          for (let y = 0; y <= PIC_H; y += 5) g.lineTo(coast(y) + off, y);
-          g.stroke();
-        };
-      if (MAP_STYLE === 'diorama') introCoastDio(g, coast, PIC_W, PIC_H);
-      else {
-        g.fillStyle = BAND[3];
-        g.fillRect(0, 0, PIC_W, PIC_H);
-        shape(150, BAND[2]);
-        shape(95, BAND[1]);
-        shape(45, BAND[0]);
-        shape(0, '#e9ecde');
-        g.fillStyle = 'rgba(150,190,110,.3)';
-        g.beginPath();
-        g.ellipse(170, 165, 140, 60, 0.2, 0, TAU);
-        g.fill();
-      }
+      const coast = y => 318 + 16 * Math.sin(y / 38) + 8 * Math.sin(y / 15 + 1);
+      introCoast(g, coast, PIC_W, PIC_H);
       // food (drawn at three times life size)
       g.save();
       g.scale(3, 3);
@@ -269,35 +243,17 @@ const PANES = [
         drawAlgae(g, x / 3, y / 3, 1);
       g.restore();
       // a little thicket at the top left, see-through so the nuts show
-      const tr = new Path2D(),
-        thicket = [
-          [30, 40, 26],
-          [80, 22, 22],
-          [120, 52, 24],
-          [62, 74, 20],
-          [12, 98, 22],
-        ];
-      if (MAP_STYLE === 'diorama')
-        introTreesDio(
-          g,
-          thicket.map(([x, y, r]) => [x, y + 12, r * 0.8]),
-          0.82
-        );
-      else
-        thicket.forEach(([x, y, r], i) => {
-          const p = new Path2D();
-          crown(p, x, y, r, 9, i);
-          g.fillStyle = TREES.colour[0][i % 3];
-          g.globalAlpha = 0.72;
-          g.fill(p);
-          g.globalAlpha = 1;
-          tr.addPath(p);
-        });
-      if (MAP_STYLE !== 'diorama') {
-        g.strokeStyle = INK;
-        g.lineWidth = 1;
-        g.stroke(tr);
-      }
+      introTrees(
+        g,
+        [
+          [30, 52, 21],
+          [80, 34, 18],
+          [120, 64, 19],
+          [62, 86, 16],
+          [12, 110, 18],
+        ],
+        0.82
+      );
       note(g, 'nuts', 150, 40, INK);
       note(g, 'berries', 34, 160, INK);
       note(g, 'algae', 448, 120, INK);
@@ -309,9 +265,9 @@ const PANES = [
         sw = s.swimmer;
       w.dir = a + Math.PI / 2;
       w.walk = t * 4;
-      drawCreature(g, w, 185 + Math.cos(a) * 85, 165 + Math.sin(a) * 42, k, 7, col(w), t, false, 1.1 / k);
+      drawCreature(g, w, 185 + Math.cos(a) * 85, 165 + Math.sin(a) * 42, k, 7, col(w), t, false);
       sw.dir = b - Math.PI / 2;
-      drawCreature(g, sw, 420 + Math.cos(b) * 55, 135 + Math.sin(b) * 70, k, 7, col(sw), t, true, 1.1 / k);
+      drawCreature(g, sw, 420 + Math.cos(b) * 55, 135 + Math.sin(b) * 70, k, 7, col(sw), t, true);
     },
   },
   {
@@ -340,7 +296,7 @@ const PANES = [
           7
         );
       }
-      if (MAP_STYLE === 'diorama') introMeadowDio(g, PIC_W, PIC_H);
+      introMeadow(g, PIC_W, PIC_H);
       const p = s.p,
         ch = s.k,
         bx = 300,
@@ -393,10 +349,10 @@ const PANES = [
           g.stroke();
           g.globalAlpha = 1;
         }
-        drawCreature(g, ch, cx, cy, k * grow, 7, col(ch), t, false, 1.1 / (k * grow));
+        drawCreature(g, ch, cx, cy, k * grow, 7, col(ch), t, false);
         energyBar(g, ch, cx, cy, k * grow, 0.5);
       }
-      drawCreature(g, p, px, by, k, 7, col(p), t, false, 1.1 / k);
+      drawCreature(g, p, px, by, k, 7, col(p), t, false);
       energyBar(g, p, px, by, k, e);
       note(g, cap, 280, 228, INK, 'center');
       // fade at the end of each loop
@@ -498,7 +454,7 @@ const PANES = [
         c.dir = 0;
         c.walk = t * 3;
         c.rest = (t + y) % 6 < 1.2 ? 1 : 0;
-        drawCreature(g, c, cx, y, k, 7, col(c), t, false, 1.1 / k, true);
+        drawCreature(g, c, cx, y, k, 7, col(c), t, false, true);
       }
       note(g, 'time →', 40, 236);
     },
