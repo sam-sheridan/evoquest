@@ -584,6 +584,17 @@ function renderTerrain() {
   V.rock = rocks(w, sm(rf), V.land);
   V.trees = trees(w, V.rock.outline);
   V.landD = landDetail(w, V);
+  // DRAFT terraces: the land above each contour, as a fill, so each level can be drawn as a raised step
+  V.terr = [];
+  for (let k = 1; k <= 8; k++)
+    V.terr.push(
+      march(
+        sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
+        k / 9,
+        true,
+        true
+      )
+    );
   // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
   V.contB = new Path2D();
@@ -754,6 +765,95 @@ function tempWash(se) {
   g.putImageData(img, 0, 0);
   return washCan;
 }
+// DRAFT terraces (not final): each contour level drawn as a raised step seen slightly from the south, as on a
+// stepped relief model. rise: how far (px) each step's side shows below its edge; side: the side's colour;
+// lip: a light line along each step's top edge [colour, width]; tops: each level a touch paler than the one below;
+// ink: a fine line along the foot of each side; lines: keep the contour lines too
+const TERRACE_DRAFTS = {
+  A: { rise: 2.5, side: 'rgba(110,98,70,.16)', lip: null, tops: 0, ink: null, lines: true },
+  B: { rise: 4, side: 'rgba(110,98,70,.24)', lip: ['rgba(255,255,245,.55)', 1.2], tops: 0.025, ink: null },
+  C: {
+    rise: 6,
+    side: 'rgba(120,100,62,.34)',
+    lip: ['rgba(255,255,240,.6)', 1.4],
+    tops: 0.04,
+    ink: ['rgba(70,62,50,.4)', 0.9],
+  },
+};
+// each step's side: the level's land moved down by rise, less the level itself, gathered on one image so the sides
+// don't darken where they overlap
+function paintTerraces(g, V, tv) {
+  const can = document.createElement('canvas');
+  can.width = g.canvas.width;
+  can.height = g.canvas.height;
+  const o = can.getContext('2d'),
+    m = g.getTransform();
+  const sides = (shift, keep) => {
+    o.setTransform(1, 0, 0, 1, 0, 0);
+    o.clearRect(0, 0, can.width, can.height);
+    o.setTransform(m);
+    for (const { fill } of V.terr) {
+      o.globalCompositeOperation = 'source-over';
+      o.save();
+      o.translate(0, shift);
+      o.fill(fill);
+      o.restore();
+      // three times, so the faint seams between the map's cells are cut away too
+      o.globalCompositeOperation = keep;
+      for (let r = 0; r < 3; r++) o.fill(fill);
+    }
+    o.globalCompositeOperation = 'source-over';
+  };
+  g.save();
+  g.clip(V.land);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  // paler step tops, a little more on each level
+  if (tv.tops) {
+    o.fillStyle = '#fff';
+    g.globalAlpha = tv.tops;
+    for (const { fill } of V.terr) {
+      o.setTransform(1, 0, 0, 1, 0, 0);
+      o.clearRect(0, 0, can.width, can.height);
+      o.setTransform(m);
+      for (let r = 0; r < 3; r++) o.fill(fill);
+      g.drawImage(can, 0, 0);
+    }
+    g.globalAlpha = 1;
+  }
+  // the sides
+  o.fillStyle = '#000';
+  sides(tv.rise, 'destination-out');
+  // a fine ink line along the foot of each side, kept to the sides (not where the moved edge crosses a step top)
+  let ink = null;
+  if (tv.ink) {
+    ink = document.createElement('canvas');
+    ink.width = can.width;
+    ink.height = can.height;
+    const k = ink.getContext('2d');
+    k.setTransform(m);
+    k.translate(0, tv.rise);
+    k.strokeStyle = tv.ink[0];
+    k.lineWidth = tv.ink[1] * 2;
+    for (const { line } of V.terr) k.stroke(line);
+    k.setTransform(1, 0, 0, 1, 0, 0);
+    k.globalCompositeOperation = 'destination-in';
+    k.drawImage(can, 0, 0);
+  }
+  o.globalCompositeOperation = 'source-in';
+  o.setTransform(1, 0, 0, 1, 0, 0);
+  o.fillStyle = tv.side;
+  o.fillRect(0, 0, can.width, can.height);
+  g.drawImage(can, 0, 0);
+  if (ink) g.drawImage(ink, 0, 0);
+  g.setTransform(m);
+  // a light lip along each step's edge
+  if (tv.lip) {
+    g.strokeStyle = tv.lip[0];
+    g.lineWidth = tv.lip[1];
+    for (const { line } of V.terr) g.stroke(line);
+  }
+  g.restore();
+}
 // limits drawing to everywhere outside path p
 function clipOut(g, p) {
   const q = new Path2D();
@@ -814,12 +914,16 @@ function paintTerrain(g) {
   g.fill(V.trees.shadow);
   g.fill(V.landD.loneShadow);
   g.restore();
-  g.strokeStyle = CONTOURS.line[0];
-  g.lineWidth = CONTOURS.line[1];
-  g.stroke(V.cont);
-  g.strokeStyle = CONTOURS.bold[0];
-  g.lineWidth = CONTOURS.bold[1];
-  g.stroke(V.contB);
+  const tv = TERRACE_DRAFTS[window.TERRACE_DRAFT];
+  if (tv) paintTerraces(g, V, tv);
+  if (!tv || tv.lines) {
+    g.strokeStyle = CONTOURS.line[0];
+    g.lineWidth = CONTOURS.line[1];
+    g.stroke(V.cont);
+    g.strokeStyle = CONTOURS.bold[0];
+    g.lineWidth = CONTOURS.bold[1];
+    g.stroke(V.contB);
+  }
   if (CONTOURS.halo) {
     // contours fade out just before a rock: a soft band of the land's colour round each rock, under the rock
     g.save();
