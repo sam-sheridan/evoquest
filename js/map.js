@@ -500,6 +500,12 @@ function trees(w, rock) {
       k = 0;
     while (k < TREES.alpha.length - 1 && pick >= TREES.alpha[k][1]) pick -= TREES.alpha[k++][1];
     crown(row.fills[(r() * TREES.colour[0].length) | 0][k], t.x, t.y, t.r, t.r > 8 ? 9 : 7, t.a);
+    // (the diorama map's low-poly tree, in the same see-through group)
+    if (MAP_STYLE === 'diorama') {
+      row.f ||= DIO.trees[0].map(() => TREES.alpha.map(() => new Path2D()));
+      const pine = r() < pineChance(w, cellI(t.x, t.y));
+      treeFacets((s, p) => addLoop(row.f[s][k], p), t.x, t.y, pine ? t.r * 0.8 : t.r, pine, r);
+    }
     // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
     // the ground
     if (r() > TREES.plain) {
@@ -531,18 +537,14 @@ function renderTerrain() {
   const land = march(i => w.fl[i], w.level, true, true);
   V.land = land.fill;
   V.coast = land.line;
-  V.thick = march(
-    sm(i =>
-      T[i] === 2
-        ? Math.max(w.thk[i], w.tThr + 0.002)
-        : T[i] === 1 || T[i] === 3
-          ? Math.min(w.thk[i], w.tThr - 0.002)
-          : 0
-    ),
-    w.tThr,
-    true,
-    false
-  ).fill;
+  const thkF = sm(i =>
+    T[i] === 2
+      ? Math.max(w.thk[i], w.tThr + 0.002)
+      : T[i] === 1 || T[i] === 3
+        ? Math.min(w.thk[i], w.tThr - 0.002)
+        : 0
+  );
+  V.thick = march(thkF, w.tThr, true, false).fill;
   // how deep thickets sit in their hollows, for the contours
   let tMax = w.tThr;
   for (let i = 0; i < N; i++) if (T[i] === 2 && w.thk[i] > tMax) tMax = w.thk[i];
@@ -584,17 +586,7 @@ function renderTerrain() {
   V.rock = rocks(w, sm(rf), V.land);
   V.trees = trees(w, V.rock.outline);
   V.landD = landDetail(w, V);
-  // DRAFT terraces: the land above each contour, as a fill, so each level can be drawn as a raised step
-  V.terr = [];
-  for (let k = 1; k <= 8; k++)
-    V.terr.push(
-      march(
-        sm(i => (T[i] === 0 || T[i] === 4 ? 0 : el[i])),
-        k / 9,
-        true,
-        true
-      )
-    );
+  if (MAP_STYLE === 'diorama') V.dio = dioShapes(w, cdf, sm, shallow, thkF);
   // contours: every third one is an index contour, drawn bold so hills read at a glance
   V.cont = new Path2D();
   V.contB = new Path2D();
@@ -659,6 +651,9 @@ function landDetail(w, V) {
       lone: new Path2D(),
       loneShade: new Path2D(),
       loneShadow: new Path2D(),
+      // the diorama map's lone trees: faces by shade, and trunks
+      loneF: DIO.trees[0].map(() => new Path2D()),
+      trunk: new Path2D(),
     };
   let f = new Float32Array(N);
   for (let i = 0; i < N; i++) f[i] = fz(i);
@@ -675,6 +670,11 @@ function landDetail(w, V) {
         rr = 4.5 + r() * 3.5;
       if (cellT(x, y) !== 1 || onRock(x, y, rr + 2)) continue;
       crown(L.lone, x, y, rr, rr > 6 ? 7 : 6, r() * TAU);
+      if (MAP_STYLE === 'diorama') {
+        const pine = r() < pineChance(w, cellI(x, y));
+        treeFacets((s, p) => addLoop(L.loneF[s], p), x, y, pine ? rr * 0.8 : rr, pine, r);
+        if (!pine) L.trunk.rect(x - 0.9, y - rr * 0.1, 1.8, rr * 0.75);
+      }
       if (r() > TREES.plain) {
         const a = r() * TAU,
           q = rr * 0.55;
@@ -723,7 +723,7 @@ function landWash(se) {
   const g = can.getContext('2d'),
     img = g.createImageData(GW, GH),
     d = img.data,
-    [gr, dr] = OPENLAND.wash[se];
+    [gr, dr] = (MAP_STYLE === 'diorama' ? DIO.wash : OPENLAND.wash)[se];
   for (let i = 0; i < GW * GH; i++) {
     const v = L.fert[i],
       m = clamp((v - 0.5) / 0.3, 0, 1),
@@ -765,95 +765,6 @@ function tempWash(se) {
   g.putImageData(img, 0, 0);
   return washCan;
 }
-// DRAFT terraces (not final): each contour level drawn as a raised step seen slightly from the south, as on a
-// stepped relief model. rise: how far (px) each step's side shows below its edge; side: the side's colour;
-// lip: a light line along each step's top edge [colour, width]; tops: each level a touch paler than the one below;
-// ink: a fine line along the foot of each side; lines: keep the contour lines too
-const TERRACE_DRAFTS = {
-  A: { rise: 2.5, side: 'rgba(110,98,70,.16)', lip: null, tops: 0, ink: null, lines: true },
-  B: { rise: 4, side: 'rgba(110,98,70,.24)', lip: ['rgba(255,255,245,.55)', 1.2], tops: 0.025, ink: null },
-  C: {
-    rise: 6,
-    side: 'rgba(120,100,62,.34)',
-    lip: ['rgba(255,255,240,.6)', 1.4],
-    tops: 0.04,
-    ink: ['rgba(70,62,50,.4)', 0.9],
-  },
-};
-// each step's side: the level's land moved down by rise, less the level itself, gathered on one image so the sides
-// don't darken where they overlap
-function paintTerraces(g, V, tv) {
-  const can = document.createElement('canvas');
-  can.width = g.canvas.width;
-  can.height = g.canvas.height;
-  const o = can.getContext('2d'),
-    m = g.getTransform();
-  const sides = (shift, keep) => {
-    o.setTransform(1, 0, 0, 1, 0, 0);
-    o.clearRect(0, 0, can.width, can.height);
-    o.setTransform(m);
-    for (const { fill } of V.terr) {
-      o.globalCompositeOperation = 'source-over';
-      o.save();
-      o.translate(0, shift);
-      o.fill(fill);
-      o.restore();
-      // three times, so the faint seams between the map's cells are cut away too
-      o.globalCompositeOperation = keep;
-      for (let r = 0; r < 3; r++) o.fill(fill);
-    }
-    o.globalCompositeOperation = 'source-over';
-  };
-  g.save();
-  g.clip(V.land);
-  g.setTransform(1, 0, 0, 1, 0, 0);
-  // paler step tops, a little more on each level
-  if (tv.tops) {
-    o.fillStyle = '#fff';
-    g.globalAlpha = tv.tops;
-    for (const { fill } of V.terr) {
-      o.setTransform(1, 0, 0, 1, 0, 0);
-      o.clearRect(0, 0, can.width, can.height);
-      o.setTransform(m);
-      for (let r = 0; r < 3; r++) o.fill(fill);
-      g.drawImage(can, 0, 0);
-    }
-    g.globalAlpha = 1;
-  }
-  // the sides
-  o.fillStyle = '#000';
-  sides(tv.rise, 'destination-out');
-  // a fine ink line along the foot of each side, kept to the sides (not where the moved edge crosses a step top)
-  let ink = null;
-  if (tv.ink) {
-    ink = document.createElement('canvas');
-    ink.width = can.width;
-    ink.height = can.height;
-    const k = ink.getContext('2d');
-    k.setTransform(m);
-    k.translate(0, tv.rise);
-    k.strokeStyle = tv.ink[0];
-    k.lineWidth = tv.ink[1] * 2;
-    for (const { line } of V.terr) k.stroke(line);
-    k.setTransform(1, 0, 0, 1, 0, 0);
-    k.globalCompositeOperation = 'destination-in';
-    k.drawImage(can, 0, 0);
-  }
-  o.globalCompositeOperation = 'source-in';
-  o.setTransform(1, 0, 0, 1, 0, 0);
-  o.fillStyle = tv.side;
-  o.fillRect(0, 0, can.width, can.height);
-  g.drawImage(can, 0, 0);
-  if (ink) g.drawImage(ink, 0, 0);
-  g.setTransform(m);
-  // a light lip along each step's edge
-  if (tv.lip) {
-    g.strokeStyle = tv.lip[0];
-    g.lineWidth = tv.lip[1];
-    for (const { line } of V.terr) g.stroke(line);
-  }
-  g.restore();
-}
 // limits drawing to everywhere outside path p
 function clipOut(g, p) {
   const q = new Path2D();
@@ -862,6 +773,7 @@ function clipOut(g, p) {
   g.clip(q, 'evenodd');
 }
 function paintTerrain(g) {
+  if (MAP_STYLE === 'diorama') return paintDiorama(g);
   const V = world.vec;
   g.fillStyle = BAND[BAND.length - 1];
   g.fillRect(0, 0, W, H);
@@ -914,16 +826,12 @@ function paintTerrain(g) {
   g.fill(V.trees.shadow);
   g.fill(V.landD.loneShadow);
   g.restore();
-  const tv = TERRACE_DRAFTS[window.TERRACE_DRAFT];
-  if (tv) paintTerraces(g, V, tv);
-  if (!tv || tv.lines) {
-    g.strokeStyle = CONTOURS.line[0];
-    g.lineWidth = CONTOURS.line[1];
-    g.stroke(V.cont);
-    g.strokeStyle = CONTOURS.bold[0];
-    g.lineWidth = CONTOURS.bold[1];
-    g.stroke(V.contB);
-  }
+  g.strokeStyle = CONTOURS.line[0];
+  g.lineWidth = CONTOURS.line[1];
+  g.stroke(V.cont);
+  g.strokeStyle = CONTOURS.bold[0];
+  g.lineWidth = CONTOURS.bold[1];
+  g.stroke(V.contB);
   if (CONTOURS.halo) {
     // contours fade out just before a rock: a soft band of the land's colour round each rock, under the rock
     g.save();
@@ -997,6 +905,7 @@ function paintRock(g, se) {
 }
 // thicket trees live on their own layer, drawn over creatures and food so they look tucked in among the trees
 function paintStipple(g) {
+  if (MAP_STYLE === 'diorama') return paintStippleDio(g);
   const se = S ? S.season : 0,
     keepOut = new Path2D();
   // anything still overlapping rock is cut off where the rock begins

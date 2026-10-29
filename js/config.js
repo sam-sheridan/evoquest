@@ -283,7 +283,14 @@ const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 const DETAIL = 0.65;
 // sea depth bands, shallowest to deepest, and the depths (in shelf widths, see SEA) where each deeper band starts;
 // the last is the shelf's edge, where deep water starts. The deepest colour is also the background beyond the map
-const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
+// map style: 'diorama' (stepped low-poly terraces, js/diorama.js) or 'notebook' (the inked field-notebook map).
+// Adding ?map=notebook to the address shows the notebook map
+const MAP_STYLE =
+  typeof location !== 'undefined' && /[?&]map=notebook/.test(location.search) ? 'notebook' : 'diorama';
+const BAND =
+  MAP_STYLE === 'diorama'
+    ? ['#93e2d0', '#5fc6cd', '#3c9dc1', '#245a86']
+    : ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
 const BAND_AT = [0.27, 0.58, 1];
 // open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
 // strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
@@ -391,6 +398,88 @@ const SPLIT_FADE = 1.5;
 const INK = '#151918'; // the ink colour used for outlines and text
 // eyes are white on a species whose starting body is darker than this lightness, black otherwise
 const EYE_WHITE = 40;
+
+// the diorama map (MAP_STYLE 'diorama'): land as stacked terraces seen slightly from the south, like a painted
+// relief model. Every step is a flat plateau with a shaded side showing below its edge.
+//   levels: how many steps the land's height is split into (each holds about the same share of the land)
+//   rise: height (px) of each land step's side; foot: soft shadow just below each side [colour, extra px]
+//   lip: light line along each step's edge [colour, width]; straight: how far (px) an edge may wiggle before it gets
+//   a corner (bigger = more angular, low-poly edges); grass: per season (spring, summer, autumn, winter) the
+//   colour of the lowest and highest steps, blended in between; alt: how much every other step is lightened, so
+//   neighbouring steps stand apart; side: colour the sides are mixed towards, and how much; snow: in winter, steps
+//   from this one up are snow [from, colour]
+//   sand: the beach colour per season; beach: how far (px) from water the beach reaches
+//   coast: the land's edge drops into the water as a sandy cliff: rise px tall, wall colour, a shadow in the water
+//   [colour, extra px] and a line of foam at its foot [colour, width]
+//   sea: the seabed's steps, each rise px tall with sides mixed towards side, and a lip
+//   wash: meadow and dry-ground tints per season [red, green, blue, strength], over the steps
+//   thicket: the woodland floor's tint per season
+//   trees: per season, the colours of a broadleaf's lit, middle and shaded faces, then a pine's lit and shaded halves;
+//   pines: share of trees that are pines on the warmest and the coldest ground; trunk: lone trees' trunk colour;
+//   shadow: trees' shadows on the ground; temp: strength of the frosty and warm temperature washes
+//   rock: rise and wall colour of the rock's sides, its face colours (lit, half-lit, shaded), and its tiers' rise and
+//   colours
+const DIO = {
+  levels: 9,
+  rise: 6,
+  foot: ['rgba(40,60,10,.13)', 3],
+  lip: ['rgba(255,255,230,.4)', 1.1],
+  straight: 2.2,
+  grass: [
+    ['#d6e27e', '#3f8c3a'],
+    ['#e2dc76', '#5e9236'],
+    ['#e4d47e', '#6d8a3a'],
+    ['#dde3cd', '#8faa86'],
+  ],
+  alt: 0.05,
+  side: ['#24400c', 0.3],
+  snow: [6, '#f3f6f7'],
+  sand: ['#f3dda0', '#f5da92', '#eed29a', '#e8e1ca'],
+  beach: 20,
+  coast: {
+    rise: 8,
+    wall: '#cfa868',
+    shadow: ['rgba(10,45,80,.28)', 5],
+    foam: ['rgba(255,255,255,.75)', 2.4],
+  },
+  sea: { rise: 4, side: ['#0c3a5c', 0.3], lip: ['rgba(255,255,255,.28)', 1] },
+  wash: [
+    [
+      [70, 170, 60, 0.22],
+      [235, 205, 110, 0.3],
+    ],
+    [
+      [90, 165, 55, 0.16],
+      [240, 200, 95, 0.4],
+    ],
+    [
+      [150, 150, 50, 0.2],
+      [230, 175, 90, 0.34],
+    ],
+    [
+      [150, 175, 150, 0.15],
+      [215, 205, 180, 0.2],
+    ],
+  ],
+  thicket: ['rgba(60,150,45,.2)', 'rgba(75,145,40,.2)', 'rgba(150,120,30,.18)', 'rgba(95,125,95,.16)'],
+  trees: [
+    ['#86c64e', '#5ea53b', '#3d7d2c', '#3d7d4c', '#25573a'],
+    ['#93c446', '#6b9f33', '#477a27', '#3f774a', '#285638'],
+    ['#e0b13e', '#c47f2e', '#8e5623', '#3f6e46', '#2a5134'],
+    ['#b4bfa0', '#8e9c7e', '#66765c', '#4f7a5c', '#33573f'],
+  ],
+  pines: [0.04, 0.6],
+  trunk: '#7a5634',
+  shadow: 'rgba(20,55,15,.08)',
+  temp: 0.55,
+  rock: {
+    rise: 10,
+    wall: '#5d4f63',
+    face: ['#b3a3ae', '#9d8d9c', '#837386'],
+    tierRise: 6,
+    tier: ['#c4b6bf', '#d3c7cf'],
+  },
+};
 
 /* ---- seasons and food ---- */
 // per season, how quickly each kind of place regrows food: f fast, n normal, s slow
