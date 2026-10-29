@@ -157,15 +157,11 @@ function renderScene(nowT) {
     ctx.globalAlpha = 1;
   }
   // the sea's and the rivers' moving surface (diorama map), when zoomed in far enough to see it
-  if (MAP_STYLE === 'diorama' && z * dpr > 0.5 && window.SEA_DRAFT)
-    drawSeaMotion(
-      ctx,
-      t,
-      [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z],
-      window.SEA_DRAFT
-    );
-  if (MAP_STYLE === 'diorama' && z * dpr > 0.5)
-    drawRiverFlow(ctx, t, [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z]);
+  if (MAP_STYLE === 'diorama' && z * dpr > 0.5) {
+    const view = [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z];
+    drawSeaMotion(ctx, t, view);
+    drawRiverFlow(ctx, t, view);
+  }
   if (!S) return;
   const lw = clamp(1.5 / z, 0.45, 1.3);
   if (S.replay) {
