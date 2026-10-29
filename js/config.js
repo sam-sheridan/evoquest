@@ -531,18 +531,17 @@ const DIO = {
   // last edge px before the map's edge; up to one is placed in every gap px square. They gather in patches: a smooth
   // pattern about patch[0] px across, with ripples where it is above patch[1], filling in fully over patch[2] more.
   // Sizes run from size[0] to size[0] + size[1] times the base, small ones commonest. Each [strength, width px, half
-  // length px at the base size] drifts drift px with the wind (blowing towards angle wind, radians from east) as it
+  // length px at the base size] drifts drift px towards the nearest land as it
   // fades in and out, rippleSpeed times a second
   seaMotion: {
     shore: 90,
     blend: 30,
-    gap: 26,
+    gap: 36,
     edge: 400,
-    patch: [520, -0.15, 0.6],
+    patch: [520, 0.1, 0.6],
     size: [0.35, 2.4],
     ripple: [0.45, 1.1, 6],
     drift: 16,
-    wind: 0.25,
     rippleSpeed: 0.22,
     waves: [14, 104, 9],
     waveLine: [0.45, 1.3],

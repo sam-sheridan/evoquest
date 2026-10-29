@@ -718,9 +718,14 @@ function seaShapes(w, D) {
           clamp((w.dLand[i] - M.shore) / M.blend, 0, 1) *
           clamp(Math.min(px, py, W - px, GH * CS - py) / M.edge, 0, 1);
       if (T[i] !== 0 || !open[i] || keep > f) continue;
+      // it heads for the nearest land: the way the distance to land falls fastest
+      const at = (dx, dy) => w.dLand[cellI(clamp(px + dx, 0, W - 1), clamp(py + dy, 0, GH * CS - 1))],
+        gx = at(CS, 0) - at(-CS, 0),
+        gy = at(0, CS) - at(0, -CS),
+        a = gx || gy ? Math.atan2(-gy, -gx) : 0;
       const k = ((py / B) | 0) * nb + ((px / B) | 0);
       if (!cells.has(k)) cells.set(k, []);
-      cells.get(k).push([px, py, ph, sz, f]);
+      cells.get(k).push([px, py, ph, sz, f, Math.cos(a), Math.sin(a)]);
     }
   D.sea = { B, nb, cells };
   D.waves = [];
@@ -728,7 +733,8 @@ function seaShapes(w, D) {
     D.waves.push(loopsPath(i => (T[i] === 0 ? -w.dLand[i] : 0), -d, DIO.straight, 40));
 }
 // drawn every frame over the map: each wave line brightens in turn from the outside in, two waves at a time, fading
-// in at the outer edge and out towards the shore; each ripple drifts a short way with the wind as it fades in and out
+// in at the outer edge and out towards the shore; each ripple drifts a short way towards the nearest land as it fades
+// in and out
 function drawSeaMotion(g, t, view) {
   const D = world.vec.dio,
     M = DIO.seaMotion;
@@ -748,13 +754,11 @@ function drawSeaMotion(g, t, view) {
     bx0 = Math.max(0, Math.floor(view[0] / B)),
     bx1 = Math.min(nb - 1, Math.floor(view[2] / B)),
     by0 = Math.max(0, Math.floor(view[1] / B)),
-    by1 = Math.floor(view[3] / B),
-    wx = Math.cos(M.wind),
-    wy = Math.sin(M.wind);
+    by1 = Math.floor(view[3] / B);
   g.lineWidth = M.ripple[1];
   for (let by = by0; by <= by1; by++)
     for (let bx = bx0; bx <= bx1; bx++)
-      for (const [x, y, ph, sz, f] of cells.get(by * nb + bx) || []) {
+      for (const [x, y, ph, sz, f, wx, wy] of cells.get(by * nb + bx) || []) {
         const u = (t * M.rippleSpeed + ph) % 1,
           a = M.ripple[0] * f * Math.sin(Math.PI * u),
           cx = x + (u - 0.5) * M.drift * wx,
