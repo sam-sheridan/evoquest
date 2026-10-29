@@ -121,7 +121,6 @@ $('#sSound').onclick = () => {
   sound = !sound;
   if (sound) resetAudio();
   syncSettings();
-  if (sound) SND.birth();
 };
 // a half-second of white noise, the raw material of the world event effects
 let noiseBuf = null;
