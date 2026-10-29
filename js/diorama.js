@@ -61,6 +61,7 @@ function dioShapes(w, cdf, sm, shallow, thkF) {
       )
     );
   D.bands = BAND_AT.map(d => loopsPath(shallow, -d, DIO.straight, 100));
+  riverShapes(w, D);
   return D;
 }
 
@@ -156,6 +157,7 @@ function paintDiorama(g) {
   g.fill(V.trees.shadow);
   g.fill(V.landD.loneShadow);
   g.restore();
+  paintRiverBed(g, D);
   paintRockDio(g, se);
   // lone trees, on the ground layer (creatures walk over them)
   g.fillStyle = DIO.trunk;
@@ -164,12 +166,6 @@ function paintDiorama(g) {
     g.fillStyle = DIO.trees[se][s];
     g.fill(V.landD.loneF[s]);
   }
-  // river current: light streaks
-  g.strokeStyle = 'rgba(255,255,255,.7)';
-  g.lineWidth = 1.2;
-  g.lineJoin = 'round';
-  g.lineCap = 'round';
-  g.stroke(V.chev);
 }
 
 // rock: a slab with a dark side, faceted on top, with paler stacked tiers (snow in winter)
@@ -584,4 +580,164 @@ function introTreesDio(g, list, alpha) {
     }
   }
   g.globalAlpha = 1;
+}
+
+/* rivers: smooth banks (see buildTerrain), a deeper middle and a moving surface */
+// D.river: the rivers' water, for clipping; D.flows: each river's runs of water as points every 6 px along its line
+// [x, y, normal x, normal y], running downhill (from the higher end of the land it crosses to the lower), with the
+// river's half-width hw and a path along its middle
+function riverShapes(w, D) {
+  const T = w.type;
+  D.river = loopsPath(i => (T[i] === 4 ? -w.rD[i] : -Math.max(w.rD[i], 0.5)), 0, 0, 0);
+  D.flows = [];
+  D.mid = new Path2D();
+  for (const ch of w.channels) {
+    if (ch.sea) continue;
+    const P = [];
+    for (let k = 0; k < ch.pts.length - 1; k++) {
+      const [ax, ay] = ch.pts[k],
+        [bx, by] = ch.pts[k + 1],
+        len = Math.hypot(bx - ax, by - ay) * CS,
+        nx = -(by - ay) / (len / CS),
+        ny = (bx - ax) / (len / CS);
+      for (let d = 0; d < len; d += 6)
+        P.push([(ax + ((bx - ax) * d) / len) * CS, (ay + ((by - ay) * d) / len) * CS, nx, ny]);
+    }
+    const runs = [];
+    let run = null;
+    for (const p of P) {
+      if (cellT(p[0], p[1]) === 4) (run ||= []).push(p);
+      else if (run) {
+        if (run.length > 3) runs.push(run);
+        run = null;
+      }
+    }
+    if (run && run.length > 3) runs.push(run);
+    if (!runs.length) continue;
+    // downhill: the end whose land is lower is where it flows to
+    const hAt = p => w.hgt[cellI(p[0], p[1])];
+    if (hAt(runs[0][0]) < hAt(runs.at(-1).at(-1))) {
+      runs.reverse();
+      for (const r of runs) {
+        r.reverse();
+        for (const p of r) [p[2], p[3]] = [-p[2], -p[3]];
+      }
+    }
+    const hw = ch.w * CS;
+    for (const r of runs) {
+      r.forEach((p, k) => (k ? D.mid.lineTo(p[0], p[1]) : D.mid.moveTo(p[0], p[1])));
+      const xs = r.map(p => p[0]),
+        ys = r.map(p => p[1]);
+      // lanes along the river (for streaks), each a path offset from the middle by a share of the half-width
+      const lane = o => {
+        const q = new Path2D();
+        r.forEach((p, k) =>
+          k
+            ? q.lineTo(p[0] + p[2] * o * hw, p[1] + p[3] * o * hw)
+            : q.moveTo(p[0] + p[2] * o * hw, p[1] + p[3] * o * hw)
+        );
+        return q;
+      };
+      const rnd = mulberry32((r[0][0] * 7 + r[0][1]) | 0);
+      D.flows.push({
+        r,
+        hw,
+        box: [Math.min(...xs) - hw, Math.min(...ys) - hw, Math.max(...xs) + hw, Math.max(...ys) + hw],
+        lanes: [-0.5, 0.05, 0.5].map(lane),
+        glints: Array.from({ length: Math.ceil(r.length / 2.5) }, () => [
+          rnd(),
+          (rnd() * 2 - 1) * 0.7,
+          14 + rnd() * 12,
+        ]),
+      });
+    }
+  }
+}
+// the river's deeper middle, on the map image
+function paintRiverBed(g, D) {
+  g.save();
+  g.clip(D.river, 'evenodd');
+  g.strokeStyle = 'rgba(60,110,120,.16)';
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  for (const f of D.flows) {
+    g.lineWidth = f.hw * 0.95;
+    const p = new Path2D();
+    f.r.forEach((q, k) => (k ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1])));
+    g.stroke(p);
+  }
+  g.restore();
+}
+// DRAFT: the moving surface, drawn every frame over the map. style: A streaks drifting downstream in three lanes,
+// B riffles (bowed ripple lines across the current) travelling downstream, C glints that drift and twinkle, with
+// foam along the banks
+const RIVER_DASH = [
+  [7, 26, 3, 34, 12, 41],
+  [4, 31, 9, 22, 2, 37],
+  [10, 38, 5, 27, 3, 30],
+];
+function drawRiverFlow(g, t, view, style) {
+  const D = world.vec.dio;
+  if (!D || !D.flows) return;
+  g.save();
+  g.clip(D.river, 'evenodd');
+  g.lineCap = 'round';
+  if (style === 'C') {
+    g.strokeStyle = 'rgba(255,255,255,.4)';
+    g.lineWidth = 2.4;
+    g.stroke(D.river);
+  }
+  for (const f of D.flows) {
+    const [x0, y0, x1, y1] = f.box;
+    if (x1 < view[0] || y1 < view[1] || x0 > view[2] || y0 > view[3]) continue;
+    const L = f.r.length * 6;
+    if (style === 'A') {
+      g.strokeStyle = 'rgba(255,255,255,.6)';
+      g.lineWidth = 1.3;
+      f.lanes.forEach((p, k) => {
+        g.setLineDash(RIVER_DASH[k]);
+        g.lineDashOffset = -(t * (20 + k * 4) + k * 40);
+        g.stroke(p);
+      });
+      g.setLineDash([]);
+    } else if (style === 'B') {
+      g.lineWidth = 1.1;
+      for (let k = 0; k * 26 < L; k++) {
+        const s = (k * 26 + t * 18) % L,
+          i = Math.min(f.r.length - 2, (s / 6) | 0),
+          [x, y, nx, ny] = f.r[i],
+          tx = ny,
+          ty = -nx,
+          o = 0.25 * Math.sin(k * 2.3),
+          a = 0.25 + 0.3 * Math.max(0, Math.sin(k * 1.7 + t * 1.3)),
+          span = f.hw * (0.35 + 0.15 * Math.sin(k * 3.1));
+        const cx = x + nx * o * f.hw,
+          cy = y + ny * o * f.hw;
+        g.strokeStyle = `rgba(255,255,255,${a.toFixed(2)})`;
+        g.beginPath();
+        g.moveTo(cx - nx * span, cy - ny * span);
+        g.quadraticCurveTo(cx + tx * 5, cy + ty * 5, cx + nx * span, cy + ny * span);
+        g.stroke();
+      }
+    } else {
+      g.lineWidth = 1.2;
+      for (const [ph, o, v] of f.glints) {
+        const s = (ph * L + t * v) % L,
+          i = Math.min(f.r.length - 2, (s / 6) | 0),
+          [x, y, nx, ny] = f.r[i],
+          tx = ny,
+          ty = -nx,
+          a = Math.max(0, Math.sin(t * 2.4 + ph * 40)) ** 2;
+        if (a < 0.05) continue;
+        const cx = x + nx * o * f.hw,
+          cy = y + ny * o * f.hw;
+        g.strokeStyle = `rgba(255,255,255,${(0.9 * a).toFixed(2)})`;
+        g.beginPath();
+        g.moveTo(cx - tx * 2.5, cy - ty * 2.5);
+        g.lineTo(cx + tx * 2.5, cy + ty * 2.5);
+        g.stroke();
+      }
+    }
+  }
+  g.restore();
 }
