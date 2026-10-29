@@ -232,101 +232,23 @@ function makeChild(p, x, y, spread = 1) {
   return c;
 }
 
-// Survey-glyph style: pale body, ink outline, legs as short ink bars along the sides like map ticks.
-// Longer bars mean longer legs; wider, shorter bars mean a creature that leans towards water.
-function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
-  const L = c.bh / 2,
-    Wd = c.bw / 2;
-  g.save();
-  g.translate(x, y);
-  g.rotate(c.dir);
-  g.scale(sc, sc);
-  g.lineJoin = 'round';
-  if (swim && detail) {
-    // wake: shallow arcs close behind (behind the tail tip), drifting outwards and fading
-    const s = Math.max(0.7, c.bw / 15),
-      ph = (t * 1.1 + c.id * 0.37) % 1;
-    g.lineWidth = lw;
-    g.lineCap = 'round';
-    for (let k = 0; k < 3; k++) {
-      const kk = k + ph,
-        r = (11 + kk * 3.5) * s,
-        apex = -L - tailLen(c) - 1.5 * s - kk * 2.4 * s,
-        span = 0.38 + kk * 0.11, // each arc spans wider the further it is behind, so the wake spreads out
-        a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
-      g.strokeStyle = `rgba(77,115,133,${a.toFixed(3)})`;
-      g.beginPath();
-      g.arc(apex + r, 0, r, Math.PI - span, Math.PI + span);
-      g.stroke();
-    }
-  }
-  if (detail) drawMouth(g, c, L, t);
-  g.strokeStyle = INK;
-  if (detail) {
-    const Lg = legLen(c) * (swim ? 0.7 : 1),
-      wd = 2 + c.tail * 1.6;
-    g.lineCap = 'butt';
-    g.lineWidth = wd;
-    g.beginPath();
-    c.anch.forEach(([ex, ey, a], k) => {
-      if (swim && Math.cos(a) < 0) return;
-      const sw = (swim ? Math.sin(t * 4 + k * Math.PI) : Math.sin(c.walk * 2.2 + k * Math.PI)) * 0.22,
-        aa = a + sw;
-      g.moveTo(ex + Math.cos(aa) * 0.8, ey + Math.sin(aa) * 0.8);
-      g.lineTo(ex + Math.cos(aa) * (0.8 + Lg), ey + Math.sin(aa) * (0.8 + Lg));
-    });
-    g.stroke();
-  }
-  // zoomed in, the tail sways: strongly when swimming, a little when walking
-  const body = detail && c.tail > 0 ? pathOf(outline(c, t, swim ? 1 : 0.3)) : c.p2;
-  g.fillStyle = fill;
-  g.fill(body);
-  if (swim) {
-    // back half below the surface
-    g.save();
-    g.clip(body);
-    g.beginPath();
-    g.moveTo(1, -Wd - 3);
-    g.quadraticCurveTo(-2, 0, 1, Wd + 3);
-    g.lineTo(-L - c.bh * 2 - 6, Wd + 3);
-    g.lineTo(-L - c.bh * 2 - 6, -Wd - 3);
-    g.closePath();
-    g.fillStyle = '#a9c5cf';
-    g.fill();
-    g.globalAlpha = 0.12;
-    g.fillStyle = fill;
-    g.fill();
-    g.globalAlpha = 1;
-    g.strokeStyle = 'rgba(77,115,133,.9)';
-    g.lineWidth = lw;
-    g.beginPath();
-    g.moveTo(1, -Wd - 3);
-    g.quadraticCurveTo(-2, 0, 1, Wd + 3);
-    g.stroke();
-    g.restore();
-    g.save();
-    g.beginPath();
-    g.rect(-0.5, -Wd - 6, L + 12, 2 * Wd + 12);
-    g.clip();
-    g.lineWidth = lw * 1.3;
-    g.strokeStyle = INK;
-    g.stroke(body);
-    g.restore();
-  } else {
-    g.lineWidth = lw * 1.3;
-    g.stroke(body);
-  }
-  if (detail) {
-    // eye colour is set once per species, from its starting lightness, so every member matches
-    const ex = L * 0.52,
-      half = Math.max(1.4, Math.min(c.bw * 0.22, 3.2)),
-      lt = S?.species[c.sp]?.lt ?? c.lt;
-    g.fillStyle = lt < EYE_WHITE ? '#fcfcfb' : INK;
-    for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
-  }
-  g.restore();
+// legs as bars out from their anchors, swinging as the creature walks (or paddles: only the front ones show when
+// swimming). wd scales their width
+function drawLegs(g, c, t, swim, colour, wd) {
+  const Lg = legLen(c) * (swim ? 0.7 : 1);
+  g.strokeStyle = colour;
+  g.lineCap = 'butt';
+  g.lineWidth = (2 + c.tail * 1.6) * wd;
+  g.beginPath();
+  c.anch.forEach(([ex, ey, a], k) => {
+    if (swim && Math.cos(a) < 0) return;
+    const sw = (swim ? Math.sin(t * 4 + k * Math.PI) : Math.sin(c.walk * 2.2 + k * Math.PI)) * 0.22,
+      aa = a + sw;
+    g.moveTo(ex + Math.cos(aa) * 0.8, ey + Math.sin(aa) * 0.8);
+    g.lineTo(ex + Math.cos(aa) * (0.8 + Lg), ey + Math.sin(aa) * (0.8 + Lg));
+  });
+  g.stroke();
 }
-
 // the mouth changes shape smoothly with mth: values at mth = 0, 0.25, 0.5, 0.75 and 1, blended in between
 const MOUTH_SHAPE = {
   len: [4.4, 4.9, 5.3, 5.6, 5.8], // length, longer towards the straw
@@ -347,7 +269,7 @@ function mouthKey(name, m) {
 }
 // two jaws at the front, drawn under the body; they snap quickly while the creature eats and open and close
 // gently otherwise. From 0.75 to 1 the two prongs close together into one straw that flares slightly at the end.
-function drawMouth(g, c, L, t) {
+function drawMouth(g, c, L, t, colour = INK, line = 0.45) {
   const m = c.mth ?? 0.5,
     s = mouthScale(c),
     len = mouthKey('len', m),
@@ -366,9 +288,9 @@ function drawMouth(g, c, L, t) {
   g.translate(L - 0.6 * s, 0);
   g.scale(s, s);
   g.lineJoin = 'round';
-  g.lineWidth = 0.45;
-  g.strokeStyle = INK;
-  g.fillStyle = INK;
+  g.lineWidth = line;
+  g.strokeStyle = colour;
+  g.fillStyle = colour;
   for (const k of [-1, 1]) {
     g.save();
     g.rotate(k * swing * (k < 0 ? 1 : 0.4));
@@ -386,7 +308,7 @@ function drawMouth(g, c, L, t) {
     g.bezierCurveTo(len * 0.7, k * (tipIn + bulge * 0.25), len * 0.3, k * tipIn * 0.5, 0, k * tipIn * 0.3);
     g.closePath();
     g.fill();
-    g.stroke();
+    if (line) g.stroke();
     g.restore();
   }
   g.restore();

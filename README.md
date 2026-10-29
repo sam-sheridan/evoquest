@@ -253,7 +253,7 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
 body trait. Between the two ends, the beak stretches into tweezers, the tweezers straighten into prongs, and from
 0.75 the prongs close together into a single straw with a slight trumpet at the end. The mouth is always drawn in
-black ink. The jaws snap quickly
+charcoal. The jaws snap quickly
 while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
 when zoomed in.
 
@@ -730,7 +730,8 @@ Every species is one of four types, each a way of life with its own Latin name (
 | *vulgaris* | in between | everything else |
 
 Water comes first: a creature with a clear tail is *natans* whatever else it is. So there are never more than four
-species alive at once, and two species never look alike.
+species alive at once, and species look clearly different on average. Individual creatures near a border can
+look alike, though (see the margin below): a *vulgaris* with a 55% tail can sit beside a *natans* with a 45% one.
 
 The **released species** is whichever type the creator's design falls into, and keeps the colour you chose. There
 is no *primus*: release a water creature and the run starts with *natans*.
@@ -746,8 +747,13 @@ Newborns take their parent's species. As traits drift, some creatures end up liv
 
 - Each creature **leans** towards a type. That is its own species' type unless it is clearly outside it: at least
   one margin past the border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). Then it leans
-  towards the type it now fits best. The margin stops creatures near a border flicking back and forth. A creature's
-  body never changes during its life, so its lean is set by how it was born.
+  towards the type it now fits best. A creature's body never changes during its life, so its lean is set by how it
+  was born. The margin works across generations: newborns are slightly changed copies, so a family living near a
+  border keeps having young on both sides of it. Without the margin, a child just over the line would move to the
+  other species and its own child, back over the line, would move back again, leaving a herd speckled with both
+  colours. With it, a child just over the line stays in its parent's species, and only a line that has clearly
+  moved changes. The cost is an overlap: between 42% and 58% tail, for example, a creature can be *natans* or
+  *vulgaris* depending on its family.
 - A creature leaning towards another type **joins** that species if it is alive and at least **3** other creatures
   within **200 px** lean the same way or already belong there (`TYPES.join`, `TYPES.radius`). It blends into the new
   colour over 1.5 seconds (`SPLIT_FADE`), keeping its own shade.
@@ -1059,12 +1065,12 @@ add a few milliseconds of silence at the start (different amounts in different b
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
 back into view, and on the next tap or key press if the browser insists on one.
 
-Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
+Some browsers can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
 after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
 moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
 Turning *Sound* off and on in Settings always starts a fresh engine, as a sure cure for silence.
 
-**Sound goes out through an audio element.** On some Macs Safari keeps sound sent straight to the speakers
+**Sound goes out through an audio element.** On some Macs, browsers keep sound sent straight to the speakers
 silent, even though the tab shows the speaker, while sound from an audio element (the kind of player YouTube
 uses) is heard. So all the game's sound feeds a hidden audio element, started by the click that releases a
 species. Browsers that can't do this send sound straight to the speakers instead.
@@ -1073,7 +1079,11 @@ species. Browsers that can't do this send sound straight to the speakers instead
 
 ## 15. How things are drawn
 
-The look is a scientific **field notebook / survey map**.
+The world is a **diorama**: stepped, low-poly land and water like a painted relief model, with low-poly
+creatures, seen through a clean, scientific interface (as if observing a real world through a researcher's
+instruments). Sam chose this in October 2026, replacing the inked **field notebook** map (see the end of this
+section). The
+diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in `js/diorama.js`.
 
 - **Text.** Two fonts from one family: IBM Plex Sans for writing and IBM Plex Mono for numbers, labels and
   times. Every piece of text uses one of seven sizes (`--fs-xs` to `--fs-3xl` at the top of `css/style.css`:
@@ -1082,70 +1092,83 @@ The look is a scientific **field notebook / survey map**.
 - **Favicon and link preview.** The browser tab icon is a sky blue creature with the shortest possible tail on a
   pale tile with the title screen's grid; the phone home screen icon is the same without the rounded corners
   (phones round them). Both were drawn by the game's own creature code. The link preview (the card shown when
-  the link is shared) is the title on the notebook grid beside the map of world #159 just after a release, with
-  thickets, a rock and a lake. They are fixed pictures in `img/`; changing the game's look doesn't update them.
-- **Map.** Coastlines and contours are smooth vector lines, not pixel steps.
-  - The sea is shown in four depth bands (`BAND`, starting at the depths in `BAND_AT`), each edged with a thin
-    line, as on a sea chart. The outer band's edge is where deep water starts. The deepest colour is
-    also the background beyond the map, so the map has no visible border.
-  - **Open land** (`OPENLAND`) is pale, with fertile meadows washed green and poor dry ground washed straw, fading
-    into each other (drawn as a small smoothed image, one pixel per cell, so it adds nothing to Safari's limit). In
-    summer the dry ground is stronger. Lone trees and small clumps stand in the meadows (there are no grass tufts or
-    reed marks: Sam's choice, October 2026). A very light hill shading (also a
-    small image) darkens slopes facing away from the north-west light and fades out at the water's edge.
-  - Thickets are woodland: a soft green floor with ink-drawn trees on
-    top, each a bumpy crown outline with a faint shadow, in one of three shades of green, a step darker than the
-    meadows and changing with the seasons (`TREES.colour`). Most have a small curved shading stroke inside, placed and sized differently on each tree; about a third have none (`TREES.plain`). At the edge they are small
-    scattered bushes, about a third as many as in the middle. They grow bigger over the first 48 px in, where the
-    thicket gets too tight for bigger creatures, and closer together all the way to the middle of each patch (or
-    112 px in, for a big patch), where they are packed and bigger than the creatures (`TREES`).
-    Trees are drawn in rows from the top of the map down, so nearer crowns hide the ones behind. Rock blocks
-    thickets: no tree stands where its crown would reach onto rock, and any crown edge that still overlaps is cut
-    off where the rock begins. (When the world is built, ground that is both thicket and rock becomes thicket.)
-  - **Rock** is drawn as angular crags (`ROCKS`). Outlines are straightened into long, sharp-cornered edges. The
-    slopes are split into flat faces: plain where lit from the north-west, a darker plain tone where shaded (`ROCKS.shade`), with ink along the
-    ridges where the two meet. Two paler tiers, outlined in ink, step up at set heights. Every rock rises at least
-    to the first tier (`ROCKS.minPeak`), so even low rocks show faces, while the tallest ranges reach the second.
-    Meteor crater walls take their height from the crater's ring, rising to its crest. A
-    ring of short strokes just inside each edge points uphill, longer where the rock rises higher and darker on the
-    shaded side. Where rock meets water it lowers over its last 3 cells (`ROCKS.shore`) and ends in sea cliffs: the
-    coast gets the rock's ink line and a row of strokes pointing inland. In winter the tiers are snow. The rock's base is a darker
-    stone colour than the plains, and the tiers lighten towards the top. Shaded faces look the same at every zoom: there
-    is no hatching (Sam's choice, October 2026).
-  - Rivers are pale blue with a
-    blue-grey edge. Sea channels are carved into the land's heights as smooth troughs (`SEA_WALL`), like the strait,
-    so their coasts are smooth curves, and the land's details fade out over the last few cells before them. Rivers
-    keep their stepped edges.
-  - Land colours are measured against the world's original heights, so floods and droughts don't recolour the
-    land that remains.
-  - **Contours** are drawn every ninth of the land's height range, and every third one is an **index contour**,
-    drawn a little bolder, as on an Ordnance Survey map. They follow the land's own height (thickets sit in slight
-    hollows) and pass under the rocks, which show their own height, and they fade out just before each rock
-    (`CONTOURS`).
-  - **Temperature** shows as a frosty blue wash on cold high ground and a faint warm wash on hot lowland, five
-    steps each, so it shades gradually. The season decides how far each reaches. It is drawn as a small image (one
-    pixel per map cell) scaled up smoothly, not as shapes: Safari stops drawing the land's colours when the map
-    holds too many detailed shapes.
+  the link is shared) is the title on the grid beside the diorama map of world #159 just after a release of
+  vermilion creatures, with thickets, rocks and a lake. They are fixed pictures in `img/`; changing the game's look
+  doesn't update them.
+- **Land: terraces.** The land's height is split into 7 steps (`DIO.levels`), each holding about the same share of
+  the land, measured against the world's original heights so floods and droughts don't recolour what remains.
+  Each step is a flat plateau seen slightly from the south: its side shows as a darker band 4 px tall below every
+  edge that faces down the screen (`DIO.rise`), with a soft shadow at its foot and a light line along its edge.
+  Edges are angular, low-poly lines (`DIO.straight`). Rivers don't cut the steps: the steps run on across a river
+  as if it weren't there, so they don't crowd down into it.
+  - Colours run from pale yellow-green on the lowest step to deeper green on the highest, every other step a touch
+    lighter, and change with the seasons (`DIO.grass`): fresh in spring, yellower in summer, olive in autumn, pale
+    in winter with the top two steps under snow (`DIO.snow`). Sam asked for calmer, less saturated colours.
+  - A **sand beach** lines every coast and river bank (`DIO.beach`), and the land drops into the water as a sandy
+    cliff with white foam at its foot (`DIO.coast`).
+  - Meadows (fertile ground) are washed a little greener and dry ground a little straw-coloured (`DIO.wash`),
+    drawn as a small smoothed image. There are no contour lines or hill
+    shading: the steps show the height.
+  - **Temperature** shows as a frosty wash on cold high ground and a faint warm wash on hot lowland
+    (`DIO.temp` sets their strength), drawn as a small image as before.
+- **Thickets** have a soft green floor with **low-poly trees** on top: a jagged crown raised above its foot, filled
+  in a middle green with lit faces towards the north-west and shaded faces away (`DIO.trees`, by season: orange
+  and gold in autumn), with a faint shadow on the ground. Size, spacing, the see-through mix and the rule that no
+  tree reaches onto rock are set by `TREES`. Lone trees on open land are the same trees with a
+  short trunk. (There are no pines: Sam's choice, October 2026.)
+- **Rock** is a mauve slab with a dark side below its edges, its top split into flat faces lit from the north-west,
+  and paler tiers stacked on top, each with its own side (`DIO.rock`). In winter the tiers are snow. The outline,
+  faces, tiers and crater walls come from the same shapes as before (`ROCKS`).
+- **Sea.** Soft sea-glass colours from pale aqua shallows to slate-blue deep water (`BAND`), in the same depth bands
+  (`BAND_AT`), each a step of the seabed with its own side and a light lip (`DIO.sea`). The deepest colour is also
+  the background beyond the map.
+- **Rivers** keep their stepped edges (Sam's choice) and run a little deeper down the middle. There are no arrows:
+  instead white streaks of different lengths drift along three lanes, each at its own speed (`DIO.river`). Each
+  river flows from the higher end of the land it crosses towards the lower (only a look: the current just slows
+  creatures crossing).
+- **Moving water.** Wave lines roll in towards every coast and lake shore, two at a time, from about 100 px out,
+  fading in at the outer edge and out at the shore (`DIO.seaMotion`). The open sea further out is still (Sam tried
+  small ripples and large swells there in October 2026 and preferred it still). The waves and the river streaks
+  are drawn fresh every frame over the map, only where they are on screen, and not when zoomed right out.
+- **Map key.** The World tab's key is drawn from the same colours as the map (`dioLegend`).
 - **Detail.** When zoomed out, a pre-drawn image of the map is used, plus a lower-resolution copy when very far
   out (`TS` = 0.8 and `LO` = 0.4 pixels per world px, kept low because the map is large). From a mid zoom inwards (`DETAIL`: 0.65 screen pixels per world px), the visible part is redrawn sharply. While zooming or panning, the last
   sharp image is stretched until the redraw catches up, and fades between seasons and after events keep the old
   map at full sharpness, so the map doesn't go blurry. From that zoom inwards, creatures stay under the trees,
   which are partly see-through (`TREES.alpha`): 40% of trees are the most see-through, 35% a bit more solid,
   20% more solid again and 5% almost fully solid, so creatures and food show through most of them.
-- **Creatures** are seen from above.
-  - Body: a pale body with an ink outline, an eye pair at the front, and legs as short ink bars along the sides.
-  - Eyes: two small square eyes, black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
+- **Creatures** are seen from above, drawn low-poly with a thin outline (`DIO.creature`).
+  - Body: four flat faces (the spine splits left from right, a crease splits front from back), each lit by how
+    much it faces the north-west light; a slightly raised darker side; a thin outline in a dark shade of the
+    creature's own colour; and, on the map, a soft shadow on the ground. Pictures on paper (the creator, the species
+    table in the inspector and at the end of a run, the title screen and the diagram panes) have no shadow.
+  - Eyes: two small square eyes, near-black, or white on a dark species colour (lightness below `EYE_WHITE`, 40), so
     every member of a species has the same eyes even though shades vary slightly from creature to creature.
   - Legs: 4, or 6 from size 1.0 (`LEGS.sixFrom`, 0.9 before October 2026), so they follow size and change as it evolves (only a look). They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
     mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45
     to 5.2 px before the tail shortens them), and wider, shorter bars mean a creature that leans towards water.
-  - Mouth: one black mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
+    They are drawn in a dark shade of the creature's own colour.
+  - Mouth: one charcoal mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
     [mouths](#mouths)).
-  - In water, the back half is drawn as submerged and a small wake trails behind, its arcs spreading wider the
-    further they are from the body.
+  - In water, the back half is tinted by the water with a light waterline, and white arcs trail behind, spreading
+    wider the further they are from the body. (Sam tried a foam trail in October 2026 and preferred the arcs.)
+  - **Hops.** A creature on land hops as it crosses onto another terrace step: lifted briefly above its shadow,
+    higher and slower going up than coming down (`DIO.hop`). It is only a look: it doesn't change how creatures
+    move. Sam chose this in October 2026 so creatures don't glide over the steps as if the land were flat.
+- **Food** is faceted like the trees (`DIO.food`): berries are red gems with a leaf, nuts faceted acorns, and algae
+  a single blade of seaweed, broad at the top with a pointed stem below, its frilled edges rippling as it waves
+  gently. Regrowing food is smaller and paler (regrowing algae shorter and yellowish). Zoomed out, food shows as dots in
+  the same colours.
+- **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
+  thicket) and "Eat, breed, survive" a terraced meadow.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
+- **The notebook look** (live until October 2026, deleted when the diorama shipped; it is in the git history,
+  in any commit before the merge of `changes/2026-10-29-terraces`): an inked survey map with
+  pale land, contour lines every ninth of the height range (every third bolder), ink-drawn scalloped trees, angular
+  inked crags with hatching strokes, pale blue sea bands edged with thin lines, rivers marked with arrows, and pale
+  creatures with black ink outlines, legs and mouths.
 
 ---
 
@@ -1268,7 +1291,8 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/config.js` | **Every number worth tuning**: world size, seasons, food regrowth, crowding, speciation, events, colours |
 | `js/util.js` | Shared helpers: random numbers, maths, saved runs, noise |
 | `js/world.js` | World generation: coastlines, rivers, thickets, rocks, craters, food sites |
-| `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
+| `js/map.js` | Turning the terrain into shapes (marching squares, rock faces, tree placement), sharp and low-detail layers |
+| `js/diorama.js` | The diorama look: terraces, sea, rivers and moving water, low-poly trees, rock, creatures and food, the intro's pictures and the World tab's key |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
 | `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music), `end.mp3` (the end music), `ambient.mp3` (the ambient notes), and `eat.mp3`, `birth.mp3` and `death.mp3` (the creature sounds) |

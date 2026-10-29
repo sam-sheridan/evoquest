@@ -271,7 +271,7 @@ function drawPreview(t) {
   pvC.walk = t * 3;
   pvC.rest = t % 5 < 1.6 ? 1 : 0; // every few seconds it pretends to eat, so the mouth snaps
   pvC.dir = -0.35 + Math.sin(t * 0.6) * 0.3;
-  drawCreature(g, pvC, 260, 175, k, 7, col(pvC), t, false, 1.1 / k);
+  drawCreature(g, pvC, 260, 175, k, 7, col(pvC), t, false, true);
   g.strokeStyle = INK;
   g.lineWidth = 1;
   g.beginPath();
