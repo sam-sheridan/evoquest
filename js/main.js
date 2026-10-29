@@ -156,6 +156,11 @@ function renderScene(nowT) {
     else if (f.a) ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
+  // the sea's and the rivers' moving surface, when zoomed in far enough to see it
+  if (z * dpr > 0.5) {
+    drawSeaMotion(ctx, t);
+    drawRiverFlow(ctx, t, [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z]);
+  }
   if (!S) return;
   const lw = clamp(1.5 / z, 0.45, 1.3);
   if (S.replay) {
@@ -195,9 +200,9 @@ function renderScene(nowT) {
     }
   }
   if (!fine) {
-    ctx.fillStyle = '#D55E00';
+    ctx.fillStyle = DIO.food.berry;
     ctx.fill(bR);
-    ctx.fillStyle = '#009E73';
+    ctx.fillStyle = DIO.food.algae;
     ctx.fill(bA);
     ctx.fillStyle = '#8a5a2b';
     ctx.fill(bN);
@@ -222,7 +227,9 @@ function renderScene(nowT) {
               lt: l0 + (c.lt - l0) * f,
             })
           : col(c);
-    drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt), lw / sc);
+    // a creature hops over each terrace step it crosses on land
+    c.lift = isWater(tt) ? 0 : hopLift(c, t);
+    drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt));
   }
   if (det) drawStipple(det);
   else if (stale) ctx.drawImage(detail.can2, ...stale);

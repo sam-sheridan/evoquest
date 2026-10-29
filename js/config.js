@@ -283,50 +283,16 @@ const LO = 0.4; // resolution of the low-detail copy used when zoomed far out
 const DETAIL = 0.65;
 // sea depth bands, shallowest to deepest, and the depths (in shelf widths, see SEA) where each deeper band starts;
 // the last is the shelf's edge, where deep water starts. The deepest colour is also the background beyond the map
-const BAND = ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
+const BAND = ['#bcddd2', '#9cc7c4', '#7eaab3', '#5f879b'];
 const BAND_AT = [0.27, 0.58, 1];
-// open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
-// strength], blended as a soft image so they fade into each other. hill: strength of the hill shading. lone: chance
-// per open cell of a lone tree or small clump, [base, extra on the most fertile ground]
-const OPENLAND = {
-  wash: [
-    [
-      [150, 190, 110, 0.36],
-      [222, 200, 140, 0.32],
-    ],
-    [
-      [160, 190, 110, 0.26],
-      [228, 196, 110, 0.36],
-    ],
-    [
-      [185, 175, 110, 0.3],
-      [220, 190, 130, 0.32],
-    ],
-    [
-      [160, 180, 150, 0.22],
-      [215, 210, 195, 0.28],
-    ],
-  ],
-  hill: 0.13,
-  lone: [0.02, 0.06],
-};
-// contour lines: [colour, width px] for ordinary lines and for the bold index lines (every third). halo: a soft
-// band [colour, width px] drawn round each rock before it, so contours fade out just before reaching it (null: none)
-const CONTOURS = {
-  line: ['rgba(70,62,50,.26)', 0.8],
-  bold: ['rgba(70,62,50,.34)', 1.1],
-  halo: ['rgba(233,236,222,.7)', 12],
-};
-// rock is drawn as angular crags. minCells: pieces of rock smaller than this many cells are turned into open
-// ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline may wiggle before it gets a corner (bigger = longer straight
-// edges). mesh: size (px) of the flat faces the slopes are split into. relief: how tall the rock is drawn, which
-// sets how steep its faces are. minPeak: every rock's peak is lifted to at least this height (on the tiers' scale),
-// rising towards 1 for the tallest, so even low rocks get faces and a tier. shore: over how many cells rock lowers
-// towards water, ending in sea cliffs. flat: faces rising less than this share of relief count as flat and stay
-// plain.
-// shade: the plain fill of shaded faces, at every zoom. tiers: heights (0 at the rock's edge, 1 at the highest point on the map) of the paler inner
-// outlines, each lightened by tier. tick: gap (px) between the strokes round the inside of the edge. face:
-// colours of lit, half-lit and shaded faces, dark enough that the rock's base stands apart from the plains
+// rock's shapes (its colours are in DIO.rock). minCells: pieces of rock smaller than this many cells are turned into
+// open ground whenever the world is built or reshaped, so there is no tiny rock. straight: how far (px) an outline
+// may wiggle before it gets a corner (bigger = longer straight edges). mesh: size (px) of the flat faces the slopes
+// are split into. relief: how tall the rock is taken to be, which sets how steep its faces are. minPeak: every
+// rock's peak is lifted to at least this height (on the tiers' scale), rising towards 1 for the tallest, so even low
+// rocks get faces and a tier. shore: over how many cells rock lowers towards water. flat: faces rising less than this
+// share of relief count as flat and stay plain. tiers: heights (0 at the rock's edge, 1 at the highest point on the
+// map) of the tiers stacked on top
 const ROCKS = {
   minCells: 6,
   straight: 5,
@@ -336,25 +302,18 @@ const ROCKS = {
   shore: 3,
   flat: 0.14,
   tiers: [0.33, 0.62],
-  shade: '#b0a693',
-  tier: 'rgba(255,252,245,.3)',
-  tick: 5,
-  face: ['#d2c9b8', '#c6bdab', '#b9af9c'],
 };
 // thicket trees: crown radius in px [at the edge, from THICKET.deep in], plus up to jitter px more. Trees per cell
 // [at the edge, in the middle of the patch] (on average): they grow closer together all the way to the middle of
 // each patch, or to mid px in for a big patch, so the edge has a few small bushes and the middle big, packed trees.
-// plain: share of crowns with no shading stroke. alpha: how solid the crowns are (they are drawn over creatures), as
-// [solidity, share of trees]: 40% are as see-through as the first three, 35% more solid, 20% more solid again and
-// 5% almost fully solid
-// colour: crown shades [light, middle, dark] per season (spring, summer, autumn, winter); each tree takes one
-// of the three
+// alpha: how solid the crowns are (they are drawn over creatures), as [solidity, share of trees]: 40% are as
+// see-through as the first three, 35% more solid, 20% more solid again and 5% almost fully solid. (Their colours are
+// in DIO.trees.)
 const TREES = {
   r: [5.5, 10.5],
   jitter: 2.5,
   per: [0.3, 1],
   mid: 112,
-  plain: 0.3,
   alpha: [
     [0.6, 0.13],
     [0.7, 0.14],
@@ -362,12 +321,6 @@ const TREES = {
     [0.86, 0.35],
     [0.92, 0.2],
     [0.97, 0.05],
-  ],
-  colour: [
-    ['#bcd3a0', '#b0ca92', '#a3bf86'],
-    ['#b6cf96', '#a9c488', '#9cb97b'],
-    ['#c9c58e', '#bdb27a', '#a9a868'],
-    ['#bccab0', '#afbea3', '#a2b296'],
   ],
 };
 
@@ -388,9 +341,158 @@ const OKABE = [
 const SHADE = 4;
 // seconds a creature that moves to another species takes to blend from the old colour to the new one
 const SPLIT_FADE = 1.5;
-const INK = '#151918'; // the ink colour used for outlines and text
+const INK = '#151918'; // the ink colour used for text, energy bars and the interface's outlines
 // eyes are white on a species whose starting body is darker than this lightness, black otherwise
 const EYE_WHITE = 40;
+
+// the diorama map: land as stacked terraces seen slightly from the south, like a painted
+// relief model. Every step is a flat plateau with a shaded side showing below its edge.
+//   levels: how many steps the land's height is split into (each holds about the same share of the land)
+//   rise: height (px) of each land step's side; foot: soft shadow just below each side [colour, extra px]
+//   lip: light line along each step's edge [colour, width]; straight: how far (px) an edge may wiggle before it gets
+//   a corner (bigger = more angular, low-poly edges); grass: per season (spring, summer, autumn, winter) the
+//   colour of the lowest and highest steps, blended in between; alt: how much every other step is lightened, so
+//   neighbouring steps stand apart; side: colour the sides are mixed towards, and how much; snow: in winter, steps
+//   from this one up are snow [from, colour]
+//   sand: the beach colour per season; beach: how far (px) from water the beach reaches
+//   coast: the land's edge drops into the water as a sandy cliff: rise px tall, wall colour, a shadow in the water
+//   [colour, extra px] and a line of foam at its foot [colour, width]
+//   sea: the seabed's steps, each rise px tall with sides mixed towards side, and a lip
+//   wash: meadow and dry-ground tints per season [red, green, blue, strength], over the steps
+//   thicket: the woodland floor's tint per season
+//   trees: per season, the colours of a tree's lit, middle and shaded faces; lone: chance per open cell of a lone
+//   tree or small clump [base, extra on the most fertile ground]; trunk: lone trees' trunk colour;
+//   shadow: trees' shadows on the ground; temp: strength of the frosty and warm temperature washes
+//   rock: rise and wall colour of the rock's sides, its face colours (lit, half-lit, shaded), and its tiers' rise and
+//   colours
+const DIO = {
+  levels: 7,
+  rise: 4,
+  foot: ['rgba(38,52,18,.13)', 3],
+  lip: ['rgba(251,251,234,.4)', 1.1],
+  straight: 2.2,
+  grass: [
+    ['#cad28e', '#4b7f47'],
+    ['#d1cd87', '#608345'],
+    ['#d4c98e', '#697d47'],
+    ['#dbdfd1', '#92a48c'],
+  ],
+  alt: 0.05,
+  side: ['#24400c', 0.3],
+  snow: [5, '#f3f6f7'],
+  sand: ['#e6d7ad', '#e5d3a2', '#e1cea7', '#e3decf'],
+  beach: 20,
+  coast: {
+    rise: 8,
+    wall: '#cfa868',
+    shadow: ['rgba(47,68,78,.18)', 5],
+    foam: ['rgba(255,255,255,.75)', 2.4],
+  },
+  sea: { rise: 4, side: ['#415761', 0.25], lip: ['rgba(255,255,255,.25)', 1] },
+  wash: [
+    [
+      [84, 152, 78, 0.22],
+      [215, 195, 130, 0.3],
+    ],
+    [
+      [96, 147, 73, 0.16],
+      [217, 190, 118, 0.4],
+    ],
+    [
+      [134, 134, 66, 0.2],
+      [208, 170, 112, 0.34],
+    ],
+    [
+      [154, 171, 154, 0.15],
+      [209, 203, 186, 0.2],
+    ],
+  ],
+  thicket: ['rgba(72,133,62,.2)', 'rgba(81,128,57,.2)', 'rgba(131,110,49,.18)', 'rgba(100,120,100,.16)'],
+  trees: [
+    ['#87b361', '#64944c', '#457039'],
+    ['#8fb05a', '#6a8e44', '#4a6d34'],
+    ['#c6a658', '#ac7d46', '#7d5734'],
+    ['#b3baa5', '#8e9783', '#677260'],
+  ],
+  lone: [0.02, 0.06],
+  trunk: '#6f563f',
+  shadow: 'rgba(25,49,21,.08)',
+  temp: 0.55,
+  // creatures (low-poly, thin outline): a shadow on the ground [colour, px towards the south-east]; a raised side
+  // [px, lightness change]; the body split into four flat faces, lightened by how much each faces the light [lit,
+  // middle, shaded lightness change]; legs and outline in a dark shade of the creature's own colour [share of its
+  // lightness taken off, saturation change, width]; the mouth's colour; how strongly the water tints a swimmer's
+  // back half
+  creature: {
+    shadow: ['rgba(30,50,20,.2)', 2.2],
+    side: [1.3, -20],
+    faces: [9, 2, -7],
+    legs: [0.62, -15, 0.9],
+    line: [0.68, -10, 0.6],
+    mouth: '#2e2a27',
+    water: 0.62,
+  },
+  // food: faceted gems. Each is [lit, middle, shaded] faces, ripe then regrowing; berry and algae are also the colours
+  // of the dots shown when zoomed out. berry: a red gem with a leaf; nut: an acorn with a cap [ripe, regrowing];
+  // algae: one blade of seaweed, length [ripe, smallest regrowing], greatest half-width, how much its edges ripple
+  // (a share of its width), how far its stem leans sideways (a share of its length), and how it waves [sideways
+  // reach, speed]
+  food: {
+    berry: '#e0452b',
+    berryFaces: [
+      ['#ff7a55', '#e0452b', '#a92a1c'],
+      ['#f2b6a6', '#e8a090', '#cf8a7c'],
+    ],
+    leaf: '#4f9a3a',
+    nutFaces: [
+      ['#d29a55', '#b07a3c', '#7d5426'],
+      ['#ecd2ac', '#d8b98e', '#bfa07a'],
+    ],
+    cap: [
+      ['#5b3a1a', '#7a5230'],
+      ['#9a7a58', '#b89a78'],
+    ],
+    algae: '#4f9a3a',
+    algaeFaces: [
+      ['#7cc24e', '#4f9a3a', '#3a7a2c'],
+      ['#d9d27a', '#c7bd5a', '#a99f44'],
+    ],
+    blade: { length: [3.8, 1.4], width: 0.95, frill: 0.22, lean: 0.12, wave: [0.22, 1.6] },
+    shadow: 'rgba(30,50,20,.2)',
+  },
+  // rivers: the deeper middle [colour, width as a share of the river's half-width]; the moving surface's streaks
+  // [colour, width px], drifting downstream in lanes (offsets across the river, as shares of its half-width), each
+  // with its own dash pattern [streak, gap, ...] (px) and speed (px/s: speed, plus spread more for each lane)
+  river: {
+    deep: ['rgba(60,110,120,.16)', 0.95],
+    streak: ['rgba(255,255,255,.6)', 1.3],
+    lanes: [-0.5, 0.05, 0.5],
+    dash: [
+      [7, 26, 3, 34, 12, 41],
+      [4, 31, 9, 22, 2, 37],
+      [10, 38, 5, 27, 3, 30],
+    ],
+    speed: 20,
+    spread: 4,
+  },
+  // the sea's moving surface: wave lines lie on the water (sea and lakes) from waves[0] to waves[1] px from land,
+  // every waves[2] px, [strength, width px], and roll in towards the shore, waveSpeed waves a second per line
+  seaMotion: {
+    waves: [14, 104, 9],
+    waveLine: [0.45, 1.3],
+    waveSpeed: 0.22,
+  },
+  // a creature hops as it crosses onto another terrace step, lifted above its shadow [px, seconds] going up and
+  // going down
+  hop: { up: [3.2, 0.32], down: [2.2, 0.22] },
+  rock: {
+    rise: 10,
+    wall: '#5d4f63',
+    face: ['#b3a3ae', '#9d8d9c', '#837386'],
+    tierRise: 6,
+    tier: ['#c4b6bf', '#d3c7cf'],
+  },
+};
 
 /* ---- seasons and food ---- */
 // per season, how quickly each kind of place regrows food: f fast, n normal, s slow

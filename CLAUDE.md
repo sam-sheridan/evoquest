@@ -36,15 +36,14 @@ Read the relevant section before changing a mechanic.
   the creator's colour, each new species gets the most different one when it appears), black or white eyes set per
   species, a redesigned creator (stat tags that fill like bars, a ? help popup, a refresh button for Randomise)
   and 15 achievements.
-- The map redesign's water and trees shipped in October 2026: the drawn bands are now the game's real shelf
-  (each world's old shelf width, plus wider stretches and offshore banks at their own depths), lakes sit in smooth
-  hollows, and thickets are ink-drawn trees. Sam tried a painted, realistic look first and rejected it as too
-  computer-generated: keep the hand-drawn, field-notebook style, which matches the line-drawn creatures.
-- The rest of the map redesign shipped in October 2026 too: rocks are angular inked crags (faces, two tiers, a
-  skirt of uphill strokes, sea cliffs where they meet water; no rock pieces under 6 cells), contours follow the
-  land and fade before rocks, and the open land has blended meadow and dry-ground colours, very light hill
-  shading and lone trees (grass tufts, reeds and rock hatching were removed later in October 2026). Heavy shading
-  is always a small smoothed image (Safari's limit).
+- The map was redesigned again on 29 October 2026 as a **diorama** (README section 15): stepped low-poly terraces
+  (7 steps), sand beaches and coastal cliffs, sea-glass seabed steps, low-poly trees and mauve rock, low-poly
+  creatures with a thin outline in their own dark shade that hop over each step, faceted food (berry gems, acorns,
+  a single frilled seaweed blade for algae), river streaks and waves rolling onto shores. Sam chose to keep the
+  interface scientific: "observing a real world through a scientific lens". The inked field-notebook map it
+  replaced was deleted (it is in the git history). Sam's choices along the way: calmer, less saturated colours; no
+  pines; rivers keep stepped banks; the open sea stays still (ripples and swells were tried and rejected); the
+  original spreading-arc swimming wake. Heavy shading is always a small smoothed image (Safari's limit).
 - The intro shipped in October 2026: a title screen every time the game loads (wandering creatures round the name,
   "A game by Sam Sheridan" in the corner) and five panes explaining the game, reopened from the creator's EvoQuest
   title. Sam chose wandering creatures over a pinned "specimen plate" look (kept in the branch history).
