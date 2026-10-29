@@ -43,7 +43,7 @@ Read the relevant section before changing a mechanic.
   interface scientific: "observing a real world through a scientific lens". The inked field-notebook map it
   replaced was deleted (it is in the git history). Sam's choices along the way: calmer, less saturated colours; no
   pines; rivers keep stepped banks; the open sea stays still (ripples and swells were tried and rejected); the
-  original spreading-arc swimming wake. Heavy shading is always a small smoothed image (Safari's limit).
+  original spreading-arc swimming wake.
 - The intro shipped in October 2026: a title screen every time the game loads (wandering creatures round the name,
   "A game by Sam Sheridan" in the corner) and five panes explaining the game, reopened from the creator's EvoQuest
   title. Sam chose wandering creatures over a pinned "specimen plate" look (kept in the branch history).
@@ -131,6 +131,3 @@ and run the tests with `PLAYWRIGHT_BROWSERS_PATH` set to that folder.
   - The release design must carry `sat` (saturation), or colours go dull.
   - Land colour bands use the world's original heights (`refH`), so events don't recolour remaining land.
   - Changing season must not re-roll the upcoming event (`nextKind`).
-  - Safari silently drops the land's colour layers if they hold too many drawing points (summer went blue at about
-    110,000; about 70,000 is fine). Draw heavy shading as a small smoothed image, not as more vector shapes.
-  - Safari won't play Web Audio straight to the speakers on some Macs; sound goes through an `<audio>` element.

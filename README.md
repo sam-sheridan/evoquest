@@ -1063,12 +1063,12 @@ add a few milliseconds of silence at the start (different amounts in different b
 Browsers pause a page's sound when it's hidden or the device sleeps. The game wakes it again when the page comes
 back into view, and on the next tap or key press if the browser insists on one.
 
-Safari can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
+Some browsers can also leave the sound engine "playing" (the speaker shows on the tab) while nothing comes out, often
 after the Mac sleeps or the audio device changes. So every 2 seconds the game checks that the engine's clock is
 moving; if it is frozen, or the engine won't wake, a fresh engine replaces it on the next click or key press.
 Turning *Sound* off and on in Settings always starts a fresh engine, as a sure cure for silence.
 
-**Sound goes out through an audio element.** On some Macs Safari keeps sound sent straight to the speakers
+**Sound goes out through an audio element.** On some Macs, browsers keep sound sent straight to the speakers
 silent, even though the tab shows the speaker, while sound from an audio element (the kind of player YouTube
 uses) is heard. So all the game's sound feeds a hidden audio element, started by the click that releases a
 species. Browsers that can't do this send sound straight to the speakers instead.
@@ -1105,7 +1105,7 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
   - A **sand beach** lines every coast and river bank (`DIO.beach`), and the land drops into the water as a sandy
     cliff with white foam at its foot (`DIO.coast`).
   - Meadows (fertile ground) are washed a little greener and dry ground a little straw-coloured (`DIO.wash`),
-    drawn as a small smoothed image so it adds nothing to Safari's limit. There are no contour lines or hill
+    drawn as a small smoothed image. There are no contour lines or hill
     shading: the steps show the height.
   - **Temperature** shows as a frosty wash on cold high ground and a faint warm wash on hot lowland
     (`DIO.temp` sets their strength), drawn as a small image as before.
