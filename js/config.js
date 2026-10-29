@@ -532,6 +532,8 @@ const DIO = {
     waveLine: [0.45, 1.3],
     waveSpeed: 0.22,
   },
+  // DRAFT: a creature hops as it crosses onto another terrace step, lifted [px, seconds] going up and going down
+  hop: { up: [3.2, 0.32], down: [2.2, 0.22] },
   rock: {
     rise: 10,
     wall: '#5d4f63',
@@ -540,6 +542,8 @@ const DIO = {
     tier: ['#c4b6bf', '#d3c7cf'],
   },
 };
+// DRAFT: lets the drafts try other settings (window.DIO_DRAFT)
+if (typeof window !== 'undefined' && window.DIO_DRAFT) Object.assign(DIO, window.DIO_DRAFT);
 
 /* ---- seasons and food ---- */
 // per season, how quickly each kind of place regrows food: f fast, n normal, s slow

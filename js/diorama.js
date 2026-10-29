@@ -51,6 +51,9 @@ function dioShapes(w, cdf, sm, shallow, thkF) {
     DIO.straight,
     60
   );
+  // the step heights as drawn, kept so a creature can tell which step it stands on (see stepAt)
+  D.hf = new Float32Array(N);
+  for (let i = 0; i < N; i++) D.hf[i] = sm(j => h[j])(i);
   for (let k = 1; k < DIO.levels; k++)
     D.tiers.push(
       loopsPath(
@@ -261,6 +264,8 @@ function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
     Wd = c.bw / 2,
     hsl = hslOf(fill),
     body = detail && c.tail > 0 ? pathOf(outline(c, t, swim ? 1 : 0.3)) : c.p2;
+  // a hop over a step lifts the body above its shadow
+  const lift = flat ? 0 : c.lift || 0;
   if (!swim && !flat) {
     g.save();
     g.translate(x + P.shadow[1] * 0.6 * sc, y + P.shadow[1] * sc);
@@ -271,7 +276,7 @@ function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
     g.restore();
   }
   g.save();
-  g.translate(x, y);
+  g.translate(x, y - lift);
   g.rotate(c.dir);
   g.scale(sc, sc);
   g.lineJoin = 'round';
@@ -714,4 +719,35 @@ function drawSeaMotion(g, t) {
     g.stroke(p);
   });
   g.restore();
+}
+
+/* DRAFT: creatures hop as they cross from one terrace step to another */
+// which terrace step the ground at (x, y) is on, matching the drawn edges (heights blended between cells)
+function stepAt(x, y) {
+  const h = world.vec.dio.hf,
+    fx = clamp(x / CS - 0.5, 0, GW - 1.001),
+    fy = clamp(y / CS - 0.5, 0, GH - 1.001),
+    xi = fx | 0,
+    yi = fy | 0,
+    u = fx - xi,
+    v = fy - yi,
+    i = yi * GW + xi;
+  return Math.floor(
+    ((h[i] * (1 - u) + h[i + 1] * u) * (1 - v) + (h[i + GW] * (1 - u) + h[i + GW + 1] * u) * v) * DIO.levels
+  );
+}
+// how high (px) a creature is lifted above its shadow at time t: a hop starts when it reaches another step, higher
+// and slower going up than going down. A creature only just back on screen doesn't hop for a step it crossed unseen
+function hopLift(c, t) {
+  const H = DIO.hop,
+    lv = stepAt(c.x, c.y);
+  if (c.lvl !== undefined && lv !== c.lvl && t - c.lvlT < 0.25) c.hop = [t, lv > c.lvl];
+  c.lvl = lv;
+  c.lvlT = t;
+  if (!c.hop) return 0;
+  const [t0, up] = c.hop,
+    [height, dur] = up ? H.up : H.down,
+    u = (t - t0) / dur;
+  if (u >= 1) return ((c.hop = null), 0);
+  return height * Math.sin(Math.PI * u);
 }

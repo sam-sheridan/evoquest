@@ -227,6 +227,7 @@ function renderScene(nowT) {
               lt: l0 + (c.lt - l0) * f,
             })
           : col(c);
+    if (MAP_STYLE === 'diorama') c.lift = window.HOP_DRAFT && !isWater(tt) ? hopLift(c, t) : 0;
     drawCreature(ctx, c, c.x, c.y, sc, lod, fill, t, isWater(tt), lw / sc);
   }
   if (det) drawStipple(det);
