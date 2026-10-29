@@ -24,7 +24,6 @@ function endRun() {
   saved.runs.unshift(run);
   saved.runs = saved.runs.slice(0, 30);
   save();
-  SND.die();
   showEnd(run);
   syncUI(true);
 }

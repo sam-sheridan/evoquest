@@ -100,13 +100,11 @@ function tone(f, d, type, vol, when = 0) {
   o.start(t);
   o.stop(t + d + 0.05);
 }
+// Sam's recorded creature sounds (see creatureSound below) and the achievement chime
 const SND = {
-  eat: () => tone(620, 0.07, 'triangle', 0.009),
-  birth: () => {
-    tone(392, 0.08, 'triangle', 0.014);
-    tone(523, 0.09, 'triangle', 0.012, 0.07);
-  },
-  die: () => tone(180, 0.18, 'triangle', 0.05),
+  eat: () => creatureSound('eat'),
+  birth: () => creatureSound('birth'),
+  die: () => creatureSound('die'),
   badge: () => [659, 880, 1175].forEach((f, i) => tone(f, 0.25, 'sine', 0.05, i * 0.08)),
 };
 function audible(c) {
@@ -245,7 +243,18 @@ function track(cfg) {
 }
 const titleMusic = track(TITLE_MUSIC),
   zoomMusic = track(ZOOM_MUSIC),
-  ambientNotes = track(AMBIENT);
+  ambientNotes = track(AMBIENT),
+  creatureSounds = { eat: track(CRT_SOUNDS.eat), birth: track(CRT_SOUNDS.birth), die: track(CRT_SOUNDS.die) };
+// one of Sam's creature sounds, each time at a slightly different loudness so a crowd doesn't sound mechanical
+function creatureSound(k) {
+  if (!AC || !sound || !decoded(creatureSounds[k])) return;
+  const s = AC.createBufferSource(),
+    g = AC.createGain();
+  s.buffer = creatureSounds[k].buf;
+  g.gain.value = CRT_SOUNDS.vol * (1 - CRT_SOUNDS.vary + rand() * 2 * CRT_SOUNDS.vary);
+  s.connect(g).connect(OUT);
+  s.start();
+}
 // the decoded sound, or null while it is still loading; decoded once, it also plays on a later fresh engine (see
 // resetAudio)
 function decoded(m) {
@@ -302,6 +311,8 @@ function menusShowing() {
 addEventListener('click', () => !AC && sound && menusShowing() && ensureAudio(), true);
 addEventListener('keydown', () => !AC && sound && menusShowing() && ensureAudio(), true);
 setInterval(() => {
+  // decode the creature sounds ahead of their first use
+  if (AC) for (const k in creatureSounds) decoded(creatureSounds[k]);
   const menus = menusShowing();
   musicKeep(titleMusic, sound && menus, TITLE_MUSIC.vol);
   // the zoom music runs for the whole run, so zooming in and out doesn't restart it: silent when zoomed out, and

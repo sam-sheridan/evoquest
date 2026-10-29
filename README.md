@@ -1035,13 +1035,13 @@ playing on another device or browser, starts the list fresh.
 
 ## 14. Sound
 
-The title music, the zoom music and the ambient notes are Sam's own, made in GarageBand. Every other sound is generated live in the browser.
+The title music, the zoom music, the ambient notes and the creature sounds are Sam's own, made in GarageBand. The achievement chime, the warning blip and the world event effects are generated live in the browser.
 
 | Sound | Details |
 |---|---|
 | **Title music** | Sam's track (`audio/title.mp3`), a 16-bar loop at 88 bpm, plays on repeat on the title screen, the intro panes and the creator, at `TITLE_MUSIC.vol` (0.35). It fades in over 1.5 s and fades out over 1.5 s when a species is released, and starts again when the creator comes back after a run. Browsers only start sound after a click or key press, so on first load it begins with the first one (usually *Start* on the title screen). The *Sound* setting turns it off too. |
 | **Ambient notes** | Sam's recorded notes (`audio/ambient.mp3`: D4 F4 G4 C5 D5 F5 G5 C6, one every 2 bars at 88 bpm in one file; the game plays the slice for each note). Every 1.2 s, a 60% chance of one at random, at `AMB_VOL` (0.2). 35% of the time an echo follows 0.2 s later at 40% of the loudness (`AMB_ECHO`, 0.08): the same note at double speed, so an octave up and half as long. Plays while a run is going, not while paused. The notes fade out as the zoom music fades in, notes still ringing included: full at 1× zoom, half at 1.5× and silent from 2× (`AMB_GONE`), where the zoom music is at half, so the two only overlap at the zoomed-out end. They replaced generated sine notes (A3 B3 D4 E4 G4 A4 B4) in October 2026. |
-| **Creature sounds** | A soft tick when eating, a quiet two-note rise for a birth, a low note for a death. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. |
+| **Creature sounds** | Sam's recordings: one for eating (`audio/eat.mp3`), one for a birth (`birth.mp3`) and one for a death (`death.mp3`), cut from one GarageBand file. Loudness 0.15 (`CRT_SOUNDS.vol`), varied at random by up to 25% either way each time (`CRT_SOUNDS.vary`), so a crowd doesn't sound mechanical. Only for creatures on screen when zoomed in to 1.8× or more, or the selected creature. At most one every 0.07 s. The death sound is only for a creature dying: the end of a run makes no sound. The birth sound also plays when *Sound* is turned back on in Settings. They replaced generated tones (a tick, a two-note rise and a low note) in October 2026. |
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
@@ -1269,8 +1269,8 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
-| `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music) and `ambient.mp3` (the ambient notes) |
-| `js/audio.js` | All sound: the title and zoom music, the ambient notes, and the generated creature sounds and event effects |
+| `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music), `ambient.mp3` (the ambient notes), and `eat.mp3`, `birth.mp3` and `death.mp3` (the creature sounds) |
+| `js/audio.js` | All sound: the title and zoom music, the ambient notes, the creature sounds, and the generated chime, warning blip and event effects |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |
 | `js/creator.js` | The species creator |

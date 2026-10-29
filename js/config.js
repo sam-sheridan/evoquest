@@ -8,6 +8,15 @@ const AMB_ECHO = 0.08; // loudness of an ambient note's quieter octave echo (40%
 // the zoom where the ambient notes have faded out: they fade from ZOOM_MUSIC.from (full) to here (silent), so they
 // are gone while the zoom music is still rising
 const AMB_GONE = 2;
+// Sam's creature sounds (eating, birth, death), heard only for creatures on screen when zoomed in to 1.8x or more,
+// or the selected one: files, loudness, and how far each one's loudness varies at random (0.25 = up to 25% either way)
+const CRT_SOUNDS = {
+  eat: { src: 'audio/eat.mp3' },
+  birth: { src: 'audio/birth.mp3' },
+  die: { src: 'audio/death.mp3' },
+  vol: 0.15,
+  vary: 0.25,
+};
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
 // length (s), loudness
 const WARN_BEEP = { f: 880, dur: 0.09, vol: 0.06 };
