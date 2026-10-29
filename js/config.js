@@ -489,8 +489,9 @@ const DIO = {
   },
   // food: faceted gems. Each is [lit, middle, shaded] faces, ripe then regrowing; berry and algae are also the colours
   // of the dots shown when zoomed out. berry: a red gem with a leaf; nut: an acorn with a cap [ripe, regrowing];
-  // algae: fronds rising from one point at angles (radians from straight up), length [ripe, smallest regrowing] and
-  // half-width at the base, swaying [radians, speed]
+  // algae: one blade of seaweed, length [ripe, smallest regrowing], greatest half-width, how much its edges ripple
+  // (a share of its width), how far its stem leans sideways (a share of its length), and how it waves [sideways
+  // reach, speed]
   food: {
     berry: '#e0452b',
     berryFaces: [
@@ -511,7 +512,7 @@ const DIO = {
       ['#7cc24e', '#4f9a3a', '#3a7a2c'],
       ['#d9d27a', '#c7bd5a', '#a99f44'],
     ],
-    fronds: { angles: [-0.75, -0.25, 0.25, 0.75], length: [3.2, 1.2], width: 0.42, sway: [0.18, 1.6] },
+    blade: { length: [3.8, 1.4], width: 0.95, frill: 0.22, lean: 0.12, wave: [0.22, 1.6] },
     shadow: 'rgba(30,50,20,.2)',
   },
   // rivers: the deeper middle [colour, width as a share of the river's half-width]; the moving surface's streaks

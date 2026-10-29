@@ -1156,8 +1156,8 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
     higher and slower going up than coming down (`DIO.hop`). It is only a look: it doesn't change how creatures
     move. Sam chose this in October 2026 so creatures don't glide over the steps as if the land were flat.
 - **Food** is faceted like the trees (`DIO.food`): berries are red gems with a leaf, nuts faceted acorns, and algae
-  four two-tone fronds rising from one point and swaying gently. Regrowing food is smaller and paler (regrowing
-  algae shorter and yellowish). Zoomed out, food shows as dots in
+  a single blade of seaweed, broad at the top with a pointed stem below, its frilled edges rippling as it waves
+  gently. Regrowing food is smaller and paler (regrowing algae shorter and yellowish). Zoomed out, food shows as dots in
   the same colours.
 - **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
   thicket) and "Eat, breed, survive" a terraced meadow.

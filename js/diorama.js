@@ -460,41 +460,49 @@ function drawNutDio(g, x, y, p) {
   }
   g.restore();
 }
-// algae: tapered two-tone fronds rising from one point and swaying gently; regrowing, shorter and yellowish
+// algae: one broad blade of seaweed with rippling, frilled edges, its broad end up and a pointed stem below,
+// waving gently; regrowing, shorter and yellowish. Drawn two-tone: the whole blade in its middle green, the shaded
+// half darker
 function drawAlgaeDio(g, x, y, p) {
-  const F = DIO.food,
-    A = F.fronds,
-    C = F.algaeFaces[p >= 1 ? 0 : 1],
+  const A = DIO.food.blade,
+    [, mid, dark] = DIO.food.algaeFaces[p >= 1 ? 0 : 1],
     L = p >= 1 ? A.length[0] : A.length[1] + (A.length[0] - A.length[1]) * 0.4 * p,
-    t = performance.now() / 1000;
+    t = performance.now() / 1000 + x * 0.05,
+    n = 18,
+    C = [];
+  // the blade's middle line, from its broad top (u = 0) down to the stem's point (u = 1), waving sideways
+  for (let k = 0; k <= n; k++) {
+    const u = k / n,
+      o = A.wave[0] * Math.sin(u * 0.8 * TAU - t * A.wave[1]) * u;
+    C.push([
+      A.lean * L * u + o,
+      -L / 2 + L * u,
+      A.width *
+        (Math.sin(Math.PI * Math.min(1, u + 0.1)) * 0.95 + 0.06) *
+        (1 + A.frill * Math.sin(u * 14 - t * 3)),
+    ]);
+  }
+  const side = s =>
+      C.map(([cx, cy, w], k) => {
+        const [x2, y2] = C[Math.min(n, k + 1)],
+          [x1, y1] = C[Math.max(0, k - 1)],
+          l = Math.hypot(x2 - x1, y2 - y1) || 1;
+        return [cx - ((y2 - y1) / l) * w * s, cy + ((x2 - x1) / l) * w * s];
+      }),
+    shape = P => {
+      g.beginPath();
+      P.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py)));
+      g.closePath();
+      g.fill();
+    },
+    left = side(1);
   g.save();
   g.translate(x, y);
   g.scale(2.5, 2.5);
-  A.angles.forEach((a, k) => {
-    const sw = A.sway[0] * Math.sin(t * A.sway[1] + k * 1.1 + x * 0.05),
-      ang = -Math.PI / 2 + a + sw,
-      tx = Math.cos(ang) * L,
-      ty = Math.sin(ang) * L + 0.9,
-      nx = -Math.sin(ang) * A.width,
-      ny = Math.cos(ang) * A.width,
-      mx = tx * 0.5 + Math.cos(ang + sw * 2) * 0.3,
-      my = ty * 0.5 + 0.45;
-    // each frond: its body in a lit or middle green, then its shaded half
-    g.fillStyle = C[k % 2 ? 0 : 1];
-    g.beginPath();
-    g.moveTo(-nx * 0.6, 0.9 - ny * 0.6);
-    g.quadraticCurveTo(mx - nx, my - ny, tx, ty);
-    g.quadraticCurveTo(mx + nx, my + ny, nx * 0.6, 0.9 + ny * 0.6);
-    g.closePath();
-    g.fill();
-    g.fillStyle = C[2];
-    g.beginPath();
-    g.moveTo(0, 0.9);
-    g.quadraticCurveTo(mx + nx * 0.2, my + ny * 0.2, tx, ty);
-    g.quadraticCurveTo(mx + nx, my + ny, nx * 0.6, 0.9 + ny * 0.6);
-    g.closePath();
-    g.fill();
-  });
+  g.fillStyle = mid;
+  shape([...left, ...side(-1).reverse()]);
+  g.fillStyle = dark;
+  shape([...left, ...C.map(([cx, cy]) => [cx, cy]).reverse()]);
   g.restore();
 }
 
@@ -825,15 +833,9 @@ function dioLegend() {
 }
 // the algae as drawn on the map, for the key
 const algaeSvg = (x, y) => {
-  const C = DIO.food.algaeFaces[0];
-  return [-0.75, -0.25, 0.25, 0.75]
-    .map((a, k) => {
-      const ang = -Math.PI / 2 + a,
-        tx = x + Math.cos(ang) * 6,
-        ty = y + 4 + Math.sin(ang) * 6,
-        nx = -Math.sin(ang) * 1.1,
-        ny = Math.cos(ang) * 1.1;
-      return `<path d="M${x - nx} ${y + 4 - ny}Q${(x + tx) / 2 - nx} ${(y + 4 + ty) / 2 - ny} ${tx} ${ty}Q${(x + tx) / 2 + nx} ${(y + 4 + ty) / 2 + ny} ${x + nx} ${y + 4 + ny}Z" fill="${C[k % 2 ? 0 : 2]}"/>`;
-    })
-    .join('');
+  const [, mid, dark] = DIO.food.algaeFaces[0];
+  return (
+    `<path d="M${x} ${y - 5}C${x + 4} ${y - 4} ${x + 3} ${y + 1} ${x + 0.5} ${y + 5}C${x - 2.5} ${y + 1} ${x - 4} ${y - 4} ${x} ${y - 5}Z" fill="${mid}"/>` +
+    `<path d="M${x} ${y - 5}C${x - 1} ${y - 1} ${x} ${y + 2} ${x + 0.5} ${y + 5}C${x - 2.5} ${y + 1} ${x - 4} ${y - 4} ${x} ${y - 5}Z" fill="${dark}"/>`
+  );
 };
