@@ -721,7 +721,7 @@ function drawSeaMotion(g, t) {
   g.restore();
 }
 
-/* DRAFT: creatures hop as they cross from one terrace step to another */
+/* creatures hop as they cross from one terrace step to another (only a look: it doesn't change how they move) */
 // which terrace step the ground at (x, y) is on, matching the drawn edges (heights blended between cells)
 function stepAt(x, y) {
   const h = world.vec.dio.hf,

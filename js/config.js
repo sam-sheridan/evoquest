@@ -419,8 +419,8 @@ const EYE_WHITE = 40;
 //   rock: rise and wall colour of the rock's sides, its face colours (lit, half-lit, shaded), and its tiers' rise and
 //   colours
 const DIO = {
-  levels: 9,
-  rise: 6,
+  levels: 7,
+  rise: 4,
   foot: ['rgba(38,52,18,.13)', 3],
   lip: ['rgba(251,251,234,.4)', 1.1],
   straight: 2.2,
@@ -432,7 +432,7 @@ const DIO = {
   ],
   alt: 0.05,
   side: ['#24400c', 0.3],
-  snow: [6, '#f3f6f7'],
+  snow: [5, '#f3f6f7'],
   sand: ['#e6d7ad', '#e5d3a2', '#e1cea7', '#e3decf'],
   beach: 20,
   coast: {
@@ -532,7 +532,8 @@ const DIO = {
     waveLine: [0.45, 1.3],
     waveSpeed: 0.22,
   },
-  // DRAFT: a creature hops as it crosses onto another terrace step, lifted [px, seconds] going up and going down
+  // a creature hops as it crosses onto another terrace step, lifted above its shadow [px, seconds] going up and
+  // going down
   hop: { up: [3.2, 0.32], down: [2.2, 0.22] },
   rock: {
     rise: 10,
@@ -542,8 +543,6 @@ const DIO = {
     tier: ['#c4b6bf', '#d3c7cf'],
   },
 };
-// DRAFT: lets the drafts try other settings (window.DIO_DRAFT)
-if (typeof window !== 'undefined' && window.DIO_DRAFT) Object.assign(DIO, window.DIO_DRAFT);
 
 /* ---- seasons and food ---- */
 // per season, how quickly each kind of place regrows food: f fast, n normal, s slow
