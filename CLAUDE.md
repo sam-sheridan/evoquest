@@ -74,6 +74,10 @@ Sam isn't comfortable with git yet, so Claude does all of it.
 4. **Preview.** Run `python3 tools/build.py --fragment` and publish `dist/evoquest-fragment.html` as a private
    Artifact (the fragment suits hosts that add their own page wrapper), then give Sam the link. Republish to the same Artifact after each round of feedback, so the link stays the same
    within a session.
+   **Before every preview, merge the latest `main` into the branch** (`git fetch origin main`, then
+   `git merge origin/main`), so the preview shows everything already live as well as the branch's own changes.
+   Sam sometimes has two chats working at once, and the other one may have shipped to `main` since this branch
+   began. Never rebase: merging keeps both lines of history intact.
 5. **Ship only when Sam says so** ("ship it", "merge it", "make it live"). Bring the branch up to date with
    `main`, set the `?v=` version on every script and the stylesheet in `index.html` to the date (add b, c and so on for a
    second ship that day, so browsers never mix old and new files), run the checks once more, merge into `main`, push, and tell Sam it will be live in a minute or two.
