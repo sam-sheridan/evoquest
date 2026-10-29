@@ -195,9 +195,9 @@ function renderScene(nowT) {
     }
   }
   if (!fine) {
-    ctx.fillStyle = '#D55E00';
+    ctx.fillStyle = MAP_STYLE === 'diorama' ? DIO.food.berry : '#D55E00';
     ctx.fill(bR);
-    ctx.fillStyle = '#009E73';
+    ctx.fillStyle = MAP_STYLE === 'diorama' ? DIO.food.algae : '#009E73';
     ctx.fill(bA);
     ctx.fillStyle = '#8a5a2b';
     ctx.fill(bN);

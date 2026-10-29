@@ -945,6 +945,7 @@ function drawStipple(det) {
   blitVisible(detail.can2, det[0], det[1]);
 }
 function drawBerry(g, x, y, p) {
+  if (MAP_STYLE === 'diorama') return drawBerryDio(g, x, y, p);
   g.save();
   g.translate(x, y);
   g.scale(2.5, 2.5);
@@ -972,6 +973,7 @@ function drawBerry(g, x, y, p) {
 // an acorn: a brown nut under a darker cap. A regrowing nut is smaller and goes through three stages: a bare pale nut
 // just after eating, a pale nut with a small cap half grown, and the full dark acorn when ready to eat
 function drawNut(g, x, y, p) {
+  if (MAP_STYLE === 'diorama') return drawNutDio(g, x, y, p);
   const k = 0.45 + 0.55 * p,
     ripe = p >= 1;
   g.save();
@@ -1011,6 +1013,7 @@ function drawNut(g, x, y, p) {
   g.restore();
 }
 function drawAlgae(g, x, y, p) {
+  if (MAP_STYLE === 'diorama') return drawAlgaeDio(g, x, y, p);
   g.save();
   g.translate(x, y);
   g.scale(2.5, 2.5);

@@ -470,6 +470,46 @@ const DIO = {
   trunk: '#7a5634',
   shadow: 'rgba(20,55,15,.08)',
   temp: 0.55,
+  // creatures (low-poly, thin outline): a shadow on the ground [colour, px towards the south-east]; a raised side
+  // [px, lightness change]; the body split into four flat faces, lightened by how much each faces the light [lit,
+  // middle, shaded lightness change]; legs and outline in a dark shade of the creature's own colour [share of its
+  // lightness taken off, saturation change, width]; the mouth's colour; how strongly the water tints a swimmer's
+  // back half
+  creature: {
+    shadow: ['rgba(30,50,20,.2)', 2.2],
+    side: [1.3, -20],
+    faces: [9, 2, -7],
+    legs: [0.62, -15, 0.9],
+    line: [0.68, -10, 0.6],
+    mouth: '#2e2a27',
+    water: 0.62,
+  },
+  // food: faceted gems. Each is [lit, middle, shaded] faces, ripe then regrowing; berry and algae are also the colours
+  // of the dots shown when zoomed out. berry: a red gem with a leaf; nut: an acorn with a cap [ripe, regrowing];
+  // algae: a lily pad, with a flower [petals, middle] when ripe
+  food: {
+    berry: '#e0452b',
+    berryFaces: [
+      ['#ff7a55', '#e0452b', '#a92a1c'],
+      ['#f2b6a6', '#e8a090', '#cf8a7c'],
+    ],
+    leaf: '#4f9a3a',
+    nutFaces: [
+      ['#d29a55', '#b07a3c', '#7d5426'],
+      ['#ecd2ac', '#d8b98e', '#bfa07a'],
+    ],
+    cap: [
+      ['#5b3a1a', '#7a5230'],
+      ['#9a7a58', '#b89a78'],
+    ],
+    algae: '#4f9a3a',
+    padFaces: [
+      ['#7cc24e', '#4f9a3a', '#3a7a2c'],
+      ['#d9d27a', '#c7bd5a', '#a99f44'],
+    ],
+    flower: ['#f6a5c0', '#ffe27a'],
+    shadow: 'rgba(30,50,20,.2)',
+  },
   rock: {
     rise: 10,
     wall: '#5d4f63',

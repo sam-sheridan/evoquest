@@ -248,3 +248,236 @@ function treeFacets(add, x, y, r, rnd) {
     else if (d < -0.45) add(2, [[ax, ay], p, q]);
   }
 }
+
+/* creatures: low-poly bodies with a thin outline in their own dark shade */
+// a creature's colour as [hue, saturation, lightness], read from its fill (which can be part-way through a species'
+// colour change), and a shade of it with lightness and saturation moved by dl and ds
+const hslOf = fill => (fill.match(/[\d.]+/g) || [0, 60, 50]).map(Number);
+const shade = ([h, s, l], dl, ds = 0) => `hsl(${h} ${clamp(s + ds, 0, 100)}% ${clamp(l + dl, 3, 97)}%)`;
+
+// the creature drawn for the diorama map, with the same body, legs, mouth, tail and eyes as the notebook one: a
+// shadow on the ground, a raised side, four flat faces lit from the north-west, legs and outline in a dark shade
+// of its own colour, and a swimmer's back half tinted by the water
+function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim) {
+  const P = DIO.creature,
+    L = c.bh / 2,
+    Wd = c.bw / 2,
+    hsl = hslOf(fill),
+    body = detail && c.tail > 0 ? pathOf(outline(c, t, swim ? 1 : 0.3)) : c.p2;
+  if (!swim) {
+    g.save();
+    g.translate(x + P.shadow[1] * 0.6 * sc, y + P.shadow[1] * sc);
+    g.rotate(c.dir);
+    g.scale(sc, sc);
+    g.fillStyle = P.shadow[0];
+    g.fill(body);
+    g.restore();
+  }
+  g.save();
+  g.translate(x, y);
+  g.rotate(c.dir);
+  g.scale(sc, sc);
+  g.lineJoin = 'round';
+  if (swim && detail) dioWake(g, c, t, L);
+  if (detail) {
+    drawLegs(g, c, t, swim, shade(hsl, -hsl[2] * P.legs[0], P.legs[1]), P.legs[2]);
+    drawMouth(g, c, L, t, P.mouth, 0);
+  }
+  // the raised side: the body moved down the screen, in a darker tone
+  g.save();
+  g.translate(Math.sin(c.dir) * P.side[0], Math.cos(c.dir) * P.side[0]);
+  g.fillStyle = shade(hsl, P.side[1]);
+  g.fill(body);
+  g.restore();
+  g.fillStyle = fill;
+  g.fill(body);
+  if (detail) {
+    // four flat faces: the spine splits left from right and a crease splits front from back, each lit by how much
+    // it faces the north-west light (worked out in the body's own turned frame)
+    const a = c.dir,
+      lx = -Math.SQRT1_2 * (Math.cos(a) + Math.sin(a)),
+      ly = -Math.SQRT1_2 * (Math.cos(a) - Math.sin(a)),
+      xc = L * 0.15;
+    g.save();
+    g.clip(body);
+    for (const sy of [-1, 1])
+      for (const sx of [-1, 1]) {
+        const v = 0.75 * sy * ly + 0.45 * sx * lx;
+        g.fillStyle = shade(hsl, P.faces[v > 0.3 ? 0 : v > -0.2 ? 1 : 2]);
+        g.beginPath();
+        if (sx > 0) g.rect(xc, sy > 0 ? 0 : -Wd - 6, L + 6, Wd + 6);
+        else g.rect(-L - c.bh * 2 - 6, sy > 0 ? 0 : -Wd - 6, L + c.bh * 2 + 6 + xc, Wd + 6);
+        g.fill();
+      }
+    g.restore();
+  }
+  if (swim) {
+    // back half below the surface, tinted by the water, with a light waterline
+    g.save();
+    g.clip(body);
+    g.beginPath();
+    g.moveTo(1, -Wd - 3);
+    g.quadraticCurveTo(-2, 0, 1, Wd + 3);
+    g.lineTo(-L - c.bh * 2 - 6, Wd + 3);
+    g.lineTo(-L - c.bh * 2 - 6, -Wd - 3);
+    g.closePath();
+    g.globalAlpha = P.water;
+    g.fillStyle = BAND[0];
+    g.fill();
+    g.globalAlpha = 1;
+    g.strokeStyle = 'rgba(255,255,255,.85)';
+    g.lineWidth = 0.8;
+    g.beginPath();
+    g.moveTo(1, -Wd - 3);
+    g.quadraticCurveTo(-2, 0, 1, Wd + 3);
+    g.stroke();
+    g.restore();
+  }
+  g.strokeStyle = shade(hsl, -hsl[2] * P.line[0], P.line[1]);
+  g.lineWidth = P.line[2];
+  g.stroke(body);
+  if (detail) {
+    // eye colour is set once per species, from its starting lightness, so every member matches
+    const ex = L * 0.52,
+      half = Math.max(1.4, Math.min(c.bw * 0.22, 3.2)),
+      lt = S?.species[c.sp]?.lt ?? c.lt;
+    g.fillStyle = lt < EYE_WHITE ? '#fcfcfb' : '#211d1b';
+    for (const s of [-1, 1]) g.fillRect(ex - 1.1, s * half - 1.1, 2.2, 2.2);
+  }
+  g.restore();
+}
+// a swimmer's wake: white arcs behind the tail, spreading out and fading
+function dioWake(g, c, t, L) {
+  const s = Math.max(0.7, c.bw / 15),
+    ph = (t * 1.1 + c.id * 0.37) % 1;
+  g.lineWidth = 0.9;
+  g.lineCap = 'round';
+  for (let k = 0; k < 3; k++) {
+    const kk = k + ph,
+      r = (11 + kk * 3.5) * s,
+      apex = -L - tailLen(c) - 1.5 * s - kk * 2.4 * s,
+      span = 0.38 + kk * 0.11,
+      a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
+    g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+    g.beginPath();
+    g.arc(apex + r, 0, r, Math.PI - span, Math.PI + span);
+    g.stroke();
+  }
+}
+
+/* food: faceted gems */
+// a closed polygon of n corners, radius r, stretched by sx and sy
+function ring(n, r, a0, sx = 1, sy = 1) {
+  const P = [];
+  for (let k = 0; k < n; k++) {
+    const a = a0 + (k * TAU) / n;
+    P.push([Math.cos(a) * r * sx, Math.sin(a) * r * sy]);
+  }
+  return P;
+}
+// a polygon filled in its middle colour, with the faces towards the north-west lit and those away shaded, all meeting
+// at (cx, cy)
+function gem(g, P, [lit, mid, dark], cx, cy) {
+  g.fillStyle = mid;
+  g.beginPath();
+  P.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p)));
+  g.closePath();
+  g.fill();
+  P.forEach((p, k) => {
+    const q = P[(k + 1) % P.length],
+      mx = (p[0] + q[0]) / 2 - cx,
+      my = (p[1] + q[1]) / 2 - cy,
+      d = -(mx + my) / ((Math.hypot(mx, my) || 1) * Math.SQRT2);
+    if (d > -0.4 && d <= 0.2) return;
+    g.fillStyle = d > 0.2 ? lit : dark;
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(...p);
+    g.lineTo(...q);
+    g.closePath();
+    g.fill();
+  });
+}
+function foodShadow(g, rx, ry) {
+  g.fillStyle = DIO.food.shadow;
+  g.beginPath();
+  g.ellipse(0.5, 1.1, rx, ry, 0, 0, TAU);
+  g.fill();
+}
+// a berry: a red gem with a leaf; regrowing, a smaller pale one (with its leaf from half grown)
+function drawBerryDio(g, x, y, p) {
+  const F = DIO.food,
+    r = p >= 1 ? 1.35 : 0.6 + 0.5 * p;
+  g.save();
+  g.translate(x, y);
+  g.scale(2.5, 2.5);
+  foodShadow(g, r, r * 0.55);
+  if (p >= 0.5) {
+    g.fillStyle = F.leaf;
+    g.beginPath();
+    g.moveTo(0.3, -r * 0.6);
+    g.lineTo(1.9, -1.9);
+    g.lineTo(0.9, -0.4);
+    g.fill();
+  }
+  gem(g, ring(6, r, 0.3), F.berryFaces[p >= 1 ? 0 : 1], -r * 0.25, -r * 0.3);
+  g.restore();
+}
+// a nut: a faceted acorn, smaller and paler while regrowing, its cap back from half grown
+function drawNutDio(g, x, y, p) {
+  const F = DIO.food,
+    k = 0.45 + 0.55 * p,
+    ripe = p >= 1 ? 0 : 1;
+  g.save();
+  g.translate(x, y);
+  g.scale(3.1 * k, 3.1 * k);
+  foodShadow(g, 1.1, 0.6);
+  gem(
+    g,
+    ring(6, 1, Math.PI / 6, 0.9, 1.15).map(([a, b]) => [a, b + 0.35]),
+    F.nutFaces[ripe],
+    -0.3,
+    0
+  );
+  if (p >= 0.5) {
+    g.fillStyle = F.cap[ripe][0];
+    g.beginPath();
+    g.moveTo(-1.1, -0.15);
+    g.lineTo(-0.7, -0.95);
+    g.lineTo(0.7, -0.95);
+    g.lineTo(1.1, -0.15);
+    g.closePath();
+    g.fill();
+    g.fillStyle = F.cap[ripe][1];
+    g.beginPath();
+    g.moveTo(-1.1, -0.15);
+    g.lineTo(-0.7, -0.95);
+    g.lineTo(0, -0.95);
+    g.lineTo(-0.2, -0.15);
+    g.closePath();
+    g.fill();
+  }
+  g.restore();
+}
+// algae: a faceted lily pad with a notch, a flower on it when ripe; regrowing, a small yellowish pad
+function drawAlgaeDio(g, x, y, p) {
+  const F = DIO.food,
+    r = p >= 1 ? 1.7 : 0.8 + 0.4 * p,
+    P = ring(8, r, 0.2, 1, 0.8);
+  P.splice(1, 0, [0, 0]);
+  g.save();
+  g.translate(x, y);
+  g.scale(2.5, 2.5);
+  gem(g, P, F.padFaces[p >= 1 ? 0 : 1], -0.3, -0.25);
+  if (p >= 1) {
+    g.fillStyle = F.flower[0];
+    g.beginPath();
+    ring(5, 0.6, 0).forEach(([a, b], i) => (i ? g.lineTo(a - 0.4, b + 0.2) : g.moveTo(a - 0.4, b + 0.2)));
+    g.fill();
+    g.fillStyle = F.flower[1];
+    g.beginPath();
+    g.arc(-0.4, 0.2, 0.22, 0, TAU);
+    g.fill();
+  }
+  g.restore();
+}
