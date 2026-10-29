@@ -730,7 +730,8 @@ Every species is one of four types, each a way of life with its own Latin name (
 | *vulgaris* | in between | everything else |
 
 Water comes first: a creature with a clear tail is *natans* whatever else it is. So there are never more than four
-species alive at once, and two species never look alike.
+species alive at once, and species look clearly different on average. Individual creatures near a border can
+look alike, though (see the margin below): a *vulgaris* with a 55% tail can sit beside a *natans* with a 45% one.
 
 The **released species** is whichever type the creator's design falls into, and keeps the colour you chose. There
 is no *primus*: release a water creature and the run starts with *natans*.
@@ -746,8 +747,13 @@ Newborns take their parent's species. As traits drift, some creatures end up liv
 
 - Each creature **leans** towards a type. That is its own species' type unless it is clearly outside it: at least
   one margin past the border (`TYPES.margin`: 8 points of tail, 0.04 of size or 8 points of mouth). Then it leans
-  towards the type it now fits best. The margin stops creatures near a border flicking back and forth. A creature's
-  body never changes during its life, so its lean is set by how it was born.
+  towards the type it now fits best. A creature's body never changes during its life, so its lean is set by how it
+  was born. The margin works across generations: newborns are slightly changed copies, so a family living near a
+  border keeps having young on both sides of it. Without the margin, a child just over the line would move to the
+  other species and its own child, back over the line, would move back again, leaving a herd speckled with both
+  colours. With it, a child just over the line stays in its parent's species, and only a line that has clearly
+  moved changes. The cost is an overlap: between 42% and 58% tail, for example, a creature can be *natans* or
+  *vulgaris* depending on its family.
 - A creature leaning towards another type **joins** that species if it is alive and at least **3** other creatures
   within **200 px** lean the same way or already belong there (`TYPES.join`, `TYPES.radius`). It blends into the new
   colour over 1.5 seconds (`SPLIT_FADE`), keeping its own shade.
