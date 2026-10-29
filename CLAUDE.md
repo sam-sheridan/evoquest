@@ -58,8 +58,9 @@ Read the relevant section before changing a mechanic.
 
 - Sam's own music shipped on 28 October 2026 (README section 14): a title track on the title screen, intro and
   creator, a zoom track that fades in as you zoom (replacing the generated drum beat) and eight recorded ambient notes
-  that fade out as it comes in. He makes them in GarageBand and uploads WAVs; `tools/music.py` converts a loop. The
-  creature sounds, chime, warning beep and event effects are still generated. A run now starts at 1× zoom.
+  that fade out as it comes in. He makes them in GarageBand and uploads WAVs; `tools/music.py` converts a loop. A run
+  now starts at 1× zoom. His recorded creature sounds (eating, birth, death) shipped on 29 October 2026; the chime,
+  warning beep and event effects are still generated.
 
 ## How a batch of changes works
 
