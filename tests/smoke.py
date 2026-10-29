@@ -131,13 +131,23 @@ with sync_playwright() as p:
                 break
             time.sleep(0.05)
         start = pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y]; }")
+        # the four keys trace a square, so an unobstructed creature ends exactly where it started: check its position
+        # after each key, not just at the end
+        seen = []
         for key in ['ArrowRight', 'ArrowUp', 'ArrowLeft', 'ArrowDown']:
             pg.keyboard.down(key)
             time.sleep(0.2)
             pg.keyboard.up(key)
-        # the controlled creature must have moved, and still face a real direction
-        end = pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y, c.dir]; }")
-        steer_ok = bool(start and end) and all(v == v for v in end) and (end[0], end[1]) != tuple(start)
+            seen.append(pg.evaluate("() => { const c = window.EvoQuestDebug.state.ctrl; return c && [c.x, c.y, c.dir]; }"))
+        # the controlled creature must still be under control, have moved, and face a real direction throughout
+        steer_ok = (
+            bool(start)
+            and all(seen)
+            and all(v == v for p in seen for v in p)
+            and any((p[0], p[1]) != tuple(start) for p in seen)
+        )
+        if not steer_ok:
+            print('steering failed: start', start, 'then after each key', seen)
         if pg.query_selector('#ctl'):
             pg.click('#ctl')
 
