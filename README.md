@@ -1035,7 +1035,7 @@ playing on another device or browser, starts the list fresh.
 
 ## 14. Sound
 
-The title music, the zoom music, the ambient notes and the creature sounds are Sam's own, made in GarageBand. The achievement chime, the warning blip and the world event effects are generated live in the browser.
+The title music, the zoom music, the end music, the ambient notes and the creature sounds are Sam's own, made in GarageBand. The achievement chime, the warning blip and the world event effects are generated live in the browser.
 
 | Sound | Details |
 |---|---|
@@ -1045,11 +1045,13 @@ The title music, the zoom music, the ambient notes and the creature sounds are S
 | **Achievement / new species** | A three-note chime. |
 | **World event warning** | While the world event sign flashes, before an event, a short high blip once a second, on every other flash (`WARN_BEEP`). Only in the run-up, not as the event happens, and not while paused. |
 | **World events** | Each has its own effect, louder and longer when major, with no musical notes: flood (rushing water), drought (dry hiss), earthquake (low rumble with a shudder), meteor (whistle then a boom). |
-| **Zoom music** | Sam's second track (`audio/zoom.mp3`), a 4-bar loop at 88 bpm. It plays through each run but is only heard when zoomed in: it fades in from 1× zoom, is at half loudness at 2× and reaches full loudness (`ZOOM_MUSIC.vol`, 0.9, where 1 is the track exactly as exported) at 3×. A run starts at 1×, so it is silent at the starting view, and it goes quiet while paused. Because it keeps running when zoomed out, zooming in again picks up wherever the track has got to rather than restarting it. It replaced a generated drum beat (50 bpm semiquavers: kick, hat, hat, hat, snare, hat, hat, hat) in October 2026. |
+| **Zoom music** | Sam's second track (`audio/zoom.mp3`), a 33-bar loop at 88 bpm (90 s; bar 17 is a near-silent break between its two halves). It plays through each run but is only heard when zoomed in: it fades in from 1× zoom, is at half loudness at 2× and reaches full loudness (`ZOOM_MUSIC.vol`, 0.9, where 1 is the track exactly as exported) at 3×. A run starts at 1×, so it is silent at the starting view, and it goes quiet while paused. Because it keeps running when zoomed out, zooming in again picks up wherever the track has got to rather than restarting it. It replaced a generated drum beat (50 bpm semiquavers: kick, hat, hat, hat, snare, hat, hat, hat) in October 2026. |
+| **End music** | Sam's track (`audio/end.mp3`) on repeat on the end-of-run screen and through its replay: 16 bars at 88 bpm, with the 3 bars of dying-away tail after them mixed onto the start so it rings on into the next repeat (the silence and four short blips later in the exported file are left out). Loudness 0.7 (`END_MUSIC.vol`), which makes it about as loud as the title music, as the recording is quieter. Fades in over 1.5 s, and fades out as the creator opens and the title music returns. |
 
 **Adding or replacing music.** Export the loop from GarageBand as WAV (Share → Export Song to Disk), with the cycle
 region set exactly to the bars that loop. `python3 tools/music.py track.wav audio/name.mp3` converts it to MP3 and
-prints the loop length for `js/config.js`. The MP3 holds the loop followed by its first second again: MP3 decoders
+prints the loop length for `js/config.js`. If the file runs on past the loop (a reverb tail, or stray parts later on),
+`--bars 16 --tail 3` takes 16 bars as the loop and mixes the next 3 bars onto its start, leaving out the rest. The MP3 holds the loop followed by its first second again: MP3 decoders
 add a few milliseconds of silence at the start (different amounts in different browsers), so the game loops between
 0.5 s and 0.5 s + the loop length, where there is always real music, and the repeat has no gap.
 `tools/build.py` puts the files in `audio/` inside the single-file build.
@@ -1269,7 +1271,7 @@ Plain HTML, CSS and JavaScript with no libraries. The scripts load in this order
 | `js/map.js` | Drawing the map in the field-notebook style, sharp and low-detail layers, food symbols |
 | `js/creatures.js` | Traits, inheritance, abilities, drawing creatures |
 | `js/sim.js` | The simulation: route planning, eating, breeding, seasons, events, stats, speciation, achievements |
-| `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music), `ambient.mp3` (the ambient notes), and `eat.mp3`, `birth.mp3` and `death.mp3` (the creature sounds) |
+| `audio/` | Sound files: `title.mp3` (the title music), `zoom.mp3` (the zoom music), `end.mp3` (the end music), `ambient.mp3` (the ambient notes), and `eat.mp3`, `birth.mp3` and `death.mp3` (the creature sounds) |
 | `js/audio.js` | All sound: the title and zoom music, the ambient notes, the creature sounds, and the generated chime, warning blip and event effects |
 | `js/summary.js` | End-of-run summary, past runs, family tree, replay |
 | `js/ui.js` | Status bar, season clock and world event sign, inspector, notifications, menus |

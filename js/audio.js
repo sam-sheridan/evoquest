@@ -222,7 +222,8 @@ setInterval(() => {
 }, 50);
 /* ---------- music ---------- */
 // Sam's music, made in GarageBand: the title music loops while the title screen, the intro panes or the creator
-// is showing; the zoom music plays through a run and is heard when zoomed in. Browsers only start sound after a
+// is showing; the zoom music plays through a run and is heard when zoomed in; the end music loops on the end-of-run
+// screen and through its replay. Browsers only start sound after a
 // click or key press, so on first load the title music begins with the first one. Each file is the loop plus its
 // first second again (tools/music.py): looping between 0.5 s and 0.5 s + the loop's length stays inside real
 // music, whatever silence a browser's decoder adds at the start.
@@ -243,6 +244,7 @@ function track(cfg) {
 }
 const titleMusic = track(TITLE_MUSIC),
   zoomMusic = track(ZOOM_MUSIC),
+  endMusic = track(END_MUSIC),
   ambientNotes = track(AMBIENT),
   creatureSounds = { eat: track(CRT_SOUNDS.eat), birth: track(CRT_SOUNDS.birth), die: track(CRT_SOUNDS.die) };
 // one of Sam's creature sounds, each time at a slightly different loudness so a crowd doesn't sound mechanical
@@ -315,6 +317,7 @@ setInterval(() => {
   if (AC) for (const k in creatureSounds) decoded(creatureSounds[k]);
   const menus = menusShowing();
   musicKeep(titleMusic, sound && menus, TITLE_MUSIC.vol);
+  musicKeep(endMusic, sound && !menus && (!$('#end').hidden || !!(S && S.replay)), END_MUSIC.vol);
   // the zoom music runs for the whole run, so zooming in and out doesn't restart it: silent when zoomed out, and
   // fading in from ZOOM_MUSIC.from to full loudness at ZOOM_MUSIC.full (silent while paused)
   const run = sound && !menus && S && !S.over && !S.replay,
