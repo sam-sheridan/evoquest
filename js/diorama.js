@@ -751,3 +751,69 @@ function hopLift(c, t) {
   if (u >= 1) return ((c.hop = null), 0);
   return height * Math.sin(Math.PI * u);
 }
+
+/* the map key in the World tab, drawn in the diorama style (each a small 22 × 14 picture) */
+// a faceted gem in SVG: a polygon of n corners round (cx, cy), filled in its middle colour, with a lit face towards
+// the north-west and a shaded one towards the south-east
+function gemSvg(cx, cy, r, n, [lit, mid, dark], sy = 1) {
+  const P = ring(n, r, 0.3, 1, sy).map(([x, y]) => [cx + x, cy + y]),
+    pt = p => p.map(v => v.toFixed(1)).join(','),
+    a = [cx - r * 0.25, cy - r * 0.3],
+    face = (k, c) => `<polygon points="${pt(a)} ${pt(P[k])} ${pt(P[(k + 1) % n])}" fill="${c}"/>`;
+  let s = `<polygon points="${P.map(pt).join(' ')}" fill="${mid}"/>`;
+  P.forEach((p, k) => {
+    const q = P[(k + 1) % n],
+      mx = (p[0] + q[0]) / 2 - a[0],
+      my = (p[1] + q[1]) / 2 - a[1],
+      d = -(mx + my) / ((Math.hypot(mx, my) || 1) * Math.SQRT2);
+    if (d > 0.2) s += face(k, lit);
+    else if (d < -0.4) s += face(k, dark);
+  });
+  return s;
+}
+function dioLegend() {
+  const C = dioColours(0),
+    F = DIO.food,
+    T = DIO.trees[0],
+    R = DIO.rock,
+    sw = (fill, inner = '') =>
+      `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${fill}" stroke="rgba(21,25,24,.35)"/>${inner}</svg>`,
+    // a raised step across the top of the picture, with its side showing below its edge
+    step = `<path d="M1 7.5L7 6.5L13 8L21 6.5V8.5L13 10L7 8.5L1 9.5Z" fill="${C.side[2]}"/><path d="M1 1H21V6.5L13 8L7 6.5L1 7.5Z" fill="${C.top[2]}"/>`,
+    tree = (x, y, r) =>
+      `<ellipse cx="${x + r * 0.4}" cy="${y + r * 0.5}" rx="${r}" ry="${r * 0.6}" fill="rgba(25,49,21,.18)"/>` +
+      gemSvg(x, y - r * 0.4, r, 7, T, 0.9),
+    floor = `<rect x="1" y="1" width="20" height="12" fill="${DIO.thicket[0]}"/>`;
+  return {
+    meadow: sw(
+      C.top[1],
+      step + `<path d="M12 9.5l2.6-2.6l-1 2.4z" fill="${F.leaf}"/>` + gemSvg(11, 10, 2.4, 6, F.berryFaces[0])
+    ),
+    thicket: sw(C.top[2], floor + tree(6, 8, 4) + tree(15, 7.5, 4.5)),
+    nut: sw(
+      C.top[2],
+      floor +
+        gemSvg(11, 8.4, 2.6, 6, F.nutFaces[0], 1.2) +
+        `<path d="M8.2 6.6L9.2 4.4H12.8L13.8 6.6Z" fill="${F.cap[0][0]}"/><path d="M8.2 6.6L9.2 4.4H11L10.6 6.6Z" fill="${F.cap[0][1]}"/>`
+    ),
+    shallows: sw(BAND[0], algaeSvg(11, 7)),
+    river: sw(
+      BAND[0],
+      `<rect x="1" y="5" width="20" height="4" fill="${DIO.river.deep[0]}"/><path d="M3 5.5h4M11 5.5h3M6 8.5h5M15 8.5h3" stroke="#fff" stroke-opacity=".85" stroke-width="1.1" stroke-linecap="round"/>`
+    ),
+    sea: sw(BAND[2]),
+    rock: sw(
+      C.top[2],
+      `<path d="M4 7L8 3.5L15 3L19 6.5L16 10L7 10.5Z" fill="${R.wall}" transform="translate(0 1.6)"/>` +
+        `<path d="M4 7L8 3.5L15 3L19 6.5L16 10L7 10.5Z" fill="${R.face[1]}"/><path d="M4 7L8 3.5L15 3L12 6.5Z" fill="${R.face[0]}"/><path d="M12 6.5L19 6.5L16 10Z" fill="${R.face[2]}"/>`
+    ),
+  };
+}
+// the algae as drawn on the map, for the key
+const algaeSvg = (x, y) => {
+  const F = DIO.food;
+  return (
+    gemSvg(x, y, 4, 8, F.padFaces[0], 0.8) +
+    `<circle cx="${x - 1}" cy="${y + 0.5}" r="1.4" fill="${F.flower[0]}"/>`
+  );
+};

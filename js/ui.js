@@ -839,6 +839,38 @@ function syncUI() {
   } else {
     const sw = (f, s, ex = '') =>
       `<svg width="22" height="14"><rect x=".5" y=".5" width="21" height="13" fill="${f}" stroke="${s}"/>${ex}</svg>`;
+    const K =
+      MAP_STYLE === 'diorama'
+        ? dioLegend()
+        : {
+            meadow: sw(
+              '#dfe5cf',
+              '#151918',
+              '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>'
+            ),
+            thicket: sw(
+              '#d3dfc0',
+              '#5f7d4e',
+              '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>'
+            ),
+            nut: sw(
+              '#d3dfc0',
+              '#5f7d4e',
+              '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>'
+            ),
+            shallows: sw(
+              '#d2e0e5',
+              '#151918',
+              '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>'
+            ),
+            river: sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>'),
+            sea: sw('#b9cfd7', '#151918'),
+            rock: sw(
+              '#ddd8ce',
+              '#151918',
+              '<ellipse cx="11" cy="7" rx="6" ry="3.5" fill="#c6bfb1" stroke="#7d776b"/><ellipse cx="11" cy="7" rx="2.5" ry="1.4" fill="#b9b1a2" stroke="#7d776b"/>'
+            ),
+          };
     const n = S.count;
     $('#worldBody').innerHTML =
       `<div class="kv"><div><span>World</span><b>#${S.seed}</b></div><div><span>Thicket cover</span><b>${world.stats.thicket}% of land</b></div>
@@ -846,13 +878,13 @@ function syncUI() {
       <div><span>Floods</span><b>${n.flood}</b></div><div><span>Droughts</span><b>${n.drought}</b></div>
       <div><span>Earthquakes</span><b>${n.quake}</b></div><div><span>Meteor strikes</span><b>${n.meteor}</b></div></div>
       <div class="legend">
-       ${sw('#dfe5cf', '#151918', '<ellipse cx="13.6" cy="4.3" rx="2.2" ry="1.1" transform="rotate(-40 13.6 4.3)" fill="#5f7d4e"/><circle cx="11" cy="7.5" r="3.2" fill="#D55E00" stroke="currentColor" stroke-width=".7"/>')}<span><b>Meadow and plain.</b> Berries; eaten ones regrow from a small ring. Meadows (greener) fruit heavily in spring, plains sparsely.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<g fill="#5f7d4e"><circle cx="5" cy="4" r=".9"/><circle cx="10" cy="9" r=".9"/><circle cx="15" cy="5" r=".9"/><circle cx="7" cy="10" r=".9"/><circle cx="17" cy="10" r=".9"/></g>')}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
-       ${sw('#d3dfc0', '#5f7d4e', '<ellipse cx="11" cy="8" rx="2.4" ry="2.9" fill="#9a6a35" stroke="currentColor" stroke-width=".7"/><path d="M8.1 5.9a2.9 1.5 0 0 1 5.8 0q-2.9 1.1-5.8 0z" fill="#5b3a1a" stroke="currentColor" stroke-width=".7"/>')}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
-       ${sw('#d2e0e5', '#151918', '<g fill="none" stroke="#009E73" stroke-width="1.2" stroke-linecap="round"><path d="M11 12q-2-3-3.5-7"/><path d="M11 12q0-3 0-8"/><path d="M11 12q2-3 3.5-7"/></g>')}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
-       ${sw('#d2e0e5', '#4d7385', '<path d="M8 4l4 3-4 3" stroke="#4d7385" fill="none"/>')}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to swim across; slower creatures wade.</span>
-       ${sw('#b9cfd7', '#151918')}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
-       ${sw('#ddd8ce', '#151918', '<ellipse cx="11" cy="7" rx="6" ry="3.5" fill="#c6bfb1" stroke="#7d776b"/><ellipse cx="11" cy="7" rx="2.5" ry="1.4" fill="#b9b1a2" stroke="#7d776b"/>')}<span><b>Rock.</b> Impassable.</span>
+       ${K.meadow}<span><b>Meadow and plain.</b> Berries; eaten ones regrow after a while. Meadows (greener) fruit heavily in spring, plains sparsely.</span>
+       ${K.thicket}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
+       ${K.nut}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
+       ${K.shallows}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
+       ${K.river}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to swim across; slower creatures wade.</span>
+       ${K.sea}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
+       ${K.rock}<span><b>Rock.</b> Impassable.</span>
       </div>
 
 `;
