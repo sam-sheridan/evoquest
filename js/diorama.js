@@ -348,22 +348,21 @@ function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
   }
   g.restore();
 }
-// a swimmer's wake: white arcs behind the tail, spreading out and fading
+// a swimmer's wake: a soft foam trail behind the tail, tapering and fading, wiggling with the tail
 function dioWake(g, c, t, L) {
-  const s = Math.max(0.7, c.bw / 15),
-    ph = (t * 1.1 + c.id * 0.37) % 1;
-  g.lineWidth = 0.9;
-  g.lineCap = 'round';
-  for (let k = 0; k < 3; k++) {
-    const kk = k + ph,
-      r = (11 + kk * 3.5) * s,
-      apex = -L - tailLen(c) - 1.5 * s - kk * 2.4 * s,
-      span = 0.38 + kk * 0.11,
-      a = Math.min(1, kk / 0.4) * Math.max(0, 0.75 - kk * 0.24);
-    g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+  const P = DIO.creature.wake,
+    s = Math.max(0.7, c.bw / 15),
+    tip = -L - tailLen(c) + 2,
+    len = P.length * s,
+    n = 14;
+  for (let k = n - 1; k >= 0; k--) {
+    const u = k / n,
+      y = Math.sin(t * 4 + c.id - u * 5) * u * P.wiggle * s,
+      w = ((1 - u) * P.width + 0.4) * s;
+    g.fillStyle = `rgba(255,255,255,${(P.strength * (1 - u)).toFixed(3)})`;
     g.beginPath();
-    g.arc(apex + r, 0, r, Math.PI - span, Math.PI + span);
-    g.stroke();
+    g.ellipse(tip - u * len, y, len / n + 0.8, w, 0, 0, TAU);
+    g.fill();
   }
 }
 
@@ -461,26 +460,41 @@ function drawNutDio(g, x, y, p) {
   }
   g.restore();
 }
-// algae: a faceted lily pad with a notch, a flower on it when ripe; regrowing, a small yellowish pad
+// algae: tapered two-tone fronds rising from one point and swaying gently; regrowing, shorter and yellowish
 function drawAlgaeDio(g, x, y, p) {
   const F = DIO.food,
-    r = p >= 1 ? 1.7 : 0.8 + 0.4 * p,
-    P = ring(8, r, 0.2, 1, 0.8);
-  P.splice(1, 0, [0, 0]);
+    A = F.fronds,
+    C = F.algaeFaces[p >= 1 ? 0 : 1],
+    L = p >= 1 ? A.length[0] : A.length[1] + (A.length[0] - A.length[1]) * 0.4 * p,
+    t = performance.now() / 1000;
   g.save();
   g.translate(x, y);
   g.scale(2.5, 2.5);
-  gem(g, P, F.padFaces[p >= 1 ? 0 : 1], -0.3, -0.25);
-  if (p >= 1) {
-    g.fillStyle = F.flower[0];
+  A.angles.forEach((a, k) => {
+    const sw = A.sway[0] * Math.sin(t * A.sway[1] + k * 1.1 + x * 0.05),
+      ang = -Math.PI / 2 + a + sw,
+      tx = Math.cos(ang) * L,
+      ty = Math.sin(ang) * L + 0.9,
+      nx = -Math.sin(ang) * A.width,
+      ny = Math.cos(ang) * A.width,
+      mx = tx * 0.5 + Math.cos(ang + sw * 2) * 0.3,
+      my = ty * 0.5 + 0.45;
+    // each frond: its body in a lit or middle green, then its shaded half
+    g.fillStyle = C[k % 2 ? 0 : 1];
     g.beginPath();
-    ring(5, 0.6, 0).forEach(([a, b], i) => (i ? g.lineTo(a - 0.4, b + 0.2) : g.moveTo(a - 0.4, b + 0.2)));
+    g.moveTo(-nx * 0.6, 0.9 - ny * 0.6);
+    g.quadraticCurveTo(mx - nx, my - ny, tx, ty);
+    g.quadraticCurveTo(mx + nx, my + ny, nx * 0.6, 0.9 + ny * 0.6);
+    g.closePath();
     g.fill();
-    g.fillStyle = F.flower[1];
+    g.fillStyle = C[2];
     g.beginPath();
-    g.arc(-0.4, 0.2, 0.22, 0, TAU);
+    g.moveTo(0, 0.9);
+    g.quadraticCurveTo(mx + nx * 0.2, my + ny * 0.2, tx, ty);
+    g.quadraticCurveTo(mx + nx, my + ny, nx * 0.6, 0.9 + ny * 0.6);
+    g.closePath();
     g.fill();
-  }
+  });
   g.restore();
 }
 
@@ -811,9 +825,15 @@ function dioLegend() {
 }
 // the algae as drawn on the map, for the key
 const algaeSvg = (x, y) => {
-  const F = DIO.food;
-  return (
-    gemSvg(x, y, 4, 8, F.padFaces[0], 0.8) +
-    `<circle cx="${x - 1}" cy="${y + 0.5}" r="1.4" fill="${F.flower[0]}"/>`
-  );
+  const C = DIO.food.algaeFaces[0];
+  return [-0.75, -0.25, 0.25, 0.75]
+    .map((a, k) => {
+      const ang = -Math.PI / 2 + a,
+        tx = x + Math.cos(ang) * 6,
+        ty = y + 4 + Math.sin(ang) * 6,
+        nx = -Math.sin(ang) * 1.1,
+        ny = Math.cos(ang) * 1.1;
+      return `<path d="M${x - nx} ${y + 4 - ny}Q${(x + tx) / 2 - nx} ${(y + 4 + ty) / 2 - ny} ${tx} ${ty}Q${(x + tx) / 2 + nx} ${(y + 4 + ty) / 2 + ny} ${x + nx} ${y + 4 + ny}Z" fill="${C[k % 2 ? 0 : 2]}"/>`;
+    })
+    .join('');
 };

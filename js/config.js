@@ -483,10 +483,14 @@ const DIO = {
     line: [0.68, -10, 0.6],
     mouth: '#2e2a27',
     water: 0.62,
+    // a swimmer's foam trail: length and width at the tail (px, for an average body), strength, and how far it
+    // wiggles with the tail (px)
+    wake: { length: 30, width: 3.4, strength: 0.32, wiggle: 1.6 },
   },
   // food: faceted gems. Each is [lit, middle, shaded] faces, ripe then regrowing; berry and algae are also the colours
   // of the dots shown when zoomed out. berry: a red gem with a leaf; nut: an acorn with a cap [ripe, regrowing];
-  // algae: a lily pad, with a flower [petals, middle] when ripe
+  // algae: fronds rising from one point at angles (radians from straight up), length [ripe, smallest regrowing] and
+  // half-width at the base, swaying [radians, speed]
   food: {
     berry: '#e0452b',
     berryFaces: [
@@ -503,11 +507,11 @@ const DIO = {
       ['#9a7a58', '#b89a78'],
     ],
     algae: '#4f9a3a',
-    padFaces: [
+    algaeFaces: [
       ['#7cc24e', '#4f9a3a', '#3a7a2c'],
       ['#d9d27a', '#c7bd5a', '#a99f44'],
     ],
-    flower: ['#f6a5c0', '#ffe27a'],
+    fronds: { angles: [-0.75, -0.25, 0.25, 0.75], length: [3.2, 1.2], width: 0.42, sway: [0.18, 1.6] },
     shadow: 'rgba(30,50,20,.2)',
   },
   // rivers: the deeper middle [colour, width as a share of the river's half-width]; the moving surface's streaks

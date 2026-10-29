@@ -1150,13 +1150,14 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
     They are drawn in a dark shade of the creature's own colour.
   - Mouth: one charcoal mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
     [mouths](#mouths)).
-  - In water, the back half is tinted by the water with a light waterline, and white arcs trail behind, spreading
-    wider the further they are from the body.
+  - In water, the back half is tinted by the water with a light waterline, and a soft white foam trail tapers away
+    behind the tail, wiggling with it (`DIO.creature.wake`).
   - **Hops.** A creature on land hops as it crosses onto another terrace step: lifted briefly above its shadow,
     higher and slower going up than coming down (`DIO.hop`). It is only a look: it doesn't change how creatures
     move. Sam chose this in October 2026 so creatures don't glide over the steps as if the land were flat.
 - **Food** is faceted like the trees (`DIO.food`): berries are red gems with a leaf, nuts faceted acorns, and algae
-  lily pads with a pink flower when ripe. Regrowing food is smaller and paler. Zoomed out, food shows as dots in
+  four two-tone fronds rising from one point and swaying gently. Regrowing food is smaller and paler (regrowing
+  algae shorter and yellowish). Zoomed out, food shows as dots in
   the same colours.
 - **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
   thicket) and "Eat, breed, survive" a terraced meadow.
