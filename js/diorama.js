@@ -62,6 +62,7 @@ function dioShapes(w, cdf, sm, shallow, thkF) {
     );
   D.bands = BAND_AT.map(d => loopsPath(shallow, -d, DIO.straight, 100));
   riverShapes(w, D);
+  seaShapes(w, D);
   return D;
 }
 
@@ -683,5 +684,90 @@ function drawRiverFlow(g, t, view) {
     });
   }
   g.setLineDash([]);
+  g.restore();
+}
+
+/* DRAFT: the sea's moving surface (window.SEA_DRAFT: A drifting ripples, B shore waves, C sparkles) */
+// D.sea: points scattered over the water (not right against land), in 256 px blocks so only those on screen are
+// visited, each [x, y, phase, size]; D.waves: lines at set distances from the shore, nearest first
+function seaShapes(w, D) {
+  const T = w.type,
+    rnd = mulberry32(w.seed ^ 0x5ea),
+    B = 256,
+    nb = Math.ceil(W / B),
+    cells = new Map();
+  for (let y = 0; y < GH * CS; y += 34)
+    for (let x = 0; x < W; x += 34) {
+      const px = x + rnd() * 34,
+        py = y + rnd() * 34,
+        ph = rnd(),
+        sz = 0.6 + rnd() * 0.8;
+      if (py >= GH * CS) continue;
+      const i = cellI(px, py);
+      if (T[i] !== 0 || w.dLand[i] < 22) continue;
+      const k = ((py / B) | 0) * nb + ((px / B) | 0);
+      if (!cells.has(k)) cells.set(k, []);
+      cells.get(k).push([px, py, ph, sz]);
+    }
+  D.sea = { B, nb, cells };
+  D.waves = [];
+  for (let d = 14; d <= 68; d += 6)
+    D.waves.push(loopsPath(i => (T[i] === 0 ? -w.dLand[i] : 0), -d, DIO.straight, 40));
+}
+function drawSeaMotion(g, t, view, style) {
+  const D = world.vec.dio;
+  if (!D || !D.sea) return;
+  g.save();
+  g.lineCap = 'round';
+  if (style === 'B') {
+    // waves rolling in: each line brightens in turn from the outside in, two waves at a time
+    const n = D.waves.length;
+    g.lineWidth = 1.3;
+    D.waves.forEach((p, r) => {
+      const c = Math.cos(TAU * (2 * (r / n) + t * 0.22)),
+        a = 0.5 * Math.max(0, c) ** 4 * (1 - (r / n) * 0.5);
+      if (a < 0.02) return;
+      g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      g.stroke(p);
+    });
+  } else {
+    const { B, nb, cells } = D.sea,
+      bx0 = Math.max(0, Math.floor(view[0] / B)),
+      bx1 = Math.floor(view[2] / B),
+      by0 = Math.max(0, Math.floor(view[1] / B)),
+      by1 = Math.floor(view[3] / B),
+      wx = Math.cos(0.25),
+      wy = Math.sin(0.25);
+    g.lineWidth = style === 'A' ? 1.1 : 1.2;
+    for (let by = by0; by <= by1; by++)
+      for (let bx = bx0; bx <= bx1 && bx < nb; bx++)
+        for (const [x, y, ph, sz] of cells.get(by * nb + bx) || []) {
+          if (style === 'A') {
+            // a ripple drifts a short way with the wind as it fades in and out
+            const u = (t * 0.22 + ph) % 1,
+              a = 0.45 * Math.sin(Math.PI * u),
+              cx = x + (u - 0.5) * 16 * wx,
+              cy = y + (u - 0.5) * 16 * wy,
+              span = 6 * sz;
+            g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+            g.beginPath();
+            g.moveTo(cx - wy * span, cy + wx * span);
+            g.quadraticCurveTo(cx + wx * 3 * sz, cy + wy * 3 * sz, cx + wy * span, cy - wx * span);
+            g.stroke();
+          } else {
+            // a glint twinkles on briefly
+            const a = Math.max(0, Math.sin(t * 1.6 + ph * 60)) ** 8;
+            if (a < 0.04) continue;
+            const r = 2.4 * sz;
+            g.strokeStyle = `rgba(255,255,255,${(0.9 * a).toFixed(3)})`;
+            g.beginPath();
+            g.moveTo(x - r, y);
+            g.lineTo(x + r, y);
+            g.moveTo(x, y - r * 0.6);
+            g.lineTo(x, y + r * 0.6);
+            g.stroke();
+          }
+        }
+  }
   g.restore();
 }

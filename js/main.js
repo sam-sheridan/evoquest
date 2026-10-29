@@ -156,7 +156,14 @@ function renderScene(nowT) {
     else if (f.a) ctx.drawImage(f.a, 0, 0, W, H);
     ctx.globalAlpha = 1;
   }
-  // the rivers' moving surface (diorama map), when zoomed in far enough to see it
+  // the sea's and the rivers' moving surface (diorama map), when zoomed in far enough to see it
+  if (MAP_STYLE === 'diorama' && z * dpr > 0.5 && window.SEA_DRAFT)
+    drawSeaMotion(
+      ctx,
+      t,
+      [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z],
+      window.SEA_DRAFT
+    );
   if (MAP_STYLE === 'diorama' && z * dpr > 0.5)
     drawRiverFlow(ctx, t, [cam.x - cw / 2 / z, cam.y - ch / 2 / z, cam.x + cw / 2 / z, cam.y + ch / 2 / z]);
   if (!S) return;
