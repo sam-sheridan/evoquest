@@ -687,89 +687,71 @@ function drawRiverFlow(g, t, view) {
   g.restore();
 }
 
-/* the sea's moving surface: waves rolling in near the shore and on lakes, ripples further out at sea */
-// D.sea: points over the open sea away from land, scattered every DIO.seaMotion.gap px (thinning out towards the
-// inner edge of that area), in 256 px blocks so only those on screen are visited, each [x, y, phase, size];
-// D.waves: lines on the water (sea and lakes) at set distances from land, nearest first
+/* the sea's moving surface: waves rolling in near the shore and on lakes, a few large swells far out at sea */
+// D.swells: a few swells scattered over the open sea far from land, each [x, y, phase, half length, strength,
+// direction x, direction y], heading for the middle of the map; D.waves: lines on the water (sea and lakes) at set
+// distances from land, nearest first
 function seaShapes(w, D) {
   const M = DIO.seaMotion,
+    S = M.swell,
     T = w.type,
     open = openSea(T),
     rnd = mulberry32(w.seed ^ 0x5ea),
-    B = 256,
-    nb = Math.ceil(W / B),
-    cells = new Map(),
-    // patches: a smooth pattern of overlapping waves at random angles, from -1 to 1
-    P = Array.from({ length: 4 }, () => [rnd() * TAU, (0.6 + rnd()) / M.patch[0], rnd() * TAU]),
-    patch = (x, y) =>
-      P.reduce((s, [a, f, o]) => s + Math.sin((x * Math.cos(a) + y * Math.sin(a)) * f + o), 0) / 2;
-  for (let y = 0; y < GH * CS; y += M.gap)
-    for (let x = 0; x < W; x += M.gap) {
-      const px = x + rnd() * M.gap,
-        py = y + rnd() * M.gap,
-        ph = rnd(),
-        sz = M.size[0] + M.size[1] * rnd() ** 2,
-        keep = rnd();
-      if (py >= GH * CS) continue;
-      const i = cellI(px, py),
-        // how strongly it shows: in a patch, away from land, and fading out towards the map's edge
-        f =
-          clamp((patch(px, py) - M.patch[1]) / M.patch[2], 0, 1) *
-          clamp((w.dLand[i] - M.shore) / M.blend, 0, 1) *
-          clamp(Math.min(px, py, W - px, GH * CS - py) / M.edge, 0, 1);
-      if (T[i] !== 0 || !open[i] || keep > f) continue;
-      // it heads for the nearest land: the way the distance to land falls fastest
-      const at = (dx, dy) => w.dLand[cellI(clamp(px + dx, 0, W - 1), clamp(py + dy, 0, GH * CS - 1))],
-        gx = at(CS, 0) - at(-CS, 0),
-        gy = at(0, CS) - at(0, -CS),
-        a = gx || gy ? Math.atan2(-gy, -gx) : 0;
-      const k = ((py / B) | 0) * nb + ((px / B) | 0);
-      if (!cells.has(k)) cells.set(k, []);
-      cells.get(k).push([px, py, ph, sz, f, Math.cos(a), Math.sin(a)]);
-    }
-  D.sea = { B, nb, cells };
+    Hpx = GH * CS;
+  D.swells = [];
+  for (let k = 0; k < S.count * 40 && D.swells.length < S.count; k++) {
+    const x = rnd() * W,
+      y = rnd() * Hpx,
+      i = cellI(x, y);
+    if (T[i] !== 0 || !open[i] || w.dLand[i] < S.far) continue;
+    // fainter close to land and towards the map's edge
+    const f =
+        clamp((w.dLand[i] - S.far) / S.blend, 0, 1) * clamp(Math.min(x, y, W - x, Hpx - y) / S.edge, 0, 1),
+      dx = W / 2 - x,
+      dy = Hpx / 2 - y,
+      d = Math.hypot(dx, dy) || 1;
+    if (f < 0.05) continue;
+    D.swells.push([x, y, rnd(), S.length[0] + rnd() * S.length[1], f, dx / d, dy / d]);
+  }
   D.waves = [];
   for (let d = M.waves[0]; d <= M.waves[1]; d += M.waves[2])
     D.waves.push(loopsPath(i => (T[i] === 0 ? -w.dLand[i] : 0), -d, DIO.straight, 40));
 }
-// drawn every frame over the map: each wave line brightens in turn from the outside in, two waves at a time, fading
-// in at the outer edge and out towards the shore; each ripple drifts a short way towards the nearest land as it fades
-// in and out
-function drawSeaMotion(g, t, view) {
+// drawn every frame over the map. near: zoomed in far enough for the waves by the shore, where each wave line
+// brightens in turn from the outside in, two waves at a time, fading in at the outer edge and out towards the shore.
+// The swells show at every zoom (their lines never thinner than about a pixel on screen): each is a long, gently
+// bowed line that travels towards the middle of the map as it fades in and out
+function drawSeaMotion(g, t, view, z, near) {
   const D = world.vec.dio,
-    M = DIO.seaMotion;
-  if (!D || !D.sea) return;
+    M = DIO.seaMotion,
+    S = M.swell;
+  if (!D || !D.swells) return;
   g.save();
   g.lineCap = 'round';
-  const n = D.waves.length;
-  g.lineWidth = M.waveLine[1];
-  D.waves.forEach((p, r) => {
-    const c = Math.cos(TAU * (2 * (r / n) + t * M.waveSpeed)),
-      a = M.waveLine[0] * Math.max(0, c) ** 4 * Math.sin((Math.PI * (r + 0.5)) / n);
-    if (a < 0.02) return;
+  if (near) {
+    const n = D.waves.length;
+    g.lineWidth = M.waveLine[1];
+    D.waves.forEach((p, r) => {
+      const c = Math.cos(TAU * (2 * (r / n) + t * M.waveSpeed)),
+        a = M.waveLine[0] * Math.max(0, c) ** 4 * Math.sin((Math.PI * (r + 0.5)) / n);
+      if (a < 0.02) return;
+      g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      g.stroke(p);
+    });
+  }
+  g.lineWidth = Math.max(S.width, 1.3 / z);
+  for (const [x, y, ph, len, f, dx, dy] of D.swells) {
+    const reach = len + S.travel;
+    if (x + reach < view[0] || x - reach > view[2] || y + reach < view[1] || y - reach > view[3]) continue;
+    const u = (t * S.speed + ph) % 1,
+      a = S.strength * f * Math.sin(Math.PI * u),
+      cx = x + (u - 0.5) * S.travel * dx,
+      cy = y + (u - 0.5) * S.travel * dy;
     g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-    g.stroke(p);
-  });
-  const { B, nb, cells } = D.sea,
-    bx0 = Math.max(0, Math.floor(view[0] / B)),
-    bx1 = Math.min(nb - 1, Math.floor(view[2] / B)),
-    by0 = Math.max(0, Math.floor(view[1] / B)),
-    by1 = Math.floor(view[3] / B);
-  g.lineWidth = M.ripple[1];
-  for (let by = by0; by <= by1; by++)
-    for (let bx = bx0; bx <= bx1; bx++)
-      for (const [x, y, ph, sz, f, wx, wy] of cells.get(by * nb + bx) || []) {
-        const u = (t * M.rippleSpeed + ph) % 1,
-          a = M.ripple[0] * f * Math.sin(Math.PI * u),
-          cx = x + (u - 0.5) * M.drift * wx,
-          cy = y + (u - 0.5) * M.drift * wy,
-          span = M.ripple[2] * sz;
-        g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-        g.lineWidth = M.ripple[1] * clamp(sz, 0.6, 1.6);
-        g.beginPath();
-        g.moveTo(cx - wy * span, cy + wx * span);
-        g.quadraticCurveTo(cx + wx * 3 * sz, cy + wy * 3 * sz, cx + wy * span, cy - wx * span);
-        g.stroke();
-      }
+    g.beginPath();
+    g.moveTo(cx - dy * len, cy + dx * len);
+    g.quadraticCurveTo(cx + dx * len * S.bow, cy + dy * len * S.bow, cx + dy * len, cy - dx * len);
+    g.stroke();
+  }
   g.restore();
 }
