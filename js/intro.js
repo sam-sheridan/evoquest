@@ -167,7 +167,7 @@ const PANES = [
     h: 'Design a species',
     p: [
       'Give it a name, a colour and a body. Its size, legs, tail, mouth and roundness decide how fast it walks and swims, how much energy it burns and which food suits it best.',
-      'Every strength has a cost: long legs walk fast but burn energy, a tail swims well but walks badly, and a big body is thrifty but slow. The tags under the preview show what your design can do.',
+      'Every strength has a cost: long legs walk fast but burn energy, a tail swims well but walks badly, and a big body is thrifty but slow.',
     ],
     // one creature changing smoothly from one random design to the next
     draw(g, t, s) {
@@ -202,10 +202,11 @@ const PANES = [
   {
     h: 'Release it into the world',
     p: [
-      'Twenty of your creatures are released onto a random island world. Some worlds are scattered islands, some one big continent, some rocky or thick with forest, and you never find out which.',
-      'They eat berries on open land, nuts in thickets (best for a beak) and algae in shallow water (best for a straw). Eaten food regrows after a while.',
+      'Twenty of your creatures are released onto a random island world. Some worlds are scattered islands, some one big continent, some rocky or thick with forest.',
+      'Food is spread across the world. Berries are found on land, nuts are found in thickets, and algae in water. Different types of mouths suit certain food.',
     ],
-    // a stretch of coast: berries and a thicket's nuts on land, algae on the shallow shelf, a walker and a swimmer
+    // a stretch of coast: berries and a thicket's nuts on land, algae on the shallow shelf, a beaked walker eating a
+    // nut and a straw-mouthed swimmer eating algae
     draw(g, t, s) {
       if (!s.walker) {
         s.walker = introCreature({ w: 3, h: 4, leg: 0.7, hab: 0.05, mth: 0.15, round: 0.4, ...okabe(0) }, 4);
@@ -257,21 +258,18 @@ const PANES = [
       note(g, 'nuts', 150, 40, INK);
       note(g, 'berries', 34, 160, INK);
       note(g, 'algae', 448, 120, INK);
-      // the walker loops round the meadow, the swimmer round the shallows
+      // each stands still beside the food its mouth suits, facing it, mouth snapping as it eats
       const k = 3,
-        a = t * 0.45,
-        b = -t * 0.35 + 1;
-      const w = s.walker,
+        w = s.walker,
         sw = s.swimmer;
-      w.dir = a + Math.PI / 2;
-      w.walk = t * 4;
-      drawCreature(g, w, 185 + Math.cos(a) * 85, 165 + Math.sin(a) * 42, k, 7, col(w), t, false);
-      sw.dir = b - Math.PI / 2;
-      drawCreature(g, sw, 420 + Math.cos(b) * 55, 135 + Math.sin(b) * 70, k, 7, col(sw), t, true);
+      w.dir = sw.dir = Math.PI;
+      w.rest = sw.rest = 1;
+      drawCreature(g, w, 164, 98, k, 7, col(w), t, false);
+      drawCreature(g, sw, 436, 142, k, 7, col(sw), t, true);
     },
   },
   {
-    h: 'Eat, breed, survive',
+    h: 'Eat, breed, die. Repeat',
     p: [
       'Food fills a creature’s energy bar and moving drains it. Once it’s 15 seconds old, a meal that leaves it nearly full gives it one offspring, a little different from itself. Crowded creatures breed less.',
       'Nobody lives longer than 90 seconds, so your species lasts only as long as it keeps finding food and breeding. It can die out, especially early on.',
@@ -365,8 +363,8 @@ const PANES = [
   {
     h: 'The world keeps changing',
     p: [
-      'Seasons turn every 2½ minutes, changing where food grows back fastest and how cold the hills get. Every 12 minutes a world event strikes, and the sign in the bottom left flashes just before one.',
-      'No world stays the same for long: islands join and split, rivers come and go, and what worked last year may not work now.',
+      'Seasons turn every 2½ minutes, changing where food grows back fastest and how cold the hills get. Every 12 minutes a world event strikes that impacts the world: islands join and split, rivers come and go.',
+      'No world stays the same for long, and your creatures will have to adapt to the changes.',
     ],
     html() {
       const tri =
@@ -395,7 +393,7 @@ const PANES = [
     h: 'Evolve into new species',
     p: [
       'Traits that help in this world spread, and ones that don’t fade away. Every species lives one of four ways: in the water, in the thickets, out on the plains, or somewhere in between. When a group takes up a different way of life, it becomes that species, with its own colour and Latin name.',
-      'There’s nothing to win: the run lasts until the last creature dies. Drag to look around, scroll or pinch to zoom, and tap a creature to follow it.',
+      'There’s nothing to win: the run lasts until the last creature dies.',
     ],
     // a small family tree: the released species carries on, and two others branch off it
     draw(g, t, s) {
@@ -477,13 +475,31 @@ function drawPic(t) {
   g.setTransform(s, 0, 0, s, 0, 0);
   g.lineJoin = 'round';
   paper(g, PIC_W, PIC_H, 13);
-  P.draw(g, t, (intro.pics[intro.pane] ||= {}));
+  // each pane's picture starts from the beginning when the pane is reached
+  P.draw(g, t - intro.t0, (intro.pics[intro.pane] ||= {}));
 }
 function showPane(i) {
   intro.pane = i;
   $('#inTitle').hidden = i >= 0;
   $('#inPanes').hidden = i < 0;
   if (i < 0) return;
+  intro.t0 = performance.now() / 1000;
+  intro.pics[i] = {};
+  sizeCard();
+  fillPane(i);
+}
+// every pane is the height of the tallest, so the card never changes size between panes
+function sizeCard() {
+  const card = $('#inCard');
+  card.style.minHeight = '';
+  let h = 0;
+  for (let k = 0; k < PANES.length; k++) {
+    fillPane(k);
+    h = Math.max(h, card.offsetHeight);
+  }
+  card.style.minHeight = h + 'px';
+}
+function fillPane(i) {
   const P = PANES[i];
   $('#inStep').textContent = `${i + 1} / ${PANES.length}`;
   $('#inH').textContent = P.h;
@@ -517,6 +533,11 @@ function openIntro() {
   if (!intro.raf) intro.raf = requestAnimationFrame(introFrame);
   $('#inStart').focus();
 }
+addEventListener(
+  'resize',
+  () => intro.pane >= 0 && !$('#intro').hidden && (sizeCard(), fillPane(intro.pane))
+);
+document.fonts?.ready.then(() => intro.pane >= 0 && (sizeCard(), fillPane(intro.pane)));
 function closeIntro() {
   $('#intro').hidden = true;
 }

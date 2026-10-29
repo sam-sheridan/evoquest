@@ -1380,6 +1380,13 @@ select {
   max-width: 600px;
   box-sizing: border-box;
   box-shadow: 6px 6px 0 rgba(21, 25, 24, 0.12);
+  /* the card is as tall as the tallest pane (set in intro.js); spare room goes under the text, so the buttons
+     stay in the same place on every pane */
+  display: flex;
+  flex-direction: column;
+}
+#inTxt {
+  flex: 1;
 }
 .inHead {
   display: flex;
