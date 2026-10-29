@@ -220,22 +220,11 @@ function paintStippleDio(g) {
   g.restore();
 }
 
-// a low-poly tree standing at (x, y): add(shade, triangle) collects its pieces by shade (0 lit, 1 middle, 2 shaded
-// for a broadleaf; 3 and 4 for a pine's lit and shaded halves). A broadleaf is a jagged crown raised above its
-// foot, filled in the middle shade, with lit faces towards the north-west and shaded ones away; a pine is a tall
-// triangle, lit on its left. They are drawn in TREE_ORDER, so the faces sit on top of the whole crown
-const TREE_ORDER = [1, 0, 2, 3, 4];
-function treeFacets(add, x, y, r, pine, rnd) {
-  if (pine) {
-    const h = r * 2.3,
-      w = r * 0.8,
-      b = y + r * 0.4,
-      top = [x + (rnd() - 0.5) * r * 0.2, b - h],
-      foot = [x, b + r * 0.15];
-    add(3, [top, [x - w, b], foot, [x + w, b]]);
-    add(4, [top, foot, [x + w, b]]);
-    return;
-  }
+// a low-poly tree standing at (x, y): add(shade, triangle) collects its pieces by shade (0 lit, 1 middle,
+// 2 shaded). The crown is jagged and raised above its foot, filled in the middle shade, with lit faces towards the
+// north-west and shaded ones away. They are drawn in TREE_ORDER, so the faces sit on top of the whole crown
+const TREE_ORDER = [1, 0, 2];
+function treeFacets(add, x, y, r, rnd) {
   const n = 7,
     cx = x,
     cy = y - r * 0.55,
@@ -259,6 +248,3 @@ function treeFacets(add, x, y, r, pine, rnd) {
     else if (d < -0.45) add(2, [[ax, ay], p, q]);
   }
 }
-// how likely a tree at cell i is a pine: more on cold high ground
-const pineChance = (w, i) =>
-  DIO.pines[0] + (DIO.pines[1] - DIO.pines[0]) * clamp((0.5 - w.temp[i]) / 0.4, 0, 1) ** 2;

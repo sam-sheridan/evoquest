@@ -503,8 +503,7 @@ function trees(w, rock) {
     // (the diorama map's low-poly tree, in the same see-through group)
     if (MAP_STYLE === 'diorama') {
       row.f ||= DIO.trees[0].map(() => TREES.alpha.map(() => new Path2D()));
-      const pine = r() < pineChance(w, cellI(t.x, t.y));
-      treeFacets((s, p) => addLoop(row.f[s][k], p), t.x, t.y, pine ? t.r * 0.8 : t.r, pine, r);
+      treeFacets((s, p) => addLoop(row.f[s][k], p), t.x, t.y, t.r, r);
     }
     // most crowns get a shading stroke somewhere inside, of varying length; some have none. And a soft shadow on
     // the ground
@@ -671,9 +670,8 @@ function landDetail(w, V) {
       if (cellT(x, y) !== 1 || onRock(x, y, rr + 2)) continue;
       crown(L.lone, x, y, rr, rr > 6 ? 7 : 6, r() * TAU);
       if (MAP_STYLE === 'diorama') {
-        const pine = r() < pineChance(w, cellI(x, y));
-        treeFacets((s, p) => addLoop(L.loneF[s], p), x, y, pine ? rr * 0.8 : rr, pine, r);
-        if (!pine) L.trunk.rect(x - 0.9, y - rr * 0.1, 1.8, rr * 0.75);
+        treeFacets((s, p) => addLoop(L.loneF[s], p), x, y, rr, r);
+        L.trunk.rect(x - 0.9, y - rr * 0.1, 1.8, rr * 0.75);
       }
       if (r() > TREES.plain) {
         const a = r() * TAU,

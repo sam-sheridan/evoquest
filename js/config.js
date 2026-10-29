@@ -289,7 +289,7 @@ const MAP_STYLE =
   typeof location !== 'undefined' && /[?&]map=notebook/.test(location.search) ? 'notebook' : 'diorama';
 const BAND =
   MAP_STYLE === 'diorama'
-    ? ['#93e2d0', '#5fc6cd', '#3c9dc1', '#245a86']
+    ? ['#bcddd2', '#9cc7c4', '#7eaab3', '#5f879b']
     : ['#d2e0e5', '#c6d8de', '#b9cfd7', '#adc6cf'];
 const BAND_AT = [0.27, 0.58, 1];
 // open land: wash, per season (spring, summer, autumn, winter), [meadow, dry ground] colours as [red, green, blue,
@@ -414,8 +414,7 @@ const EYE_WHITE = 40;
 //   sea: the seabed's steps, each rise px tall with sides mixed towards side, and a lip
 //   wash: meadow and dry-ground tints per season [red, green, blue, strength], over the steps
 //   thicket: the woodland floor's tint per season
-//   trees: per season, the colours of a broadleaf's lit, middle and shaded faces, then a pine's lit and shaded halves;
-//   pines: share of trees that are pines on the warmest and the coldest ground; trunk: lone trees' trunk colour;
+//   trees: per season, the colours of a tree's lit, middle and shaded faces; trunk: lone trees' trunk colour;
 //   shadow: trees' shadows on the ground; temp: strength of the frosty and warm temperature washes
 //   rock: rise and wall colour of the rock's sides, its face colours (lit, half-lit, shaded), and its tiers' rise and
 //   colours
@@ -439,10 +438,10 @@ const DIO = {
   coast: {
     rise: 8,
     wall: '#cfa868',
-    shadow: ['rgba(10,45,80,.28)', 5],
+    shadow: ['rgba(40,70,85,.18)', 5],
     foam: ['rgba(255,255,255,.75)', 2.4],
   },
-  sea: { rise: 4, side: ['#0c3a5c', 0.3], lip: ['rgba(255,255,255,.28)', 1] },
+  sea: { rise: 4, side: ['#3a5a68', 0.25], lip: ['rgba(255,255,255,.25)', 1] },
   wash: [
     [
       [70, 170, 60, 0.22],
@@ -463,12 +462,11 @@ const DIO = {
   ],
   thicket: ['rgba(60,150,45,.2)', 'rgba(75,145,40,.2)', 'rgba(150,120,30,.18)', 'rgba(95,125,95,.16)'],
   trees: [
-    ['#86c64e', '#5ea53b', '#3d7d2c', '#3d7d4c', '#25573a'],
-    ['#93c446', '#6b9f33', '#477a27', '#3f774a', '#285638'],
-    ['#e0b13e', '#c47f2e', '#8e5623', '#3f6e46', '#2a5134'],
-    ['#b4bfa0', '#8e9c7e', '#66765c', '#4f7a5c', '#33573f'],
+    ['#86c64e', '#5ea53b', '#3d7d2c'],
+    ['#93c446', '#6b9f33', '#477a27'],
+    ['#e0b13e', '#c47f2e', '#8e5623'],
+    ['#b4bfa0', '#8e9c7e', '#66765c'],
   ],
-  pines: [0.04, 0.6],
   trunk: '#7a5634',
   shadow: 'rgba(20,55,15,.08)',
   temp: 0.55,
