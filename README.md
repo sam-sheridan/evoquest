@@ -92,7 +92,7 @@ beginning when its pane is reached.
    tail and mouth written under it.
 2. **Release it into the world**: a stretch of coast with berries, nuts under thicket trees and algae in the
    shallows, a beaked walker standing still eating a nut and a straw-mouthed swimmer eating algae.
-3. **Eat, breed, die. Repeat**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
+3. **Eat, breed, die. Repeat.**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
    caption for each step (loops every 9 seconds, `INTRO.loop`).
 4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
 5. **Evolve into new species**: a family tree growing across the picture, with *vulgaris* carrying on and *natans*
@@ -1163,7 +1163,7 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
   gently. Regrowing food is smaller and paler (regrowing algae shorter and yellowish). Zoomed out, food shows as dots in
   the same colours.
 - **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
-  thicket) and "Eat, breed, die. Repeat" a terraced meadow.
+  thicket) and "Eat, breed, die. Repeat." a terraced meadow.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
 - **The notebook look** (live until October 2026, deleted when the diorama shipped; it is in the git history,
   in any commit before the merge of `changes/2026-10-29-terraces`): an inked survey map with

@@ -269,7 +269,7 @@ const PANES = [
     },
   },
   {
-    h: 'Eat, breed, die. Repeat',
+    h: 'Eat, breed, die. Repeat.',
     p: [
       'Food fills a creature’s energy bar and moving drains it. Once it’s 15 seconds old, a meal that leaves it nearly full gives it one offspring, a little different from itself. Crowded creatures breed less.',
       'Nobody lives longer than 90 seconds, so your species lasts only as long as it keeps finding food and breeding. It can die out, especially early on.',
