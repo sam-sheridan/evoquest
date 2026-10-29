@@ -7,7 +7,8 @@ Usage:
 With no options the whole file is the loop. With --bars, the loop is that many bars at --bpm (88 unless given),
 and the next --tail bars (every remaining bar if --tail isn't given) are the loop's dying-away tail: they are
 mixed onto the loop's start, so the tail rings on into the next time round instead of being cut off. Anything
-after the tail is left out.
+after the tail is left out. Without --bars, the last 5 ms fade out so a loop that stops mid-note doesn't click
+as it jumps back to its start.
 
 The output is the loop followed by its first second again. MP3 decoders add a few milliseconds of silence at
 the start, by different amounts in different browsers, so the game loops between 0.5 s and 0.5 s + the loop's
@@ -39,6 +40,11 @@ if args.bars:
     loop[: len(tail)] += tail[: len(loop)]
 else:
     loop = a
+# a 5 ms fade at the very end, so a loop exported mid-note doesn't click as it jumps back to its start (with --bars
+# the tail mixed onto the start already carries the sound across the join)
+if not args.bars:
+    k = int(0.005 * SR)
+    loop[-k:] *= np.linspace(1, 0, k)[:, None]
 peak = np.abs(loop).max()
 if peak > 1:
     print(f'Note: mixing the tail in peaks at {peak:.2f}, so the loop is scaled down to fit')

@@ -29,16 +29,16 @@ const TITLE_MUSIC = { src: 'audio/title.mp3', loop: 43.636349, vol: 0.35, fadeIn
 // (from) and where it reaches full loudness (full); the ambient notes fade out as it fades in (see AMB_GONE)
 const ZOOM_MUSIC = {
   src: 'audio/zoom.mp3',
-  loop: 90,
+  loop: 43.636372,
   vol: 0.9,
   fadeIn: 1.5,
   fadeOut: 1.5,
   from: 1,
   full: 3,
 };
-// Sam's end music, on repeat on the end-of-run screen and through its replay: as TITLE_MUSIC; vol 0.7 makes it
-// about as loud as the title music (the recording is quieter)
-const END_MUSIC = { src: 'audio/end.mp3', loop: 43.636372, vol: 0.7, fadeIn: 1.5, fadeOut: 1.5 };
+// Sam's end music, on repeat on the end-of-run screen and through its replay: as TITLE_MUSIC; vol 0.45 makes it
+// about as loud as the title music (the recording is a little quieter)
+const END_MUSIC = { src: 'audio/end.mp3', loop: 43.636349, vol: 0.45, fadeIn: 1.5, fadeOut: 1.5 };
 
 /* ---- settings and background play ---- */
 // the password for the testing tools in Settings (change it here; it can't be changed in the game)
