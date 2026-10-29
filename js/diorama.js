@@ -687,71 +687,31 @@ function drawRiverFlow(g, t, view) {
   g.restore();
 }
 
-/* the sea's moving surface: waves rolling in near the shore and on lakes, a few large swells far out at sea */
-// D.swells: a few swells scattered over the open sea far from land, each [x, y, phase, half length, strength,
-// direction x, direction y], heading for the middle of the map; D.waves: lines on the water (sea and lakes) at set
-// distances from land, nearest first
+/* the sea's moving surface: waves rolling in near the shore and on lakes */
+// D.waves: lines on the water (sea and lakes) at set distances from land, nearest first
 function seaShapes(w, D) {
   const M = DIO.seaMotion,
-    S = M.swell,
-    T = w.type,
-    open = openSea(T),
-    rnd = mulberry32(w.seed ^ 0x5ea),
-    Hpx = GH * CS;
-  D.swells = [];
-  for (let k = 0; k < S.count * 40 && D.swells.length < S.count; k++) {
-    const x = rnd() * W,
-      y = rnd() * Hpx,
-      i = cellI(x, y);
-    if (T[i] !== 0 || !open[i] || w.dLand[i] < S.far) continue;
-    // fainter close to land and towards the map's edge
-    const f =
-        clamp((w.dLand[i] - S.far) / S.blend, 0, 1) * clamp(Math.min(x, y, W - x, Hpx - y) / S.edge, 0, 1),
-      dx = W / 2 - x,
-      dy = Hpx / 2 - y,
-      d = Math.hypot(dx, dy) || 1;
-    if (f < 0.05) continue;
-    D.swells.push([x, y, rnd(), S.length[0] + rnd() * S.length[1], f, dx / d, dy / d]);
-  }
+    T = w.type;
   D.waves = [];
   for (let d = M.waves[0]; d <= M.waves[1]; d += M.waves[2])
     D.waves.push(loopsPath(i => (T[i] === 0 ? -w.dLand[i] : 0), -d, DIO.straight, 40));
 }
-// drawn every frame over the map. near: zoomed in far enough for the waves by the shore, where each wave line
-// brightens in turn from the outside in, two waves at a time, fading in at the outer edge and out towards the shore.
-// The swells show at every zoom (their lines never thinner than about a pixel on screen): each is a long, gently
-// bowed line that travels towards the middle of the map as it fades in and out
-function drawSeaMotion(g, t, view, z, near) {
+// drawn every frame over the map: each wave line brightens in turn from the outside in, two waves at a time, fading
+// in at the outer edge and out towards the shore
+function drawSeaMotion(g, t) {
   const D = world.vec.dio,
-    M = DIO.seaMotion,
-    S = M.swell;
-  if (!D || !D.swells) return;
+    M = DIO.seaMotion;
+  if (!D || !D.waves) return;
+  const n = D.waves.length;
   g.save();
   g.lineCap = 'round';
-  if (near) {
-    const n = D.waves.length;
-    g.lineWidth = M.waveLine[1];
-    D.waves.forEach((p, r) => {
-      const c = Math.cos(TAU * (2 * (r / n) + t * M.waveSpeed)),
-        a = M.waveLine[0] * Math.max(0, c) ** 4 * Math.sin((Math.PI * (r + 0.5)) / n);
-      if (a < 0.02) return;
-      g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-      g.stroke(p);
-    });
-  }
-  g.lineWidth = Math.max(S.width, 1.3 / z);
-  for (const [x, y, ph, len, f, dx, dy] of D.swells) {
-    const reach = len + S.travel;
-    if (x + reach < view[0] || x - reach > view[2] || y + reach < view[1] || y - reach > view[3]) continue;
-    const u = (t * S.speed + ph) % 1,
-      a = S.strength * f * Math.sin(Math.PI * u),
-      cx = x + (u - 0.5) * S.travel * dx,
-      cy = y + (u - 0.5) * S.travel * dy;
+  g.lineWidth = M.waveLine[1];
+  D.waves.forEach((p, r) => {
+    const c = Math.cos(TAU * (2 * (r / n) + t * M.waveSpeed)),
+      a = M.waveLine[0] * Math.max(0, c) ** 4 * Math.sin((Math.PI * (r + 0.5)) / n);
+    if (a < 0.02) return;
     g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-    g.beginPath();
-    g.moveTo(cx - dy * len, cy + dx * len);
-    g.quadraticCurveTo(cx + dx * len * S.bow, cy + dy * len * S.bow, cx + dy * len, cy - dx * len);
-    g.stroke();
-  }
+    g.stroke(p);
+  });
   g.restore();
 }

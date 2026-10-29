@@ -525,29 +525,12 @@ const DIO = {
     speed: 20,
     spread: 4,
   },
-  // the sea's moving surface. Wave lines lie on the water (sea and lakes) from waves[0] to waves[1] px from land,
-  // every waves[2] px, [strength, width px], and roll in towards the shore, waveSpeed waves a second per line.
-  // swell: a few large ripples far out at sea, shown at every zoom. Up to count of them, at least far px from land
-  // (fading in over the next blend px) and fading out over the last edge px before the map's edge. Each is a gently
-  // bowed line (bow: how far it bulges, as a share of its half length) with a half length of length[0] to
-  // length[0] + length[1] px; it travels travel px towards the middle of the map as it fades in and out, speed times
-  // a second, at strength and width px (never thinner than about a pixel on screen)
+  // the sea's moving surface: wave lines lie on the water (sea and lakes) from waves[0] to waves[1] px from land,
+  // every waves[2] px, [strength, width px], and roll in towards the shore, waveSpeed waves a second per line
   seaMotion: {
     waves: [14, 104, 9],
     waveLine: [0.45, 1.3],
     waveSpeed: 0.22,
-    swell: {
-      count: 70,
-      far: 170,
-      blend: 120,
-      edge: 450,
-      length: [45, 70],
-      bow: 0.28,
-      travel: 140,
-      speed: 0.09,
-      strength: 0.5,
-      width: 1.8,
-    },
   },
   rock: {
     rise: 10,
