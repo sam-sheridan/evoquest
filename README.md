@@ -84,18 +84,19 @@ mouths.
 
 *How it works* opens five panes, each with a small moving picture; *Skip to the creator* goes straight to the
 creator. Each pane has Back (Title on the first), Next and Skip, and dots to jump to any pane; the arrow keys move
-between panes and Esc closes the intro. The creatures carry on behind the panes, faded.
+between panes and Esc closes the intro. The creatures carry on behind the panes, faded. Every pane's card is the
+height of the tallest, so the card and its buttons never move between panes, and each picture starts from the
+beginning when its pane is reached.
 
 1. **Design a species**: one creature changing smoothly from one random design to the next, with its size, legs,
    tail and mouth written under it.
 2. **Release it into the world**: a stretch of coast with berries, nuts under thicket trees and algae in the
-   shallows, a walker looping round the land and a swimmer round the water.
-3. **Eat, breed, survive**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
+   shallows, a beaked walker standing still eating a nut and a straw-mouthed swimmer eating algae.
+3. **Eat, breed, die. Repeat**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
    caption for each step (loops every 9 seconds, `INTRO.loop`).
 4. **The world keeps changing**: the four seasons and the four world events, with the game's own symbols.
 5. **Evolve into new species**: a family tree growing across the picture, with *vulgaris* carrying on and *natans*
-   and *campestris* branching off, using the genus of the creator's current name. It also covers dragging, zooming and
-   tapping a creature. Its last button, *Get Started*, closes the intro. Back and Next stay the same size on every pane, so the dots
+   and *campestris* branching off, using the genus of the creator's current name. Its last button, *Get Started*, closes the intro. Back and Next stay the same size on every pane, so the dots
    never move.
 
 Clicking **EvoQuest** at the top left of the creator opens the intro again.
@@ -1162,7 +1163,7 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
   gently. Regrowing food is smaller and paler (regrowing algae shorter and yellowish). Zoomed out, food shows as dots in
   the same colours.
 - **Intro.** The "Release it into the world" pane shows a diorama coast (seabed steps, beach, terraces, a low-poly
-  thicket) and "Eat, breed, survive" a terraced meadow.
+  thicket) and "Eat, breed, die. Repeat" a terraced meadow.
 - **Effects.** A coloured ring for a birth, a grey cross for a death, an orange shockwave for a meteor.
 - **The notebook look** (live until October 2026, deleted when the diorama shipped; it is in the git history,
   in any commit before the merge of `changes/2026-10-29-terraces`): an inked survey map with
