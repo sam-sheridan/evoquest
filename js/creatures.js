@@ -234,8 +234,10 @@ function makeChild(p, x, y, spread = 1) {
 
 // Survey-glyph style: pale body, ink outline, legs as short ink bars along the sides like map ticks.
 // Longer bars mean longer legs; wider, shorter bars mean a creature that leans towards water.
-function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw) {
-  if (MAP_STYLE === 'diorama') return drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim);
+// flat: drawn as a picture on paper (the creator, the species table, the title screen), not standing on the map,
+// so it casts no shadow
+function drawCreature(g, c, x, y, sc, detail, fill, t, swim, lw, flat = false) {
+  if (MAP_STYLE === 'diorama') return drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat);
   const L = c.bh / 2,
     Wd = c.bw / 2;
   g.save();

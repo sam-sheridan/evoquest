@@ -635,7 +635,7 @@ function drawPics(root) {
     const g = cv.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     // the head points up and the tail down, the body at the same height in every column
-    drawCreature(g, c, x, y, sc, 7, col(c), 0, false, 1.1 / sc);
+    drawCreature(g, c, x, y, sc, 7, col(c), 0, false, 1.1 / sc, true);
   }
 }
 // every achievement, the earned ones in full and the rest greyed out (the popup and the end screen)

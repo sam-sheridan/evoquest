@@ -258,13 +258,13 @@ const shade = ([h, s, l], dl, ds = 0) => `hsl(${h} ${clamp(s + ds, 0, 100)}% ${c
 // the creature drawn for the diorama map, with the same body, legs, mouth, tail and eyes as the notebook one: a
 // shadow on the ground, a raised side, four flat faces lit from the north-west, legs and outline in a dark shade
 // of its own colour, and a swimmer's back half tinted by the water
-function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim) {
+function drawCreatureDio(g, c, x, y, sc, detail, fill, t, swim, flat) {
   const P = DIO.creature,
     L = c.bh / 2,
     Wd = c.bw / 2,
     hsl = hslOf(fill),
     body = detail && c.tail > 0 ? pathOf(outline(c, t, swim ? 1 : 0.3)) : c.p2;
-  if (!swim) {
+  if (!swim && !flat) {
     g.save();
     g.translate(x + P.shadow[1] * 0.6 * sc, y + P.shadow[1] * sc);
     g.rotate(c.dir);
@@ -480,4 +480,108 @@ function drawAlgaeDio(g, x, y, p) {
     g.fill();
   }
   g.restore();
+}
+
+/* the intro's pictures, in the diorama style */
+// a closed low-poly loop round (x, y): n corners on an ellipse rx by ry, turned by a, as a path
+function lowPolyBlob(x, y, rx, ry, a, n = 12) {
+  const p = new Path2D(),
+    ca = Math.cos(a),
+    sa = Math.sin(a);
+  for (let k = 0; k < n; k++) {
+    const t = (k * TAU) / n,
+      u = Math.cos(t) * rx * (1 + 0.06 * Math.sin(k * 2.7)),
+      v = Math.sin(t) * ry * (1 + 0.06 * Math.cos(k * 1.9));
+    if (k) p.lineTo(x + u * ca - v * sa, y + u * sa + v * ca);
+    else p.moveTo(x + u * ca - v * sa, y + u * sa + v * ca);
+  }
+  p.closePath();
+  return p;
+}
+// a stretch of coast: land to the left of coast(y), with a beach, a low hill and the seabed stepping down
+function introCoastDio(g, coast, w, h) {
+  const C = dioColours(0),
+    cr = DIO.coast,
+    side = off => {
+      const p = new Path2D();
+      p.moveTo(-20, -20);
+      for (let y = -20; y <= h + 20; y += 5) p.lineTo(coast(y) + off, y);
+      p.lineTo(-20, h + 20);
+      p.closePath();
+      return p;
+    },
+    edge = new Path2D();
+  for (let y = -20; y <= h + 20; y += 5) edge.lineTo(coast(y), y);
+  g.fillStyle = BAND[3];
+  g.fillRect(0, 0, w, h);
+  [150, 95, 45].forEach((off, i) =>
+    dioStep(g, side(off), DIO.sea.rise, C.seaSide[2 - i], BAND[2 - i], DIO.sea.lip)
+  );
+  const land = side(0);
+  g.save();
+  g.translate(0, cr.rise + cr.shadow[1]);
+  g.fillStyle = cr.shadow[0];
+  g.fill(land);
+  g.translate(0, -cr.shadow[1]);
+  g.strokeStyle = cr.foam[0];
+  g.lineWidth = cr.foam[1];
+  g.stroke(edge);
+  g.fillStyle = cr.wall;
+  g.fill(land);
+  g.restore();
+  g.fillStyle = DIO.sand[0];
+  g.fill(land);
+  dioStep(g, side(-16), DIO.rise, C.side[1], C.top[1], DIO.lip, DIO.foot);
+  dioStep(g, lowPolyBlob(170, 160, 140, 62, 0.2), DIO.rise, C.side[3], C.top[3], DIO.lip, DIO.foot);
+  dioStep(g, lowPolyBlob(160, 150, 74, 30, 0.2, 10), DIO.rise, C.side[5], C.top[5], DIO.lip, DIO.foot);
+  // the thicket's floor at the top left
+  g.fillStyle = DIO.thicket[0];
+  g.fill(lowPolyBlob(60, 60, 95, 62, 0.3));
+}
+// a meadow: open grass raised a step above lower ground at the bottom left, with a higher step at the top right
+function introMeadowDio(g, w, h) {
+  const C = dioColours(0),
+    poly = pts => {
+      const p = new Path2D();
+      pts.forEach((q, i) => (i ? p.lineTo(...q) : p.moveTo(...q)));
+      p.closePath();
+      return p;
+    };
+  g.fillStyle = C.top[1];
+  g.fillRect(0, 0, w, h);
+  const mid = poly([
+    [-10, -10],
+    [w + 10, -10],
+    [w + 10, 112],
+    [212, 120],
+    [150, 140],
+    [96, 150],
+    [40, 140],
+    [-10, 150],
+  ]);
+  dioStep(g, mid, DIO.rise, C.side[2], C.top[2], DIO.lip, DIO.foot);
+  const hi = poly([
+    [370, -10],
+    [392, 26],
+    [452, 48],
+    [520, 40],
+    [w + 10, 58],
+    [w + 10, -10],
+  ]);
+  dioStep(g, hi, DIO.rise, C.side[3], C.top[3], DIO.lip, DIO.foot);
+}
+// low-poly trees for the intro's thicket, a little see-through so the nuts show, drawn from the back
+function introTreesDio(g, list, alpha) {
+  const cols = DIO.trees[0];
+  g.globalAlpha = alpha;
+  for (const [x, y, r] of [...list].sort((a, b) => a[1] - b[1])) {
+    const P = cols.map(() => new Path2D()),
+      rnd = mulberry32(x * 31 + y);
+    treeFacets((s, pts) => addLoop(P[s], pts), x, y, r, rnd);
+    for (const s of TREE_ORDER) {
+      g.fillStyle = cols[s];
+      g.fill(P[s]);
+    }
+  }
+  g.globalAlpha = 1;
 }
