@@ -14,7 +14,7 @@ const CRT_SOUNDS = {
   eat: { src: 'audio/eat.mp3' },
   birth: { src: 'audio/birth.mp3' },
   die: { src: 'audio/death.mp3' },
-  vol: 0.2,
+  vol: 0.15,
   vary: 0.25,
 };
 // the blip, once a second, while the world event sign flashes before an event (not at the event itself): pitch (Hz),
