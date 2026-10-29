@@ -687,10 +687,10 @@ function drawRiverFlow(g, t, view) {
   g.restore();
 }
 
-/* the sea's moving surface: ripples near the shore and on lakes, waves rolling in further out */
-// D.sea: points over lakes and the open sea near land, scattered every DIO.sea.motion.gap px (thinning out towards
-// the edge of that band), in 256 px blocks so only those on screen are visited, each [x, y, phase, size];
-// D.waves: lines on the open sea at set distances from land, nearest first
+/* the sea's moving surface: waves rolling in near the shore and on lakes, ripples further out at sea */
+// D.sea: points over the open sea away from land, scattered every DIO.seaMotion.gap px (thinning out towards the
+// inner edge of that area), in 256 px blocks so only those on screen are visited, each [x, y, phase, size];
+// D.waves: lines on the water (sea and lakes) at set distances from land, nearest first
 function seaShapes(w, D) {
   const M = DIO.seaMotion,
     T = w.type,
@@ -708,8 +708,7 @@ function seaShapes(w, D) {
         keep = rnd();
       if (py >= GH * CS) continue;
       const i = cellI(px, py);
-      if (T[i] !== 0 || w.dLand[i] < M.clear) continue;
-      if (open[i] && keep > clamp((M.shore - w.dLand[i]) / M.blend, 0, 1)) continue;
+      if (T[i] !== 0 || !open[i] || keep > clamp((w.dLand[i] - M.shore) / M.blend, 0, 1)) continue;
       const k = ((py / B) | 0) * nb + ((px / B) | 0);
       if (!cells.has(k)) cells.set(k, []);
       cells.get(k).push([px, py, ph, sz]);
@@ -717,7 +716,7 @@ function seaShapes(w, D) {
   D.sea = { B, nb, cells };
   D.waves = [];
   for (let d = M.waves[0]; d <= M.waves[1]; d += M.waves[2])
-    D.waves.push(loopsPath(i => (T[i] === 0 && open[i] ? -w.dLand[i] : 0), -d, DIO.straight, 40));
+    D.waves.push(loopsPath(i => (T[i] === 0 ? -w.dLand[i] : 0), -d, DIO.straight, 40));
 }
 // drawn every frame over the map: each wave line brightens in turn from the outside in, two waves at a time, fading
 // in at the outer edge and out towards the shore; each ripple drifts a short way with the wind as it fades in and out

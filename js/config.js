@@ -525,21 +525,20 @@ const DIO = {
     speed: 20,
     spread: 4,
   },
-  // the sea's moving surface. Ripples cover lakes and the open sea up to shore px from land (none closer than clear
-  // px), thinning out over the last blend px; one is placed in every gap px square. Each [strength, width px, half
-  // length px] drifts drift px with the wind (blowing towards angle wind, radians from east) as it fades in and out,
-  // rippleSpeed times a second. Wave lines lie on the open sea from waves[0] to waves[1] px from land, every
-  // waves[2] px, [strength, width px], and roll in towards the shore, waveSpeed waves a second per line
+  // the sea's moving surface. Wave lines lie on the water (sea and lakes) from waves[0] to waves[1] px from land,
+  // every waves[2] px, [strength, width px], and roll in towards the shore, waveSpeed waves a second per line.
+  // Ripples cover the open sea from shore px from land outwards, thinning out over the first blend px; one is placed
+  // in every gap px square. Each [strength, width px, half length px] drifts drift px with the wind (blowing
+  // towards angle wind, radians from east) as it fades in and out, rippleSpeed times a second
   seaMotion: {
-    shore: 100,
-    clear: 22,
+    shore: 90,
     blend: 30,
     gap: 34,
     ripple: [0.45, 1.1, 6],
     drift: 16,
     wind: 0.25,
     rippleSpeed: 0.22,
-    waves: [100, 230, 12],
+    waves: [14, 104, 9],
     waveLine: [0.45, 1.3],
     waveSpeed: 0.22,
   },
