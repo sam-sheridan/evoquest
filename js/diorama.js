@@ -698,20 +698,29 @@ function seaShapes(w, D) {
     rnd = mulberry32(w.seed ^ 0x5ea),
     B = 256,
     nb = Math.ceil(W / B),
-    cells = new Map();
+    cells = new Map(),
+    // patches: a smooth pattern of overlapping waves at random angles, from -1 to 1
+    P = Array.from({ length: 4 }, () => [rnd() * TAU, (0.6 + rnd()) / M.patch[0], rnd() * TAU]),
+    patch = (x, y) =>
+      P.reduce((s, [a, f, o]) => s + Math.sin((x * Math.cos(a) + y * Math.sin(a)) * f + o), 0) / 2;
   for (let y = 0; y < GH * CS; y += M.gap)
     for (let x = 0; x < W; x += M.gap) {
       const px = x + rnd() * M.gap,
         py = y + rnd() * M.gap,
         ph = rnd(),
-        sz = 0.6 + rnd() * 0.8,
+        sz = M.size[0] + M.size[1] * rnd() ** 2,
         keep = rnd();
       if (py >= GH * CS) continue;
-      const i = cellI(px, py);
-      if (T[i] !== 0 || !open[i] || keep > clamp((w.dLand[i] - M.shore) / M.blend, 0, 1)) continue;
+      const i = cellI(px, py),
+        // how strongly it shows: in a patch, away from land, and fading out towards the map's edge
+        f =
+          clamp((patch(px, py) - M.patch[1]) / M.patch[2], 0, 1) *
+          clamp((w.dLand[i] - M.shore) / M.blend, 0, 1) *
+          clamp(Math.min(px, py, W - px, GH * CS - py) / M.edge, 0, 1);
+      if (T[i] !== 0 || !open[i] || keep > f) continue;
       const k = ((py / B) | 0) * nb + ((px / B) | 0);
       if (!cells.has(k)) cells.set(k, []);
-      cells.get(k).push([px, py, ph, sz]);
+      cells.get(k).push([px, py, ph, sz, f]);
     }
   D.sea = { B, nb, cells };
   D.waves = [];
@@ -745,13 +754,14 @@ function drawSeaMotion(g, t, view) {
   g.lineWidth = M.ripple[1];
   for (let by = by0; by <= by1; by++)
     for (let bx = bx0; bx <= bx1; bx++)
-      for (const [x, y, ph, sz] of cells.get(by * nb + bx) || []) {
+      for (const [x, y, ph, sz, f] of cells.get(by * nb + bx) || []) {
         const u = (t * M.rippleSpeed + ph) % 1,
-          a = M.ripple[0] * Math.sin(Math.PI * u),
+          a = M.ripple[0] * f * Math.sin(Math.PI * u),
           cx = x + (u - 0.5) * M.drift * wx,
           cy = y + (u - 0.5) * M.drift * wy,
           span = M.ripple[2] * sz;
         g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+        g.lineWidth = M.ripple[1] * clamp(sz, 0.6, 1.6);
         g.beginPath();
         g.moveTo(cx - wy * span, cy + wx * span);
         g.quadraticCurveTo(cx + wx * 3 * sz, cy + wy * 3 * sz, cx + wy * span, cy - wx * span);
