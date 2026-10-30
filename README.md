@@ -1410,7 +1410,9 @@ python3 tests/scenarios.py 6 15
   than tailless walkers (17 of 19 runs, about 20 points; at 30% it was 10 of 16). The test now makes this
   comparison too. With nuts and algae mirrored around a berry's 8 (14 / 8 / 2), straws by water got stronger (33 of
   36 runs, about 16 points) but beaks in thickets fell back to chance (17 of 33), in one batch. The gap was then
-  widened to 7 (15 / 8 / 1).
+  widened to 7 (15 / 8 / 1), and every mouth and roundness comparison came out clear: beaks in thickets in 25 of 31
+  runs (about 11 points, the strongest yet), straws by water in 35 of 39 (about 18 points), and creatures with
+  water homes rounder in 31 of 39 (about 6 points).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
