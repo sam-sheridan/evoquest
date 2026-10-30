@@ -504,7 +504,7 @@ re-plan at once.
 Each world secretly rolls a **type** from its world number, each type equally likely. The player never sees it: the point is that you have
 no say in the world, and different worlds favour different designs. All the numbers are in `WORLD_TYPES`.
 
-| Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
+| Type | How often | Land at start | Strait | Thicket | Rock | Food (land sites / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
 | **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
 | **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 320 / 250 | a little warmer |
@@ -624,7 +624,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Open land | 320–440 land food sites (berries and nuts together), depending on the world type. More likely on fertile ground, in thickets (where they are nuts, most towards the middle) and on islands. |
+| **Berries** (orange) | Open land | 320–440 land food sites (berries and nuts together) are drawn up, depending on the world type, more likely on fertile ground, in thickets (where they are nuts, most towards the middle) and on islands. Open land is sparse, though: only some of its berry sites grow, from 20% on the poorest ground to 75% on the most fertile (`BERRIES`), about two thirds overall, so berries are far apart on dry plains and closer together on meadows. That suits big bodies, which go further on a full tank (thinned from 30 October 2026; before, every site grew). |
 | **Nuts** (acorns) | Thicket | Every food site in a thicket grows nuts, just as all food in water is algae (until October 2026 thickets also grew berries, with nuts 1 in 5 at the edge rising to 4 in 5 in the middle). Richer than berries for a beak, much poorer for a straw (see [mouths](#mouths)). |
 | **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
 
@@ -1288,6 +1288,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How much offspring vary | `VAR` |
 | Base speed (set by size), leg count and leg length drawn | `LEGS` |
 | Energy burnt standing and moving | `BURN` |
+| How sparse berries are on open land | `BERRIES` |
 | How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
 | How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |

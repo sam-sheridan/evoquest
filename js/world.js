@@ -286,10 +286,11 @@ function genWorld(seed, att = 0) {
     if (t === 2) f = Math.min(1, f * 0.6 + 0.35 + 0.3 * deep);
     if (world.comp[i] !== world.main) f = Math.min(1, f + 0.35);
     if (rng() < f * f * 0.9 + 0.04) {
-      // thickets grow nuts, open land berries
-      const kind = t === 2 ? 'n' : 'l';
-      world.sites.push({ x, y, i, kind, active: true, t: 0 });
+      // thickets grow nuts, open land berries; open land is sparse, poor ground most of all (BERRIES), so some
+      // berry sites never grow
       nl++;
+      if (t === 1 && rng() > BERRIES.keep[0] + (BERRIES.keep[1] - BERRIES.keep[0]) * f) continue;
+      world.sites.push({ x, y, i, kind: t === 2 ? 'n' : 'l', active: true, t: 0 });
     }
   }
   tries = 0;

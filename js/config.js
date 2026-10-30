@@ -276,6 +276,9 @@ const THICKET = {
   deep: 48,
   slow: { by: 0.15, small: 0.75, big: 1.0 },
 };
+// open land is sparse: of the berry sites that would grow there, this share is kept [on the poorest ground, on the
+// most fertile], so food on open plains is far apart, which suits big bodies that go far on a full tank
+const BERRIES = { keep: [0.2, 0.75] };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */
