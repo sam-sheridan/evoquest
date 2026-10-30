@@ -502,7 +502,7 @@ function plan(c) {
 }
 function crowd(c) {
   let n = 0;
-  const r2 = CRW.r * CRW.r;
+  const r2 = c.crowdR * c.crowdR;
   for (const o of S.creatures) {
     if (o === c || o.dead) continue;
     const dx = o.x - c.x,

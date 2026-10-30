@@ -48,6 +48,8 @@ function compute(c) {
   c.cap = 30 + 25 * c.size;
   // home range: big bodies roam further (HOME)
   c.homeR = HOME.r[0] + (HOME.r[1] - HOME.r[0]) * clamp((c.size - 0.48) / 0.78, 0, 1);
+  // crowding: big bodies need more room (CRW)
+  c.crowdR = CRW.r[0] + (CRW.r[1] - CRW.r[0]) * clamp((c.size - 0.48) / 0.78, 0, 1);
   // for the Stats charts: distances beyond 2000 px (more than most of the map) count as 2000, and the energy burnt
   // walking flat out, without temperature or deep water
   c.dWc = Math.min(c.dW, 2000);
