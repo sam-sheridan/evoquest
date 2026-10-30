@@ -330,8 +330,7 @@ function genWorld(seed, att = 0) {
       });
   for (let k = Math.round(lake.length * LAKES.algae * ALGAE); k > 0 && lake.length; k--)
     put(lake[(rl2() * lake.length) | 0]);
-  for (let k = Math.round(nA * LAKES.flood); k > 0 && low.length; k--)
-    put(low[(rl2() * low.length) | 0]);
+  for (let k = Math.round(nA * LAKES.flood); k > 0 && low.length; k--) put(low[(rl2() * low.length) | 0]);
   // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
   const beyond = [];
   for (let i = 0; i < GW * GH; i++)
