@@ -251,7 +251,7 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
-const MOUTH = { nut: 1.25, bonus: 0.25 };
+const MOUTH = { nut: 1.25, bonus: 0.6 };
 // speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
 // base px/s; bigger bodies are slower, smaller ones faster.
 //   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this

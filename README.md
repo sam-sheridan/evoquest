@@ -240,15 +240,20 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Energy from a nut | Energy from algae |
 |---|---|---|---|
-| 0 (Beak) | a stout beak that snaps shut | 12.5 | 6 |
-| 0.25 (Slim beak) | a slimmer beak | 11.3 | 7 |
+| 0 (Beak) | a stout beak that snaps shut | 16 | 3.2 |
+| 0.25 (Slim beak) | a slimmer beak | 13 | 5.6 |
 | 0.5 (Tweezers) | straighter jaws that stay a little open | 10 | 8 |
-| 0.75 (Prongs) | two thin prongs with a small gap | 8.8 | 9 |
-| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 7.5 | 10 |
+| 0.75 (Prongs) | two thin prongs with a small gap | 7 | 10.4 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 4 | 12.8 |
 
-- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a beak gets 25% more than
-  that, a straw 25% less (`MOUTH.bonus`).
-- **Algae** gives 1 + 0.25 × (2 × mouth − 1) times a berry's energy: a straw gets 25% more, a beak 25% less.
+- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a beak gets 60% more than
+  that, a straw 60% less (`MOUTH.bonus`): a straw can hardly crack a nut.
+- **Algae** gives 1 + 0.6 × (2 × mouth − 1) times a berry's energy: a straw gets 60% more, a beak 60% less, since a
+  beak is poor at sipping.
+- The gap was 25% until October 2026. Then the adaptation test (`tests/adapt.py`) showed beaks didn't take hold in
+  thickets at all: a 0.1 beakier mouth earned only about 2% more food over a life, too little to beat chance and
+  the newcomers that keep arriving from the open land around each thicket (about 3 in 10 thicket dwellers have a
+  parent from outside it).
 - **Berries** give every mouth the same 8.
 
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
@@ -336,7 +341,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
   - The creator shows the burn when walking, without temperature or deep water.
-- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 6–12.5 depending on the mouth (see
+- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 3.2–16 depending on the mouth (see
   [mouths](#mouths)). Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
   meal.
@@ -431,8 +436,8 @@ allowed into.
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
-  1.5 seconds less travel (`FOOD_PREF`). A beak gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
-  a straw's algae (10) as 3 seconds closer. So creatures go out of their way for the food their mouth suits, which
+  1.5 seconds less travel (`FOOD_PREF`). A beak gets 16 from a nut, so a nut counts as 12 seconds closer, and
+  a straw's algae (12.8) as about 7 seconds closer. So creatures go out of their way for the food their mouth suits, which
   pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
