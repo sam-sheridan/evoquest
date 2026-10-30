@@ -631,7 +631,7 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 |---|---|---|
 | **Berries** (orange) | Open land | 320–440 land food sites (berries and nuts together) are drawn up, depending on the world type, more likely on fertile ground, in thickets (where they are nuts, most towards the middle) and on islands. Open land is sparse, though: only some of its berry sites grow, from 20% on the poorest ground to 75% on the most fertile (`BERRIES`), about two thirds overall, so berries are far apart on dry plains and closer together on meadows. That suits big bodies, which go further on a full tank (thinned from 30 October 2026; before, every site grew). |
 | **Nuts** (acorns) | Thicket | Every food site in a thicket grows nuts, just as all food in water is algae (until October 2026 thickets also grew berries, with nuts 1 in 5 at the edge rising to 4 in 5 in the middle). Richer than berries for a beak, much poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. Every kind of algae here (shelf, lakes, open-water beds and the algae waiting for floods and droughts) grows at two thirds of these amounts (`ALGAE`, from 30 October 2026), so water feeds about as many creatures as land: about 180 algae sites in water on a typical world, against about 300 berries and nuts on land. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -1295,6 +1295,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Base speed (set by size), leg count and leg length drawn | `LEGS` |
 | Energy burnt standing and moving | `BURN` |
 | How sparse berries are on open land | `BERRIES` |
+| How much algae grows | `ALGAE` |
 | When a small creature gives way to a bigger one at food | `GIVE` |
 | How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
@@ -1442,6 +1443,10 @@ python3 tests/scenarios.py 6 15
   20, median 0.89 at 30 minutes, ranging 0.70 to 1.16), stayed smaller in thickets (26 of 27 runs) and came out
   bigger in water than on land (30 of 40): big bodies win contested food wherever they can go. It still didn't
   follow sparse food (23 of 41). Populations rose again (median 73 at 30 minutes).
+  The 30-minute balance check then showed populations of straw-mouthed swimmers climbing to 150–280: water fed about
+  twice as many specialists as land. A crowding radius growing with size (50 to 140 px) didn't stop them, since
+  swimmers spread along whole coasts rather than packing together, and it made bodies shrink again, so it was
+  undone; algae was thinned to two thirds instead (`ALGAE`).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.

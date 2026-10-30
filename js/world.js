@@ -294,7 +294,9 @@ function genWorld(seed, att = 0) {
     }
   }
   tries = 0;
-  while (nw < T.food[1] && tries < T.food[1] * 600) {
+  // water is thinned like open land (ALGAE): every kind of algae below grows at this share of the world type's amount
+  const nA = T.food[1] * ALGAE;
+  while (nw < nA && tries < T.food[1] * 600) {
     tries++;
     const x = rng() * W,
       y = rng() * H,
@@ -326,22 +328,22 @@ function genWorld(seed, att = 0) {
         active: true,
         t: 0,
       });
-  for (let k = Math.round(lake.length * LAKES.algae); k > 0 && lake.length; k--)
+  for (let k = Math.round(lake.length * LAKES.algae * ALGAE); k > 0 && lake.length; k--)
     put(lake[(rl2() * lake.length) | 0]);
-  for (let k = Math.round(T.food[1] * LAKES.flood); k > 0 && low.length; k--)
+  for (let k = Math.round(nA * LAKES.flood); k > 0 && low.length; k--)
     put(low[(rl2() * low.length) | 0]);
   // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
   const beyond = [];
   for (let i = 0; i < GW * GH; i++)
     if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < 1 + SEA.beyond) beyond.push(i);
-  for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
+  for (let k = Math.round(nA * SEA.drought); k > 0 && beyond.length; k--)
     put(beyond[(rl2() * beyond.length) | 0]);
   // and algae beds out in open water, far from any land, that only strong swimmers reach (SEA.open)
   const open = [],
     ro = mulberry32(seed * 53 + 11);
   for (let i = 0; i < GW * GH; i++)
     if (world.type[i] === 0 && sea[i] && !border(i) && world.dLand[i] >= SEA.openFrom) open.push(i);
-  for (let k = Math.round(T.food[1] * SEA.open); k > 0 && open.length; k--) {
+  for (let k = Math.round(nA * SEA.open); k > 0 && open.length; k--) {
     const i = open[(ro() * open.length) | 0];
     world.sites.push({
       x: ((i % GW) + ro()) * CS,
