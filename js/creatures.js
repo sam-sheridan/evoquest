@@ -1,8 +1,8 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
    Body traits (affect survival): w width and h length (together they set size), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
-   because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims a little faster,
-   blocky walks a little faster). Every ability (speed, energy, range, food) comes from these.
+   because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims faster;
+   no effect on land). Every ability (speed, energy, range, food) comes from these.
    Look: each species is one colour (hue, sat), and individuals vary only in shade (lt). The number of legs drawn comes from size and is only a look, and all legs are the same length. */
 
 /* ---------- creatures ---------- */
@@ -35,10 +35,10 @@ function compute(c) {
   c.legs = c.size >= LEGS.sixFrom ? 6 : 4;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
-  // speed: bigger bodies are slower; a blocky body walks faster; a tail and a round body swim faster
+  // speed: bigger bodies are slower; a tail and a round body swim faster (roundness doesn't change walking)
   const base = (LEGS.base * 1.5) / (0.6 + c.size),
     rk = 2 * c.round - 1; // -1 blocky … 1 round
-  c.vL = base * (1 - 0.85 * c.tail) * (1 - ROUND.walk * rk);
+  c.vL = base * (1 - 0.85 * c.tail);
   c.vW = base * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, about HAB.range px each way at 50%, and any

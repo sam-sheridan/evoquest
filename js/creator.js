@@ -237,7 +237,7 @@ function syncCreator() {
     .map(r => `<div class="chiprow">${r.join('')}</div>`)
     .join('');
   $('#pvWhy').innerHTML =
-    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
+    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims faster; on land roundness makes no difference. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();
 }
 function drawPreview(t) {

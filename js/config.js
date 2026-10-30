@@ -244,9 +244,10 @@ const WADE = { speed: 0.35 };
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
 // full one, so a tail appears as a short proper tail rather than a spike (both drawing only)
 const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
-// roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
-// blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
-const ROUND = { swim: 0.1, walk: 0.1 };
+// roundness: streamlining. A fully round body swims this share faster than a middling one (roundness 0.5) and a
+// fully blocky one this share slower, as smooth bodies slip through water. On land it makes no difference, so land
+// creatures' roundness drifts freely while swimmers turn round
+const ROUND = { swim: 0.25 };
 // mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
 //   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
