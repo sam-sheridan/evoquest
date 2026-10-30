@@ -252,12 +252,11 @@ const ROUND = { swim: 0.1, walk: 0.1 };
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
 //   berries give every mouth the same (the tail doesn't change what food gives)
 const MOUTH = { nut: 1.25, bonus: 0.6 };
-// speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
-// base px/s; bigger bodies are slower, smaller ones faster.
-//   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
-//   share faster and the longest this share slower (medium legs make no difference)
+// speed comes from the body. A creature of size 0.9 with no tail and roundness 0.5 walks at about base px/s;
+// bigger bodies are slower, smaller ones faster. Legs are all the same length (len, in px, drawn; a tail shortens
+// them) and don't change speed: leg length was a trait until October 2026 but adapted to nothing.
 //   sixFrom: the size from which a creature is drawn with 6 legs rather than 4 (only a look: it changes nothing)
-const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 1.0 };
+const LEGS = { base: 32, len: 3.8, sixFrom: 1.0 };
 // energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
 // (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
 // stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)

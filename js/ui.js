@@ -517,7 +517,6 @@ function drawChart() {
 const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
   ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
-  ['Leg length', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
   ['Tail length', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
@@ -527,7 +526,7 @@ function spAvg(sp) {
   const M = S.creatures.filter(c => c.sp === sp.id);
   return M.length ? summ(M) : sp.last || null;
 }
-// a creature built from average traits, for drawing and for leg and tail length
+// a creature built from average traits, for drawing and for tail length
 function avgCreature(m) {
   const c = { ...m, hue: S.design.hue, sat: S.design.sat, id: 0, dir: -Math.PI / 2, walk: 0.6, rest: 0 };
   enforce(c);

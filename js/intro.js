@@ -158,7 +158,7 @@ function energyBar(g, c, x, y, k, e) {
 // mixes two designs, part u of the way from a to b (colour round the wheel the short way)
 function mixBody(a, b, u) {
   const o = {};
-  for (const k of ['w', 'h', 'leg', 'hab', 'mth', 'round', 'sat', 'lt']) o[k] = a[k] + (b[k] - a[k]) * u;
+  for (const k of ['w', 'h', 'hab', 'mth', 'round', 'sat', 'lt']) o[k] = a[k] + (b[k] - a[k]) * u;
   o.hue = (a.hue + (((b.hue - a.hue + 540) % 360) - 180) * u + 360) % 360;
   return o;
 }
@@ -166,8 +166,8 @@ const PANES = [
   {
     h: 'Design a species',
     p: [
-      'Give it a name, a colour and a body. Its size, legs, tail, mouth and roundness decide how fast it walks and swims, how much energy it burns and which food suits it best.',
-      'Every strength has a cost: long legs walk fast but burn energy, a tail swims well but walks badly, and a big body is thrifty but slow.',
+      'Give it a name, a colour and a body. Its size, tail, mouth and roundness decide how fast it walks and swims, how much energy it burns and which food suits it best.',
+      'Every strength has a cost: a tail swims well but walks badly, a big body is thrifty but slow, and a beak thrives on nuts but struggles with algae.',
     ],
     // one creature changing smoothly from one random design to the next
     draw(g, t, s) {
@@ -191,7 +191,7 @@ const PANES = [
       drawCreature(g, c, 280, 112, k, 7, col(c), t, false, true);
       note(
         g,
-        `Size ${c.size.toFixed(2)} · ${legTxt(c.leg)} legs · Tail ${tailTxt(c.hab).split(' ·')[0]} · ${mouthTxt(c.mth)}`,
+        `Size ${c.size.toFixed(2)} · Tail ${tailTxt(c.hab).split(' ·')[0]} · ${mouthTxt(c.mth)}`,
         280,
         228,
         INK,
@@ -209,11 +209,8 @@ const PANES = [
     // nut and a straw-mouthed swimmer eating algae
     draw(g, t, s) {
       if (!s.walker) {
-        s.walker = introCreature({ w: 3, h: 4, leg: 0.7, hab: 0.05, mth: 0.15, round: 0.4, ...okabe(0) }, 4);
-        s.swimmer = introCreature(
-          { w: 3.5, h: 4.5, leg: 0.1, hab: 0.9, mth: 0.95, round: 0.9, ...okabe(1) },
-          5
-        );
+        s.walker = introCreature({ w: 3, h: 4, hab: 0.05, mth: 0.15, round: 0.4, ...okabe(0) }, 4);
+        s.swimmer = introCreature({ w: 3.5, h: 4.5, hab: 0.9, mth: 0.95, round: 0.9, ...okabe(1) }, 5);
       }
       const coast = y => 318 + 16 * Math.sin(y / 38) + 8 * Math.sin(y / 15 + 1);
       introCoast(g, coast, PIC_W, PIC_H);
@@ -282,13 +279,12 @@ const PANES = [
         cyc = Math.floor(t / T);
       if (s.cyc !== cyc) {
         s.cyc = cyc;
-        const body = { w: 3.4, h: 4.2, leg: 0.55, hab: 0.05, mth: 0.4, round: 0.6, ...okabe(2) };
+        const body = { w: 3.4, h: 4.2, hab: 0.05, mth: 0.4, round: 0.6, ...okabe(2) };
         s.p = introCreature(body, 6);
         s.k = introCreature(
           {
             ...body,
             w: body.w + 0.6 * (rand() - 0.5),
-            leg: body.leg + 0.1 * (rand() - 0.5),
             lt: body.lt + 3,
           },
           7
@@ -401,17 +397,17 @@ const PANES = [
         const G = genus(D.name || 'Blorbs');
         s.sp = [
           [
-            introCreature({ w: 3.5, h: 4, leg: 0.5, hab: 0.08, mth: 0.5, round: 0.5, ...okabe(0) }, 8),
+            introCreature({ w: 3.5, h: 4, hab: 0.08, mth: 0.5, round: 0.5, ...okabe(0) }, 8),
             `${G} vulgaris`,
             120,
           ],
           [
-            introCreature({ w: 3.4, h: 4.6, leg: 0.1, hab: 0.85, mth: 0.85, round: 0.9, ...okabe(1) }, 9),
+            introCreature({ w: 3.4, h: 4.6, hab: 0.85, mth: 0.85, round: 0.9, ...okabe(1) }, 9),
             `${G} natans`,
             44,
           ],
           [
-            introCreature({ w: 6.2, h: 6.6, leg: 0.85, hab: 0.05, mth: 0.1, round: 0.15, ...okabe(5) }, 10),
+            introCreature({ w: 6.2, h: 6.6, hab: 0.05, mth: 0.1, round: 0.15, ...okabe(5) }, 10),
             `${G} campestris`,
             198,
           ],

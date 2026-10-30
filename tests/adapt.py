@@ -35,12 +35,12 @@ PER_TYPE = int(ARGS[2]) if len(ARGS) > 2 else 3
 OUT = ARGS[3] if len(ARGS) > 3 else os.path.join(tempfile.gettempdir(), 'adapt.jsonl')
 
 DESIGNS = {
-    'middling': {'w': 4, 'h': 4.5, 'leg': 0.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
-    'half-tailed': {'w': 4, 'h': 4.5, 'leg': 0.5, 'hab': 0.5, 'mth': 0.5, 'round': 0.5},
+    'middling': {'w': 4, 'h': 4.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
+    'half-tailed': {'w': 4, 'h': 4.5, 'hab': 0.5, 'mth': 0.5, 'round': 0.5},
     'random': None,  # made in the page by the creator's own Randomise
 }
-TRAITS = ['size', 'leg', 'hab', 'mth', 'round']
-NAMES = {'size': 'Size', 'leg': 'Legs', 'hab': 'Tail', 'mth': 'Mouth', 'round': 'Roundness'}
+TRAITS = ['size', 'hab', 'mth', 'round']
+NAMES = {'size': 'Size', 'hab': 'Tail', 'mth': 'Mouth', 'round': 'Roundness'}
 # environment codes recorded for each creature (see RUN): place 0 water, 1 land near water, 2 land inland;
 # thick 1 if home is in a thicket; height 0 low (warm), 1 middle, 2 high (cold), land only; food = land food sites
 # within FOOD_R px of home
@@ -57,9 +57,6 @@ COMPARE = [
     ('size', 'thicket vs open land', lambda r: land(r) and r['thick'], lambda r: land(r) and not r['thick'], 'smaller in thickets'),
     ('size', 'high (cold) vs low (warm) land', lambda r: land(r) and r['height'] == 2, lambda r: land(r) and r['height'] == 0, 'bigger on cold high land'),
     ('size', 'water vs land', water, land, 'none expected'),
-    ('leg', 'water vs land', water, land, 'shorter legs in water'),
-    ('leg', 'thicket vs open land', lambda r: land(r) and r['thick'], lambda r: land(r) and not r['thick'], 'none expected'),
-    ('leg', 'sparse vs dense land food', None, None, 'unclear'),  # groups set per run (see compare())
     ('round', 'water vs land', water, land, 'rounder in water'),
     ('round', 'high (cold) vs low (warm) land', lambda r: land(r) and r['height'] == 2, lambda r: land(r) and r['height'] == 0, 'none today'),
 ]
@@ -83,14 +80,14 @@ RUN = (
         // TEMP.cold, hot above TEMP.hot, before seasons and world type
         const tp = w.temp[k], height = place === 0 ? -1 : tp < TEMP.cold ? 2 : tp > TEMP.hot ? 0 : 1;
         rec.push([snap, place, t === 2 ? 1 : 0, height, place === 0 ? -1 : foodNear(hx, hy),
-          +c.size.toFixed(3), +c.leg.toFixed(3), +c.hab.toFixed(3), +c.mth.toFixed(3), +c.round.toFixed(3)]);
+          +c.size.toFixed(3), +c.hab.toFixed(3), +c.mth.toFixed(3), +c.round.toFixed(3)]);
       }
     }
   }
   const last = S.creatures;
   const avg = k => (last.length ? +(last.reduce((a, c) => a + c[k], 0) / last.length).toFixed(3) : null);
-  return { released: Object.fromEntries(['size', 'leg', 'hab', 'mth', 'round'].map(k => [k, +first[k].toFixed(3)])),
-    end: Object.fromEntries(['size', 'leg', 'hab', 'mth', 'round'].map(k => [k, avg(k)])),
+  return { released: Object.fromEntries(['size', 'hab', 'mth', 'round'].map(k => [k, +first[k].toFixed(3)])),
+    end: Object.fromEntries(['size', 'hab', 'mth', 'round'].map(k => [k, avg(k)])),
     extinct: S.over, minutes: Math.round(S.t / 6) / 10, popEnd: last.length, rec };
 }"""
     % FOOD_R
@@ -171,7 +168,7 @@ def sign_p(k, n):
 
 
 def fmt(trait, v):
-    # tail, mouth, legs and roundness in percentage points of their 0-1 scale; size as it is
+    # tail, mouth and roundness in percentage points of their 0-1 scale; size as it is
     return f"{v:+.3f}" if trait == 'size' else f"{v * 100:+.1f} pts"
 
 

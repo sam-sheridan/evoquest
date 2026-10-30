@@ -13,7 +13,7 @@ function genus(n) {
   return s[0].toUpperCase() + s.slice(1) + 'us';
 }
 function newGame(design, seed) {
-  design = upgrade(design); // designs saved before mouths or leg length existed
+  design = upgrade(design); // designs saved before mouths existed
   if (!world || world.seed !== seed || world.dirty) genWorld(seed);
   nextId = 1;
   // S: everything about the current run
@@ -1056,7 +1056,6 @@ function logEv(m) {
 const KEYS = [
   'w',
   'h',
-  'leg',
   'hab',
   'mth',
   'dTc',

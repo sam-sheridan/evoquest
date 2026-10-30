@@ -35,9 +35,6 @@ const tailTxt = h => {
   const w = Math.round(h * 100);
   return h < TAIL.min ? 'None · land only' : w >= 100 ? 'Full · water only' : `${w}%`;
 };
-// leg length in words
-const legTxt = l =>
-  l < 0.2 ? 'Short' : l < 0.4 ? 'Fairly short' : l < 0.6 ? 'Medium' : l < 0.8 ? 'Fairly long' : 'Long';
 // how far into thickets a creature can go (past 200 px it reaches every thicket's middle)
 const thickTxt = c => (c.dT >= 200 ? 'anywhere in thickets' : `${Math.round(c.dT)} px into thickets`);
 // roundness in words

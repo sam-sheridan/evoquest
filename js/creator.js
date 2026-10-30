@@ -6,7 +6,6 @@ let D = {
   name: 'Blorbs',
   w: 4,
   h: 4.5,
-  leg: 0.5,
   hab: 0.1,
   mth: 0.5,
   hue: 41,
@@ -30,7 +29,6 @@ $('#fHue').onclick = e => {
 for (const [id, key, k] of [
   ['#fW', 'w', 1],
   ['#fH', 'h', 1],
-  ['#fL', 'leg', 0.01],
   ['#fHab', 'hab', 0.01],
   ['#fMth', 'mth', 0.01],
   ['#fR', 'round', 1],
@@ -94,7 +92,6 @@ function randomBody() {
   return {
     w: +r(1.5, 6.5).toFixed(1),
     h: +r(1.5, 6.5).toFixed(1),
-    leg: +r(0, 1).toFixed(2),
     // about a third are land creatures with no tail; the rest have a clearly visible tail
     hab: +(rand() < 0.35 ? r(0, 0.13) : r(0.25, 0.9)).toFixed(2),
     mth: +r(0, 1).toFixed(2),
@@ -163,19 +160,18 @@ function statRanges() {
     sizes = [1, 2.5, 4, 5.5, 7];
   for (const w of sizes)
     for (const h of sizes)
-      for (const leg of ends)
-        for (const hab of [0, 0.15, 0.5, 0.85, 1])
-          for (const mth of [0, 1])
-            for (const round of ends) {
-              const c = { w, h, leg, hab, mth, round, hue: 0, sat: 100, lt: 50 };
-              enforce(c);
-              compute(c);
-              for (const [k, x] of Object.entries(tagVals(c))) {
-                const r = (ranges[k] ||= [x, x]);
-                r[0] = Math.min(r[0], x);
-                r[1] = Math.max(r[1], x);
-              }
+      for (const hab of [0, 0.15, 0.5, 0.85, 1])
+        for (const mth of [0, 1])
+          for (const round of ends) {
+            const c = { w, h, hab, mth, round, hue: 0, sat: 100, lt: 50 };
+            enforce(c);
+            compute(c);
+            for (const [k, x] of Object.entries(tagVals(c))) {
+              const r = (ranges[k] ||= [x, x]);
+              r[0] = Math.min(r[0], x);
+              r[1] = Math.max(r[1], x);
             }
+          }
   return ranges;
 }
 function syncCreator() {
@@ -187,13 +183,11 @@ function syncCreator() {
     });
   $('#fW').value = D.w;
   $('#fH').value = D.h;
-  $('#fL').value = Math.round(D.leg * 100);
   $('#fHab').value = Math.round(D.hab * 100);
   $('#fMth').value = Math.round(D.mth * 100);
   $('#fR').value = D.round;
   $('#oW').textContent = D.w.toFixed(1);
   $('#oH').textContent = D.h.toFixed(1);
-  $('#oL').textContent = legTxt(D.leg);
   $('#oHab').textContent = tailTxt(D.hab);
   $('#oMth').textContent = mouthTxt(D.mth);
   $('#oR').textContent = D.round.toFixed(2);
@@ -243,7 +237,7 @@ function syncCreator() {
     .map(r => `<div class="chiprow">${r.join('')}</div>`)
     .join('');
   $('#pvWhy').innerHTML =
-    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. Longer legs walk faster but swim slower. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
+    `Width and length only matter through size: a bigger body is slower but burns less energy, and doesn't get as far into thickets, whose middles are tighter. A bigger tail swims faster but walks slower, and goes further from shore but less far from water. A rounder body swims a little faster, a blockier one walks a little faster. A beak gets more from nuts, a straw more from algae, and berries suit any mouth.`;
   updP();
 }
 function drawPreview(t) {
@@ -320,7 +314,6 @@ $('#go').onclick = () => {
     name: D.name,
     w: D.w,
     h: D.h,
-    leg: D.leg,
     hab: D.hab,
     v: 2, // tails count from TAIL.min (see upgrade)
     mth: D.mth,
