@@ -1408,7 +1408,8 @@ python3 tests/scenarios.py 6 15
   swimming it works: at 50% (`ROUND.swim` 0.5) creatures with water homes lean rounder (28 of 42 runs, about 5
   points), held back by amphibians that swim little, while full swimmers (tail 80% or more) are clearly rounder
   than tailless walkers (17 of 19 runs, about 20 points; at 30% it was 10 of 16). The test now makes this
-  comparison too.
+  comparison too. With nuts and algae mirrored around a berry's 8 (14 / 8 / 2), straws by water got stronger (33 of
+  36 runs, about 16 points) but beaks in thickets fell back to chance (17 of 33), in one batch.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
