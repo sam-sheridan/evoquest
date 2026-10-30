@@ -1335,7 +1335,7 @@ In the code, achievements are called "badges".
 
 ### Tests
 
-Both tests need Python 3 and Playwright:
+The tests need Python 3 and Playwright:
 
 ```
 pip install playwright
@@ -1367,6 +1367,21 @@ python3 tests/scenarios.py 6 15
   minutes and at the end, time over 100, seasonal swing, new species with when and how each split happened,
   extinctions and their causes, exploration, how far each body trait moved, and which creature type each species
   ended up as.
+- **`adapt.py [minutes] [workers] [worlds per type] [results file]`** checks whether body traits **adapt** to
+  where creatures live or just drift by chance. On every world it releases a middling design, a half-tailed one
+  and a random one, and from 10 minutes on records each creature's traits and its home patch once a minute
+  (water, near water or inland; thicket or open; high cold land or low warm land; how much land food grows near
+  it). For each pair of places it compares a trait's average in every run with enough creatures in both, and
+  counts how many runs went each way: drift goes either way and cancels out over many runs, adaptation goes the
+  same way every time (a sign test gives the chance of the split by pure luck). `python3 tests/adapt.py 30 4 3`
+  makes 45 runs of 30 minutes and takes about 25 minutes; `python3 tests/adapt.py --summary [results file]`
+  prints the summary of an earlier run again.
+
+  First results (30 October 2026, 45 runs): tail follows water strongly (more tail in water in 36 of 38 runs,
+  near water 36 of 40) and bodies are smaller in thickets (31 of 32). Mouths lean towards straws in water (27 of
+  38) but show nothing in thickets (17 of 32). Water creatures came out a little bigger than land ones (29 of 38).
+  Size on high cold land, legs in water and roundness anywhere were down to chance, and legs shortened over most
+  runs (29 of 42).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
