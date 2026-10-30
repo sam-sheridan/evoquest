@@ -57,6 +57,7 @@ COMPARE = [
     ('size', 'thicket vs open land', lambda r: land(r) and r['thick'], lambda r: land(r) and not r['thick'], 'smaller in thickets'),
     ('size', 'high (cold) vs low (warm) land', lambda r: land(r) and r['height'] == 2, lambda r: land(r) and r['height'] == 0, 'bigger on cold high land'),
     ('size', 'water vs land', water, land, 'none expected'),
+    ('size', 'sparse vs dense land food', None, None, 'bigger where food is sparse'),  # groups set per run (see compare())
     ('round', 'water vs land', water, land, 'rounder in water'),
     # by body rather than place: creatures that never leave water against those that never enter it
     ('round', 'full swimmers vs tailless walkers', lambda r: r['hab'] >= 0.8, lambda r: r['hab'] < TAIL_MIN, 'rounder swimmers'),

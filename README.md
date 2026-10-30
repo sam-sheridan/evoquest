@@ -106,7 +106,7 @@ Clicking **EvoQuest** at the top left of the creator opens the intro again.
 | Control | What it does |
 |---|---|
 | **Species name** | Up to 20 characters. Also becomes the Latin genus (see [naming](#10-speciation-and-naming)). |
-| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
+| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but holds more energy, so it goes further on a full tank and roams further from home, and can't go as far into thickets. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the stats under the preview give how much it gets from each. |
 | **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims more cheaply (streamlining: less drag); on land it makes no difference. |
@@ -232,7 +232,11 @@ what you can see.
   at 35% of its walking speed (`WADE.speed`), as land animals ford streams, so rivers slow walkers down but no
   longer trap them on one piece of land. The creator's chip says "Swims rivers" or "Wades rivers".
 - **Reach** = half the longest side + 4 px.
-- **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
+- **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest. Energy burn doesn't depend on
+  size, so a bigger tank simply lasts longer: standing still, a full tank lasts about 130 seconds for the smallest
+  and 195 for the biggest.
+- **Home range** grows with size, from 150 px for the smallest to 350 px for the biggest (`HOME.r`): big animals
+  roam further (see [choosing food](#choosing-food)).
 
 ### Mouths
 
@@ -328,17 +332,20 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)² × (1 + 0.9 − size)) × (1 + 0.5 × (0.9 − size)), plus
-  temperature, and more in deep water (`BURN`). The middle part (`BURN.stride`) makes moving cheaper for big bodies,
-  like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
+- **Burn per second** = 0.32 + 0.81 × (current speed ÷ 30)², plus temperature, and more in deep water (`BURN`). It
+  is the same for every size: only the tank grows with size.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     a small, fast body.
   - **Swimming** (moving through water): the moving part is multiplied by 1 − 0.5 × (2 × roundness − 1)
     (`ROUND.swim`), so a fully round body pays 50% less to swim than a middling one and a fully blocky one 50% more.
     This is streamlining, and a big gap is realistic: a blocky shape meets many times the drag of a streamlined one.
-  - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
-    Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 3.1 a second and the biggest about 0.6.
+  - Small bodies are faster, so on the move they burn more: walking flat out, the smallest burns about 2.1 a
+    second, a size-0.9 creature 1.2 and the biggest 0.9. Per px travelled the smallest pays about 4.7 energy per
+    100 px and the biggest about 3.6, so on a full tank a big creature can travel roughly 1,700 px and a small one
+    about 900. That is how big bodies cope with food spread far apart, and small ones need food close together.
+  - Until 30 October 2026 bigger bodies also burned less overall (`BURN.size`: the smallest 21% more than a
+    size-0.9 creature, the biggest 18% less) and paid up to 30% less to move (`BURN.stride`). Both were removed:
+    a big animal doesn't burn less in total than a small one in nature.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.18 × (1.4 − 0.6 × size) energy per
     second (`TEMP.coldCost`), so small creatures pay most: about 0.20 for the smallest, 0.16 for a size-0.9
     creature and 0.12 for the biggest.
@@ -433,8 +440,10 @@ allowed into.
   or two. Only if there is no food at all in range does it wander further.
 - **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
   a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
-  around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
-  counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
+  around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Each creature's
+  range grows with its size, from 150 px for the smallest to 350 px for the biggest (`HOME.r`; 250 px for every
+  size until 30 October 2026), as big animals roam further. Food beyond the range counts as 6 extra seconds of
+  travel for every further range's worth (`HOME.pull`), so creatures prefer food near home.
   Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
   (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
   are outside their range, or once they stray into deep water (unless fully aquatic).
@@ -1238,18 +1247,19 @@ accident.
   the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
   best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
   still evolve a small tail, to wade out for shoreline algae, which is fine.
-- **Energy still favours bigger bodies, for now** (October 2026). A more natural energy rule was tried, where total
-  energy use grows with body size as in real animals (small animals need less food in all). It made small bodies
-  win in every world, so every design shrank to about size 0.7 and *campestris* almost vanished: nothing in the
-  game yet gives big bodies the advantages they have in nature (escaping predators, coping with cold, winning
-  fights over food). The older rule, with the habitat changes above, kept designs the most distinct of anything
-  tested, so it stays.
+- **Big bodies are travellers; small ones live in dense cover** (30 October 2026). Energy burn is the same for
+  every size and only the tank grows, so a big body goes further on a full tank, and big bodies roam wider home
+  ranges, as big animals do. So food spread far apart (open land) favours big bodies and food close together in
+  tight places (thickets) small ones, tied to the world rather than to an energy rule. Before, big bodies simply
+  burned less, which isn't how nature works but was kept because a natural rule tried earlier in October (total
+  energy use growing with size) made every design shrink to about size 0.7: nothing then gave big bodies a reason
+  to exist.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
   size, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
   setting was replaced by leg length (itself removed in October 2026), the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
   energy bonus for beaks. Width and length only matter through size, so long thin and short stubby designs are
-  both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
-  edges of thickets, a beak thrives on nuts but struggles with algae, the tail trades walking against swimming,
+  both fair choices. Each feature has a benefit and a cost: big bodies go far on a full tank but are slow and kept
+  to the edges of thickets, a beak thrives on nuts but struggles with algae, the tail trades walking against swimming,
   and roundness makes swimming cheaper. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
@@ -1277,7 +1287,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Energy per food | `FOOD` |
 | How much offspring vary | `VAR` |
 | Base speed (set by size), leg count and leg length drawn | `LEGS` |
-| Energy burnt standing, moving, and by size | `BURN` |
+| Energy burnt standing and moving | `BURN` |
 | How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
 | How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |

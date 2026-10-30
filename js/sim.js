@@ -326,11 +326,11 @@ function hpop() {
   }
 }
 // home range in px: wider when hungry, so a creature will roam rather than starve
-const homeRange = c => HOME.r * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
+const homeRange = c => c.homeR * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
 // extra cost, in seconds of travel, of food beyond the home range
 function awayCost(c, f, range) {
   const d = Math.hypot(f.x - c.home[0], f.y - c.home[1]);
-  return d > range ? ((d - range) / HOME.r) * HOME.pull : 0;
+  return d > range ? ((d - range) / c.homeR) * HOME.pull : 0;
 }
 // Dijkstra outwards from the creature; stops as soon as nothing further away could beat the best food found
 function dijkstra(c) {
