@@ -109,7 +109,7 @@ Clicking **EvoQuest** at the top left of the creator opens the intro again.
 | **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the stats under the preview give how much it gets from each. |
-| **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims faster (streamlining); on land it makes no difference. |
+| **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims more cheaply (streamlining: less drag); on land it makes no difference. |
 | **Colour** | Under the name. One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
 | **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (tail and mouth included), colour and shape. |
@@ -159,7 +159,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. Only matters through size. |
 | Tail (`hab`) | 0–1 | Below 0.15 (`TAIL.min`): no tail, fully land. From 0.15 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
 | Mouth (`mth`) | 0–1 | 0 = beak, 1 = straw (see [mouths](#mouths)). |
-| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes water speed by up to 25% (see below). |
+| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes the energy cost of swimming by up to 30% (see below). |
 
 From these, the game works out:
 
@@ -193,13 +193,14 @@ what you can see.
 - **Effective tail** = (tail − 0.15) ÷ 0.85, and 0 below 0.15. Everything below uses this, so 15% and below
   behave exactly alike, as a creature with no tail.
 - **Land speed** = base × (1 − 0.85 × tail).
-- **Water speed** = base × (0.15 + 0.85 × tail) × (1 + 0.25 × (2 × roundness − 1)).
-  The roundness part (`ROUND`) is streamlining: ±25% at the extremes and nothing at 0.5, so a fully round body
-  swims 25% faster and a fully blocky one 25% slower, as smooth bodies slip through water (fish, seals and
-  tadpoles all converge on it). On land roundness makes no difference, so land creatures' roundness drifts freely
-  by chance and separate populations can end up blocky or round, while swimmers turn smooth and round. (Until 30
-  October 2026 it was ±10% and also made round bodies walk 10% slower, a cost with no natural cause; the
-  adaptation test found roundness followed nothing.)
+- **Water speed** = base × (0.15 + 0.85 × tail).
+  Roundness doesn't change speed. It is streamlining, which makes swimming cheaper instead (see
+  [energy](#energy)): a smooth body meets less drag, which is why fish, seals and tadpoles all converge on it. On
+  land roundness makes no difference, so land creatures' roundness drifts freely by chance and separate
+  populations can end up blocky or round, while swimmers turn smooth and round. (Until 30 October 2026 it changed
+  speed instead: first ±10%, with round bodies also walking 10% slower, a cost with no natural cause; then ±25%
+  in water only. The adaptation test found neither followed anything, because a faster creature also burns more
+  energy per step, so speed alone is no advantage.)
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
   anywhere in water. Everything in between has two limits:
@@ -329,6 +330,9 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     a small, fast body.
+  - **Swimming** (moving through water): the moving part is multiplied by 1 − 0.3 × (2 × roundness − 1)
+    (`ROUND.swim`), so a fully round body pays 30% less to swim than a middling one and a fully blocky one 30% more.
+    This is streamlining.
   - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
     about 3.1 a second and the biggest about 0.6.
@@ -1243,7 +1247,7 @@ accident.
   energy bonus for beaks. Width and length only matter through size, so long thin and short stubby designs are
   both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
   edges of thickets, a beak thrives on nuts but struggles with algae, the tail trades walking against swimming,
-  and roundness helps swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
+  and roundness makes swimming cheaper. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species are ways of life.** Four fixed types, so species always look different, there are never more than four
@@ -1290,7 +1294,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Lakes: how many per world type, size, depth, their algae, algae for floods and craters | `lakes` in `WORLD_TYPES`, `LAKES` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
-| How much roundness helps swimming | `ROUND` |
+| How much roundness saves on swimming | `ROUND` |
 | Nut energy, how much beaks gain from nuts and straws from algae | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |

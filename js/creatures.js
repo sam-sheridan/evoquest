@@ -1,7 +1,7 @@
 /* Creature traits, how traits turn into abilities (speed, reach, energy), inheritance with small random
    changes, and how a creature is drawn.
    Body traits (affect survival): w width and h length (together they set size), hab tail (0 = none, a land creature; 1 = full, a water creature; called hab
-   because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims faster;
+   because it began as "habitat"), mth mouth (0 = beak, 1 = straw), round roundness (round swims more cheaply;
    no effect on land). Every ability (speed, energy, range, food) comes from these.
    Look: each species is one colour (hue, sat), and individuals vary only in shade (lt). The number of legs drawn comes from size and is only a look, and all legs are the same length. */
 
@@ -35,11 +35,10 @@ function compute(c) {
   c.legs = c.size >= LEGS.sixFrom ? 6 : 4;
   // the tail only shows and counts from TAIL.min; below that the creature is tailless (a land creature)
   c.tail = clamp((c.hab - TAIL.min) / (1 - TAIL.min), 0, 1);
-  // speed: bigger bodies are slower; a tail and a round body swim faster (roundness doesn't change walking)
-  const base = (LEGS.base * 1.5) / (0.6 + c.size),
-    rk = 2 * c.round - 1; // -1 blocky … 1 round
+  // speed: bigger bodies are slower; a tail swims faster and walks slower
+  const base = (LEGS.base * 1.5) / (0.6 + c.size);
   c.vL = base * (1 - 0.85 * c.tail);
-  c.vW = base * (0.15 + 0.85 * c.tail) * (1 + ROUND.swim * rk);
+  c.vW = base * (0.15 + 0.85 * c.tail);
   // how far it will swim from shore and walk from water: only fully land (0) or fully water (1) creatures go
   // anywhere in their own element; in between, both limits apply, about HAB.range px each way at 50%, and any
   // visible tail swims at least HAB.first px from shore
@@ -61,14 +60,22 @@ function compute(c) {
 const legLen = c => LEGS.len * (1 - c.tail * 0.4);
 const tailLen = c => (c.tail > 0 ? c.bh * TAIL.len * (TAIL.first + (1 - TAIL.first) * c.tail) : 0);
 // energy burnt per second moving at speed v (the creator shows this), and in the world with temperature added:
-// moving fast costs a lot, and bigger bodies burn less
-const moveBurn = (c, v) =>
-  (BURN.rest + BURN.move * (v / 30) ** 2 * Math.max(0.3, 1 + BURN.stride * (0.9 - c.size))) *
+// moving fast costs a lot, and bigger bodies burn less. swim: moving through water, where a round body meets less
+// drag (ROUND)
+const moveBurn = (c, v, swim = false) =>
+  (BURN.rest +
+    BURN.move *
+      (v / 30) ** 2 *
+      Math.max(0.3, 1 + BURN.stride * (0.9 - c.size)) *
+      (swim ? 1 - ROUND.swim * (2 * c.round - 1) : 1)) *
   (1 + BURN.size * (0.9 - c.size));
 // deep water costs more for creatures that aren't fully aquatic
 function burn(c, v) {
   const i = cellI(clamp(c.x, 0, W - 1), clamp(c.y, 0, GH * CS - 1));
-  return (moveBurn(c, v) + climate(c, i)) * (world.deep[i] ? 1 + SEA.deepCost * (1 - c.tail) : 1);
+  return (
+    (moveBurn(c, v, isWater(world.type[i])) + climate(c, i)) *
+    (world.deep[i] ? 1 + SEA.deepCost * (1 - c.tail) : 1)
+  );
 }
 // extra energy per second for the temperature in cell i: keeping warm costs small bodies most, cooling down
 // costs big bodies most
