@@ -253,7 +253,9 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 - The gap was 25% until October 2026. Then the adaptation test (`tests/adapt.py`) showed beaks didn't take hold in
   thickets at all: a 0.1 beakier mouth earned only about 2% more food over a life, too little to beat chance and
   the newcomers that keep arriving from the open land around each thicket (about 3 in 10 thicket dwellers have a
-  parent from outside it).
+  parent from outside it). Widening the gap to 60% made mouths follow water strongly (straws by water in 36 of 41
+  runs, up from 27 of 38) but still not thickets (beakier in thickets in 18 of 31, chance), so thickets need
+  something more.
 - **Berries** give every mouth the same 8.
 
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
@@ -1386,7 +1388,8 @@ python3 tests/scenarios.py 6 15
   near water 36 of 40) and bodies are smaller in thickets (30 of 32). Mouths lean towards straws in water (27 of
   38) but show nothing in thickets (17 of 32). Water creatures came out a little bigger than land ones (29 of 38).
   Size on high cold land, legs in water and roundness anywhere were down to chance, and legs shortened over most
-  runs (29 of 42).
+  runs (29 of 42). With the wider mouth gap (`MOUTH.bonus` 0.6), mouths follow water in 36 of 41 runs but
+  thickets are still chance (18 of 31).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
