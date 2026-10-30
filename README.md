@@ -1438,6 +1438,10 @@ python3 tests/scenarios.py 6 15
   41) and shrank in 35 of 42 runs (median 0.81). A bigger tank isn't an advantage on its own, because breeding
   needs 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
   young. Populations came down (median 46 at 30 minutes, from 75).
+  With small creatures giving way to bigger ones at food (`GIVE`), size stopped shrinking (up in 21 runs, down in
+  20, median 0.89 at 30 minutes, ranging 0.70 to 1.16), stayed smaller in thickets (26 of 27 runs) and came out
+  bigger in water than on land (30 of 40): big bodies win contested food wherever they can go. It still didn't
+  follow sparse food (23 of 41). Populations rose again (median 73 at 30 minutes).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
