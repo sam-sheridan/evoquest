@@ -251,9 +251,9 @@ const ROUND = { swim: 0.5 };
 // mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
 //   gap: a middling mouth (tweezers) gets FOOD from every food, as from a berry; a beak gets gap more from a nut and
 //   gap less from algae, a straw the reverse. So nuts and algae mirror each other: the right mouth gets FOOD + gap
-//   (14), the wrong one FOOD - gap (2), changing evenly in between. Berries give every mouth FOOD (the tail doesn't
+//   (15), the wrong one FOOD - gap (1), changing evenly in between. Berries give every mouth FOOD (the tail doesn't
 //   change what food gives)
-const MOUTH = { gap: 6 };
+const MOUTH = { gap: 7 };
 // speed comes from the body. A creature of size 0.9 with no tail and roundness 0.5 walks at about base px/s;
 // bigger bodies are slower, smaller ones faster. Legs are all the same length (len, in px, drawn; a tail shortens
 // them) and don't change speed: leg length was a trait until October 2026 but adapted to nothing.

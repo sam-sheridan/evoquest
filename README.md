@@ -240,14 +240,14 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Energy from a nut | Energy from algae |
 |---|---|---|---|
-| 0 (Beak) | a stout beak that snaps shut | 14 | 2 |
-| 0.25 (Slim beak) | a slimmer beak | 11 | 5 |
+| 0 (Beak) | a stout beak that snaps shut | 15 | 1 |
+| 0.25 (Slim beak) | a slimmer beak | 11.5 | 4.5 |
 | 0.5 (Tweezers) | straighter jaws that stay a little open | 8 | 8 |
-| 0.75 (Prongs) | two thin prongs with a small gap | 5 | 11 |
-| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 2 | 14 |
+| 0.75 (Prongs) | two thin prongs with a small gap | 4.5 | 11.5 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 1 | 15 |
 
 - **Nuts and algae mirror each other**: a middling mouth gets 8 from either, the same as from a berry (`FOOD`),
-  the right mouth 6 more and the wrong one 6 less (`MOUTH.gap`), changing evenly in between. So the mouth only
+  the right mouth 7 more and the wrong one 7 less (`MOUTH.gap`), changing evenly in between. So the mouth only
   matters where nuts or algae grow: a middling mouth does equally well on every food. A straw can hardly crack a nut, and a beak is
   poor at sipping algae.
 - Until 30 October 2026 the two weren't mirrored: a middling mouth got 1.25 times a berry from a nut (10) but only
@@ -351,7 +351,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
   - The creator shows the burn when walking, without temperature or deep water.
-- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 2–14 depending on the mouth (see
+- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 1–15 depending on the mouth (see
   [mouths](#mouths)). Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
   meal.
@@ -446,8 +446,8 @@ allowed into.
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
-  1.5 seconds less travel (`FOOD_PREF`). A beak gets 14 from a nut, so a nut counts as 9 seconds closer, and a
-  straw's algae (14) the same. So creatures go out of their way for the food their mouth suits, which
+  1.5 seconds less travel (`FOOD_PREF`). A beak gets 15 from a nut, so a nut counts as 10.5 seconds closer, and
+  a straw's algae (15) the same. So creatures go out of their way for the food their mouth suits, which
   pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
@@ -1409,7 +1409,8 @@ python3 tests/scenarios.py 6 15
   points), held back by amphibians that swim little, while full swimmers (tail 80% or more) are clearly rounder
   than tailless walkers (17 of 19 runs, about 20 points; at 30% it was 10 of 16). The test now makes this
   comparison too. With nuts and algae mirrored around a berry's 8 (14 / 8 / 2), straws by water got stronger (33 of
-  36 runs, about 16 points) but beaks in thickets fell back to chance (17 of 33), in one batch.
+  36 runs, about 16 points) but beaks in thickets fell back to chance (17 of 33), in one batch. The gap was then
+  widened to 7 (15 / 8 / 1).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
