@@ -351,7 +351,7 @@ function dijkstra(c) {
   const range = homeRange(c),
     // the most a food can be worth to this creature beyond a berry, in seconds (see FOOD_PREF), so the search
     // doesn't stop before a richer food further away
-    pref = FOOD_PREF * FOOD * Math.max(0, mouthGain(c, 'n') - 1, mouthGain(c, 'w') - 1);
+    pref = FOOD_PREF * Math.max(0, mouthEnergy(c, 'n') - FOOD, mouthEnergy(c, 'w') - FOOD);
   while (hn) {
     hpop();
     const i = PI,
@@ -614,15 +614,15 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
-// how much energy the mouth gets from each food, as a multiple of FOOD: a beak gets more from nuts, a straw more
-// from algae, and berries give every mouth the same
-const mouthGain = (c, kind) =>
+// how much energy the mouth gets from each food: a beak gets more from nuts, a straw more from algae (the two
+// mirror each other), and berries give every mouth the same
+const mouthEnergy = (c, kind) =>
   kind === 'n'
-    ? MOUTH.nut * (1 + MOUTH.bonus * (1 - 2 * c.mth))
+    ? MOUTH.food + MOUTH.gap * (1 - 2 * c.mth)
     : kind === 'w'
-      ? 1 + MOUTH.bonus * (2 * c.mth - 1)
-      : 1;
-const foodEnergy = (c, f) => FOOD * mouthGain(c, f.kind);
+      ? MOUTH.food + MOUTH.gap * (2 * c.mth - 1)
+      : FOOD;
+const foodEnergy = (c, f) => mouthEnergy(c, f.kind);
 function eat(c, f) {
   f.active = false;
   f.t = regrow(f);

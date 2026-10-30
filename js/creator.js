@@ -146,8 +146,8 @@ function tagVals(c) {
     dL: cap(c.dL, c.dW),
     cap: c.cap,
     burn: moveBurn(c, c.vL),
-    nut: mouthGain(c, 'n'),
-    alg: mouthGain(c, 'w'),
+    nut: mouthEnergy(c, 'n'),
+    alg: mouthEnergy(c, 'w'),
     dT: Math.min(200, Math.round(c.dT)),
   };
 }
@@ -223,8 +223,8 @@ function syncCreator() {
     [
       tag('cap', x => `Energy ${px(x)}`),
       tag('burn', x => `Burns ${x.toFixed(2)}/s`),
-      tag('nut', x => `Nuts ×${x.toFixed(2)}`),
-      tag('alg', x => `Algae ×${x.toFixed(2)}`),
+      tag('nut', x => `Nuts ${Math.round(x)}`),
+      tag('alg', x => `Algae ${Math.round(x)}`),
     ],
     [
       tag('dT', x => `${x} px into thickets`),

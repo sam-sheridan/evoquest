@@ -122,8 +122,7 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
 1. Size, land speed and water speed (px/s).
 2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
-3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
-   worth).
+3. Energy store, energy burnt per second walking flat out, and the energy it gets from a nut and from algae.
 4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it swims or wades across rivers.
 
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
@@ -241,17 +240,19 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Energy from a nut | Energy from algae |
 |---|---|---|---|
-| 0 (Beak) | a stout beak that snaps shut | 16 | 3.2 |
-| 0.25 (Slim beak) | a slimmer beak | 13 | 5.6 |
-| 0.5 (Tweezers) | straighter jaws that stay a little open | 10 | 8 |
-| 0.75 (Prongs) | two thin prongs with a small gap | 7 | 10.4 |
-| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 4 | 12.8 |
+| 0 (Beak) | a stout beak that snaps shut | 15 | 3 |
+| 0.25 (Slim beak) | a slimmer beak | 12 | 6 |
+| 0.5 (Tweezers) | straighter jaws that stay a little open | 9 | 9 |
+| 0.75 (Prongs) | two thin prongs with a small gap | 6 | 12 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 3 | 15 |
 
-- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a beak gets 60% more than
-  that, a straw 60% less (`MOUTH.bonus`): a straw can hardly crack a nut.
-- **Algae** gives 1 + 0.6 × (2 × mouth − 1) times a berry's energy: a straw gets 60% more, a beak 60% less, since a
-  beak is poor at sipping.
-- The gap was 25% until October 2026. Then the adaptation test (`tests/adapt.py`) showed beaks didn't take hold in
+- **Nuts and algae mirror each other**: a middling mouth gets 9 from either (`MOUTH.food`), the right mouth 6 more
+  and the wrong one 6 less (`MOUTH.gap`), changing evenly in between. A straw can hardly crack a nut, and a beak is
+  poor at sipping algae.
+- Until 30 October 2026 the two weren't mirrored: a middling mouth got 1.25 times a berry from a nut (10) but only
+  a berry's worth from algae (8), and the mouth added or took away a share of that, so a beak got 16 from a nut
+  and a straw 12.8 from algae. The mirrored numbers meet in the middle and stay round.
+- That share was 25% until October 2026. Then the adaptation test (`tests/adapt.py`) showed beaks didn't take hold in
   thickets at all: a 0.1 beakier mouth earned only about 2% more food over a life, too little to beat chance and
   the newcomers that keep arriving from the open land around each thicket (about 3 in 10 thicket dwellers have a
   parent from outside it). Widening the gap to 60% made mouths follow water strongly (straws by water in 36 of 41
@@ -348,7 +349,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
   - The creator shows the burn when walking, without temperature or deep water.
-- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 3.2–16 depending on the mouth (see
+- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 3–15 depending on the mouth (see
   [mouths](#mouths)). Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
   meal.
@@ -443,8 +444,8 @@ allowed into.
   2.5-second penalty to it, so others prefer free food nearby.
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
-  1.5 seconds less travel (`FOOD_PREF`). A beak gets 16 from a nut, so a nut counts as 12 seconds closer, and
-  a straw's algae (12.8) as about 7 seconds closer. So creatures go out of their way for the food their mouth suits, which
+  1.5 seconds less travel (`FOOD_PREF`). A beak gets 15 from a nut, so a nut counts as about 10 seconds closer,
+  and a straw's algae (15) the same. So creatures go out of their way for the food their mouth suits, which
   pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
@@ -1002,7 +1003,7 @@ Collapse or expand it with the arrow. It has four tabs.
   - generation, parent, offspring and meals
   - energy and age
   - its stats: land and water speed, range (how far it goes from shore and from water), how far into thickets it
-    can go, mouth type and how it feeds (how much it gets from nuts and algae compared with a berry)
+    can go, mouth type and how it feeds (the energy it gets from a nut, from algae and from a berry)
 
   Its visible features (size, tail, roundness) aren't listed: you can see them on the creature, and the
   Species tab gives them for its whole species.
@@ -1295,7 +1296,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
 | How much roundness saves on swimming | `ROUND` |
-| Nut energy, how much beaks gain from nuts and straws from algae | `MOUTH` |
+| Energy from nuts and algae, and how much the mouth changes it | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 

@@ -856,8 +856,9 @@ function syncUI() {
 `;
   }
 }
-// how much the mouth gets from each food, compared with a berry
-const mouthFeed = c => `nuts ×${mouthGain(c, 'n').toFixed(2)} · algae ×${mouthGain(c, 'w').toFixed(2)}`;
+// how much energy the mouth gets from each food (a berry gives every mouth FOOD)
+const mouthFeed = c =>
+  `nuts ${Math.round(mouthEnergy(c, 'n'))} · algae ${Math.round(mouthEnergy(c, 'w'))} · berries ${FOOD}`;
 function rangeTxt(c) {
   // water is always at least one cell (16 px) from land and the other way round, so a smaller limit means never
   if (c.dW < CS) return 'Never enters water';
