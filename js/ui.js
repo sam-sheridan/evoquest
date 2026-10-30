@@ -847,7 +847,7 @@ function syncUI() {
       <div class="legend">
        ${K.meadow}<span><b>Meadow and plain.</b> Berries; eaten ones regrow after a while. Meadows (greener) fruit heavily in spring, plains sparsely.</span>
        ${K.thicket}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
-       ${K.nut}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
+       ${K.nut}<span><b>Nuts.</b> The only food in thickets. A beak gets more from them than a straw does.</span>
        ${K.shallows}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${K.river}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to swim across; slower creatures wade.</span>
        ${K.sea}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>

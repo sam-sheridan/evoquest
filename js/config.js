@@ -265,15 +265,14 @@ const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
 // thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
-//   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
-//   is nuts (nuts: [share at the edge, share from deep in]) and the trees on the map get bigger and closer together
+//   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly and the
+//   trees on the map get bigger and closer together (all thicket food is nuts, as all water food is algae)
 //   slow: moving through a thicket is slow.by slower for bodies of size slow.big or more, easing to no slower at all
 //   for size slow.small or less, since small creatures slip through the undergrowth
 const THICKET = {
   edge: 16,
   depth: 33,
   deep: 48,
-  nuts: [0.2, 0.8],
   slow: { by: 0.15, small: 0.75, big: 1.0 },
 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)

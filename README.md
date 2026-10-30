@@ -607,8 +607,8 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
-| **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
+| **Berries** (orange) | Open land | 320–440 land food sites (berries and nuts together), depending on the world type. More likely on fertile ground, in thickets (where they are nuts, most towards the middle) and on islands. |
+| **Nuts** (acorns) | Thicket | Every food site in a thicket grows nuts, just as all food in water is algae (until October 2026 thickets also grew berries, with nuts 1 in 5 at the edge rising to 4 in 5 in the middle). Richer than berries for a beak, much poorer for a straw (see [mouths](#mouths)). |
 | **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
@@ -1267,7 +1267,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | How much offspring vary | `VAR` |
 | How leg length, leg count and size set speed | `LEGS` |
 | Energy burnt standing, moving, and by size | `BURN` |
-| How far into thickets each size goes, and where nuts and bigger trees begin | `THICKET` |
+| How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
 | How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
