@@ -618,9 +618,9 @@ function resolveClaims() {
 // mirror each other), and berries give every mouth the same
 const mouthEnergy = (c, kind) =>
   kind === 'n'
-    ? MOUTH.food + MOUTH.gap * (1 - 2 * c.mth)
+    ? FOOD + MOUTH.gap * (1 - 2 * c.mth)
     : kind === 'w'
-      ? MOUTH.food + MOUTH.gap * (2 * c.mth - 1)
+      ? FOOD + MOUTH.gap * (2 * c.mth - 1)
       : FOOD;
 const foodEnergy = (c, f) => mouthEnergy(c, f.kind);
 function eat(c, f) {
