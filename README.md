@@ -1396,6 +1396,8 @@ python3 tests/scenarios.py 6 15
   thickets are still chance (18 of 31). With thickets growing only nuts as well, mouths follow both: straws by
   water in 36 of 44 runs (about 14 points more straw-like) and beaks in thickets in 28 of 34 (about 5 points more
   beak-like). Leg length was then removed (it adapted to nothing), so the test no longer measures it.
+  Roundness as streamlining (±25% swimming speed, no effect on land) still followed nothing (rounder in water in
+  23 of 41 runs): faster swimming also burns more energy, so speed alone is no advantage.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
