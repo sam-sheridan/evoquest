@@ -1427,6 +1427,10 @@ python3 tests/scenarios.py 6 15
   With the same burn for every size and home ranges growing with size, bodies stayed much smaller in thickets (35 of
   36 runs) and leaned bigger where land food is sparse (30 of 45, but only 0.01 of size), while shrinking over most
   runs (33 of 43, median 0.83 at 30 minutes, from about 0.9). Roundness showed nothing in that batch (21 of 42).
+  Thinning open-land berries by about a third (`BERRIES`) didn't help: size no longer followed sparse food (21 of
+  41) and shrank in 35 of 42 runs (median 0.81). A bigger tank isn't an advantage on its own, because breeding
+  needs 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
+  young. Populations came down (median 46 at 30 minutes, from 75).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
