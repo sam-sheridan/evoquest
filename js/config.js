@@ -247,7 +247,7 @@ const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
 // roundness: streamlining. Moving through water costs a fully round body this share less energy than a middling
 // one (roundness 0.5) and a fully blocky one this share more, as smooth bodies meet less drag. It doesn't change
 // speed, and on land it makes no difference, so land creatures' roundness drifts freely while swimmers turn round
-const ROUND = { swim: 0.3 };
+const ROUND = { swim: 0.5 };
 // mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
 //   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
 //   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;

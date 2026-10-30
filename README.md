@@ -159,7 +159,7 @@ These affect survival, so natural selection pushes them in useful directions.
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. Only matters through size. |
 | Tail (`hab`) | 0–1 | Below 0.15 (`TAIL.min`): no tail, fully land. From 0.15 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
 | Mouth (`mth`) | 0–1 | 0 = beak, 1 = straw (see [mouths](#mouths)). |
-| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes the energy cost of swimming by up to 30% (see below). |
+| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes the energy cost of swimming by up to 50% (see below). |
 
 From these, the game works out:
 
@@ -330,9 +330,9 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
     a small, fast body.
-  - **Swimming** (moving through water): the moving part is multiplied by 1 − 0.3 × (2 × roundness − 1)
-    (`ROUND.swim`), so a fully round body pays 30% less to swim than a middling one and a fully blocky one 30% more.
-    This is streamlining.
+  - **Swimming** (moving through water): the moving part is multiplied by 1 − 0.5 × (2 × roundness − 1)
+    (`ROUND.swim`), so a fully round body pays 50% less to swim than a middling one and a fully blocky one 50% more.
+    This is streamlining, and a big gap is realistic: a blocky shape meets many times the drag of a streamlined one.
   - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
     about 3.1 a second and the biggest about 0.6.
