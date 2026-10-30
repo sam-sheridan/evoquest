@@ -372,15 +372,10 @@ A creature may breed when it eats **and** all of these are true:
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
-**Crowding roll:** count the other creatures within the creature's crowding radius, stopping at 12. The radius
-grows with size (`CRW.r`), from 50 px for the smallest body to 140 px for the biggest (about 75 px at size 0.7, 98
-px at 0.9 and 121 px at 1.1), because big animals need more room and small ones live far more densely (Damuth's
-rule: a field holds hundreds of mice but only a few deer). So small thicket dwellers can live packed together
-while bigger creatures in the open and in water are crowded sooner. (Until 30 October 2026 it was 80 px for every
-size; populations of middling-sized swimmers then climbed to 150–280.) The chance of breeding is
-1 ÷ (1 + (neighbours ÷ 2)²) (`CRW.half` = 2, `CRW.pow` = 2):
+**Crowding roll:** count the other creatures within 80 px (`CRW.r`), stopping at 12. The chance of breeding
+is 1 ÷ (1 + (neighbours ÷ 2)²) (`CRW.half` = 2, `CRW.pow` = 2):
 
-| Neighbours within the radius | Chance to breed |
+| Neighbours within 80 px | Chance to breed |
 |---|---|
 | 0 | 100% |
 | 1 | 80% |

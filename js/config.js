@@ -607,10 +607,8 @@ const AMBLE = { r: 60, pace: 0.5 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // breeding: a creature may breed after a meal that leaves its energy at least this share of its store full
 const BREED = { full: 0.75 };
-// crowding: r = radius that counts as neighbours (px), growing with size from r[0] for the smallest body to r[1] for
-// the biggest, as big animals need more room (small ones live far more densely); breeding chance =
-// 1 / (1 + (neighbours/half)^pow)
-const CRW = { r: [50, 140], half: 2, pow: 2 };
+// crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
+const CRW = { r: 80, half: 2, pow: 2 };
 
 /* ---- species: four ways of life ---- */
 // every species is one of four types, named by its epithet: water (natans) has at least water.tail of tail (0 none,
