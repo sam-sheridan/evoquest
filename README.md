@@ -324,10 +324,15 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
   - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
     Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
     about 3.1 a second and the biggest about 0.6.
-  - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.35 energy per second (`TEMP.coldCost`)
-    for a mid-sized creature, scaled by 1.4 − 0.6 × size, so small creatures pay most (about 1.1 times as much)
-    and big ones least (about 0.65 times).
-  - **Heat**: cooling down costs up to 0.3 × size² per second (`TEMP.heatCost`), so big creatures pay most.
+  - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.18 × (1.4 − 0.6 × size) energy per
+    second (`TEMP.coldCost`), so small creatures pay most: about 0.20 for the smallest, 0.16 for a size-0.9
+    creature and 0.12 for the biggest.
+  - **Heat**: cooling down costs up to 0.15 × size² per second (`TEMP.heatCost`), so big creatures pay most: about
+    0.03 for the smallest, 0.12 for a size-0.9 creature and 0.24 for the biggest.
+  - Both are the cost at the very coldest or hottest spot. The cost starts at nothing at the edge of the cold or hot
+    zone (see [temperature](#temperature)) and grows steadily towards the extreme, so a creature somewhere in the
+    zone typically pays about half. For comparison, a size-0.9 creature burns 0.32 a second standing and about 1.2
+    walking, so temperature adds roughly 5–15% to a moving creature's costs.
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
   - The creator shows the burn when walking, without temperature or deep water.
@@ -576,6 +581,9 @@ ranked against the world's original land, so every world has the full range, wha
   and the lowest 1. Cold and heat cost energy (see [energy](#energy)): small bodies suffer in the cold and big
   bodies in the heat, so the hills and the lowlands of one world pull a species in different directions. That
   is how geographical speciation happens in nature too.
+- **How much land is cold or hot**, on an ordinary world: in spring and autumn the highest 30% of land is cold and
+  the lowest 20% hot; in summer 18% cold and 32% hot; in winter 45% cold and 5% hot. Highlands have more cold land
+  and archipelagos more hot.
 - **On the map**, cold land gets a frosty blue wash and hot land a faint warm one, and the season decides how
   far each reaches.
 
