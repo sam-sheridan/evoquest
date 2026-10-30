@@ -1378,7 +1378,7 @@ python3 tests/scenarios.py 6 15
   prints the summary of an earlier run again.
 
   First results (30 October 2026, 45 runs): tail follows water strongly (more tail in water in 36 of 38 runs,
-  near water 36 of 40) and bodies are smaller in thickets (31 of 32). Mouths lean towards straws in water (27 of
+  near water 36 of 40) and bodies are smaller in thickets (30 of 32). Mouths lean towards straws in water (27 of
   38) but show nothing in thickets (17 of 32). Water creatures came out a little bigger than land ones (29 of 38).
   Size on high cold land, legs in water and roundness anywhere were down to chance, and legs shortened over most
   runs (29 of 42).
