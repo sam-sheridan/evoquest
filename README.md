@@ -453,6 +453,11 @@ allowed into.
   areas apart, which helps different species form in different regions.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
+- **Small gives way to big.** A creature leaves alone any food that a clearly bigger creature (by at least 0.05 in
+  size, `GIVE.by`) is heading for, if the bigger one is within 80 px of it (`GIVE.r`) or nearer to it than the
+  smaller one. When a big creature picks a food, smaller ones already heading for it give way and look again. So
+  on open land, where food is scarce and contested, big bodies get the best of it, while small ones do best in
+  thickets, where big ones can't follow, as small animals keep to cover (added 30 October 2026).
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
   1.5 seconds less travel (`FOOD_PREF`). A beak gets 15 from a nut, so a nut counts as 10.5 seconds closer, and
@@ -1247,9 +1252,10 @@ accident.
   the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
   best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
   still evolve a small tail, to wade out for shoreline algae, which is fine.
-- **Big bodies are travellers; small ones live in dense cover** (30 October 2026). Energy burn is the same for
-  every size and only the tank grows, so a big body goes further on a full tank, and big bodies roam wider home
-  ranges, as big animals do. So food spread far apart (open land) favours big bodies and food close together in
+- **Big bodies are travellers and win contested food; small ones live in dense cover** (30 October 2026). Energy
+  burn is the same for every size and only the tank grows, so a big body goes further on a full tank, big bodies
+  roam wider home ranges, as big animals do, and small creatures give way to bigger ones at food (see
+  [choosing food](#choosing-food)). So food spread far apart (open land) favours big bodies and food close together in
   tight places (thickets) small ones, tied to the world rather than to an energy rule. Before, big bodies simply
   burned less, which isn't how nature works but was kept because a natural rule tried earlier in October (total
   energy use growing with size) made every design shrink to about size 0.7: nothing then gave big bodies a reason
@@ -1289,6 +1295,7 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Base speed (set by size), leg count and leg length drawn | `LEGS` |
 | Energy burnt standing and moving | `BURN` |
 | How sparse berries are on open land | `BERRIES` |
+| When a small creature gives way to a bigger one at food | `GIVE` |
 | How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
 | How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |

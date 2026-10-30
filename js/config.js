@@ -279,6 +279,10 @@ const THICKET = {
 // open land is sparse: of the berry sites that would grow there, this share is kept [on the poorest ground, on the
 // most fertile], so food on open plains is far apart, which suits big bodies that go far on a full tank
 const BERRIES = { keep: [0.2, 0.75] };
+// competing for food: a creature gives way to food that one bigger by at least by (in size) is heading for, if the
+// bigger one is within r px of it or nearer to it. Big bodies win the scarce food of open land; small ones keep to
+// thickets, where big ones can't follow
+const GIVE = { by: 0.05, r: 80 };
 const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
 
 /* ---- map rendering ---- */

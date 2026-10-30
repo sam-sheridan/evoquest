@@ -64,6 +64,7 @@ function newGame(design, seed) {
     f.gone = false;
     f.t = 0;
     f.cl = 0;
+    f.by = [];
   });
   const probe = { ...design };
   enforce(probe);
@@ -361,7 +362,7 @@ function dijkstra(c) {
     const L = idx.get(i);
     if (L)
       for (const f of L) {
-        if (f.gone || !allowed(c, f.i, world.type[f.i])) continue;
+        if (f.gone || !allowed(c, f.i, world.type[f.i]) || outranked(c, f)) continue;
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
         // food that is regrowing or already has three heading for it is somewhere to wait if nothing else is free
@@ -437,11 +438,25 @@ function lineOk(c, x0, y0, x1, y1, strand) {
   }
   return true;
 }
+// competing for food: a creature gives way to food that a clearly bigger one (by GIVE.by in size) is heading for,
+// if that one is near it (GIVE.r px) or nearer to it, as small animals give way to big ones and keep to cover
+const d2 = (a, f) => (a.x - f.x) ** 2 + (a.y - f.y) ** 2;
+const outranks = (o, c, f) =>
+  o.size >= c.size + GIVE.by && (d2(o, f) < GIVE.r * GIVE.r || d2(o, f) < d2(c, f));
+const outranked = (c, f) => (f.by || []).some(o => o !== c && outranks(o, c, f));
 function setTarget(c, f) {
   if (c.target === f) return;
-  if (c.target) c.target.cl = Math.max(0, (c.target.cl || 0) - 1);
+  if (c.target) {
+    c.target.cl = Math.max(0, (c.target.cl || 0) - 1);
+    c.target.by = (c.target.by || []).filter(o => o !== c);
+  }
   c.target = f;
-  if (f) f.cl = (f.cl || 0) + 1;
+  if (f) {
+    f.cl = (f.cl || 0) + 1;
+    // smaller creatures already heading for it give way and look again
+    for (const o of (f.by ||= [])) if (outranks(c, o, f)) o.rt = 0;
+    f.by.push(c);
+  }
 }
 // pick the quickest food to reach that fewer than 3 others are already heading for, then a smoothed route to it
 function plan(c) {
