@@ -58,9 +58,12 @@ COMPARE = [
     ('size', 'high (cold) vs low (warm) land', lambda r: land(r) and r['height'] == 2, lambda r: land(r) and r['height'] == 0, 'bigger on cold high land'),
     ('size', 'water vs land', water, land, 'none expected'),
     ('round', 'water vs land', water, land, 'rounder in water'),
+    # by body rather than place: creatures that never leave water against those that never enter it
+    ('round', 'full swimmers vs tailless walkers', lambda r: r['hab'] >= 0.8, lambda r: r['hab'] < TAIL_MIN, 'rounder swimmers'),
     ('round', 'high (cold) vs low (warm) land', lambda r: land(r) and r['height'] == 2, lambda r: land(r) and r['height'] == 0, 'none today'),
 ]
 MIN_N = 20  # records needed in each group for a run to count
+TAIL_MIN = 0.15  # below this a creature has no tail (TAIL.min in js/config.js)
 
 RUN = (
     """([steps, every]) => {

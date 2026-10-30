@@ -1401,7 +1401,11 @@ python3 tests/scenarios.py 6 15
   water in 36 of 44 runs (about 14 points more straw-like) and beaks in thickets in 28 of 34 (about 5 points more
   beak-like). Leg length was then removed (it adapted to nothing), so the test no longer measures it.
   Roundness as streamlining (±25% swimming speed, no effect on land) still followed nothing (rounder in water in
-  23 of 41 runs): faster swimming also burns more energy, so speed alone is no advantage.
+  23 of 41 runs): faster swimming also burns more energy, so speed alone is no advantage. As energy saved when
+  swimming it works: at 50% (`ROUND.swim` 0.5) creatures with water homes lean rounder (28 of 42 runs, about 5
+  points), held back by amphibians that swim little, while full swimmers (tail 80% or more) are clearly rounder
+  than tailless walkers (17 of 19 runs, about 20 points; at 30% it was 10 of 16). The test now makes this
+  comparison too.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
