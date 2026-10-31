@@ -1465,6 +1465,12 @@ python3 tests/scenarios.py 6 15
   roundness leaned the right way (23 of 37, about 4 points) without being clear. But 10 of 45 hour-long runs died
   out, 5 of them the middling land design, between 20 and 49 minutes, mostly soon after a world event: land had
   become too poor to ride out floods and droughts.
+  Berries thinned by about a quarter instead of a third (`BERRIES` 30% to 85%) cut hour-long extinctions to 4 of
+  45 (median 69 alive at the end), and tail by water (38 of 40), tail near water (33 of 41), straws by water (35 of
+  40) and smaller in thickets (31 of 35) all stayed clear, with roundness among full swimmers leaning (15 of 21).
+  But beaks in thickets vanished (14 of 35): busier open land sends more straw-mouthed migrants into the thickets.
+  The aquatic balance design climbed again (167 after 20 minutes, 42% of the time over 100); the land designs ran
+  27–87.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
