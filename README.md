@@ -1456,7 +1456,11 @@ python3 tests/scenarios.py 6 15
   steady overall (up in 22 runs, down in 18).
   Breeding at 80% energy with offspring varying a quarter less (`VAR` 1.2) then overshot: populations of 6–74 after
   20 minutes (median 18 at 30 minutes in the adaptation test), 6 of 45 runs died out, and only tail and straws by
-  water stayed clear.
+  water stayed clear. Back at 75% with `VAR` 1.4: populations after 20 minutes of 16–61 for land designs and 103 for
+  the aquatic one (4% of the time over 100; median 36 at 30 minutes in the adaptation test, 4 of 45 runs died out).
+  Tail by water (27 of 30) and smaller in thickets (23 of 27) stayed clear and size leaned bigger on sparse land
+  (27 of 39) for the first time, but beaks in thickets (18 of 27) and roundness (13 of 30) showed little within 30
+  minutes: with smaller steps, adaptation takes longer.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
