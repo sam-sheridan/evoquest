@@ -370,7 +370,7 @@ points, ±0.08) until 31 October 2026, when big changes came too quickly once tr
 A creature may breed when it eats **and** all of these are true:
 
 - it is at least 15 seconds old (`MATURE`)
-- its energy after eating is at least 80% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20, then 75% until 31 October 2026)
+- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20; 80% was tried on 31 October 2026 and cut populations far too hard)
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
@@ -1439,7 +1439,7 @@ python3 tests/scenarios.py 6 15
   runs (33 of 43, median 0.83 at 30 minutes, from about 0.9). Roundness showed nothing in that batch (21 of 42).
   Thinning open-land berries by about a third (`BERRIES`) didn't help: size no longer followed sparse food (21 of
   41) and shrank in 35 of 42 runs (median 0.81). A bigger tank isn't an advantage on its own, because breeding
-  needed 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
+  needs 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
   young. Populations came down (median 46 at 30 minutes, from 75).
   With small creatures giving way to bigger ones at food (`GIVE`), size stopped shrinking (up in 21 runs, down in
   20, median 0.89 at 30 minutes, ranging 0.70 to 1.16), stayed smaller in thickets (26 of 27 runs) and came out

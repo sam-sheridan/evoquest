@@ -609,7 +609,7 @@ const HOME = { r: [150, 350], pull: 6, hunger: 3, starving: 0.5, disperse: 100, 
 const AMBLE = { r: 60, pace: 0.5 };
 const MAXT = 22; // furthest a creature will plan, in seconds of travel
 // breeding: a creature may breed after a meal that leaves its energy at least this share of its store full
-const BREED = { full: 0.8 };
+const BREED = { full: 0.75 };
 // crowding: r = radius that counts as neighbours (px); breeding chance = 1 / (1 + (neighbours/half)^pow)
 const CRW = { r: 80, half: 2, pow: 2 };
 
