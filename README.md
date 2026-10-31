@@ -286,7 +286,7 @@ where the curve-in ends. A bigger tail is longer (up to
 1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (15% or less) the back of the body is
 rounded off like the front. Just above 15% the tail appears at once as a short but proper tail, 30% of the full
 length (`TAIL.first`), rather than a thin spike, and grows from there. The bottom 15% of the scale has no effect, so a
-tailless parent can't have a tailed child in one step (a child's tail moves at most 8 points), but a land lineage
+tailless parent can't have a tailed child in one step (a child's tail moves at most 6 points), but a land lineage
 near water can drift up to 15% within a run and start using a tail when the water pays. (Tails used to count from
 33%, which a lineage starting at 0% would take 30–40 minutes of drifting to reach.)
 
@@ -320,11 +320,12 @@ moves by a random amount up to:
 
 | Trait | Maximum change per generation |
 |---|---|
-| Width, length | ±0.8 (that is 0.5 × `VAR`, and `VAR` = 1.6) |
-| Tail, mouth | ±8 percentage points (0.05 × `VAR`) |
-| Roundness | ±0.08 (0.05 × `VAR`) |
+| Width, length | ±0.6 (that is 0.5 × `VAR`, and `VAR` = 1.2) |
+| Tail, mouth | ±6 percentage points (0.05 × `VAR`) |
+| Roundness | ±0.06 (0.05 × `VAR`) |
 
-Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only.
+Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only. It was 1.6 (±0.8, ±8
+points, ±0.08) until 31 October 2026, when big changes came too quickly once traits had clear jobs in the world.
 
 ---
 
@@ -368,7 +369,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 A creature may breed when it eats **and** all of these are true:
 
 - it is at least 15 seconds old (`MATURE`)
-- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20)
+- its energy after eating is at least 80% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20, then 75% until 31 October 2026)
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
@@ -1437,7 +1438,7 @@ python3 tests/scenarios.py 6 15
   runs (33 of 43, median 0.83 at 30 minutes, from about 0.9). Roundness showed nothing in that batch (21 of 42).
   Thinning open-land berries by about a third (`BERRIES`) didn't help: size no longer followed sparse food (21 of
   41) and shrank in 35 of 42 runs (median 0.81). A bigger tank isn't an advantage on its own, because breeding
-  needs 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
+  needed 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
   young. Populations came down (median 46 at 30 minutes, from 75).
   With small creatures giving way to bigger ones at food (`GIVE`), size stopped shrinking (up in 21 runs, down in
   20, median 0.89 at 30 minutes, ranging 0.70 to 1.16), stayed smaller in thickets (26 of 27 runs) and came out
