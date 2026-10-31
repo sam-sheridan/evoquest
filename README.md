@@ -1471,6 +1471,11 @@ python3 tests/scenarios.py 6 15
   But beaks in thickets vanished (14 of 35): busier open land sends more straw-mouthed migrants into the thickets.
   The aquatic balance design climbed again (167 after 20 minutes, 42% of the time over 100); the land designs ran
   27–87.
+  Halfway (`BERRIES` 25% to 80%) didn't bring beaks back (12 of 31) and 7 of 45 runs died out (median 58 alive at
+  the end); tail, straws and smaller in thickets stayed clear, and size came out smaller on cold high land (21 of
+  27, against nature). In the 30-minute balance check the aquatic design ran 83, the land designs 14–49, and the
+  default design died out. So berries don't control beaks: beaks in thickets sit close to the edge of what the test
+  can detect, and the 25 of 31 in the earlier batch was probably partly luck.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
