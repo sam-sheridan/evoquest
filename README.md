@@ -1446,7 +1446,11 @@ python3 tests/scenarios.py 6 15
   The 30-minute balance check then showed populations of straw-mouthed swimmers climbing to 150–280: water fed about
   twice as many specialists as land. A crowding radius growing with size (50 to 140 px) didn't stop them, since
   swimmers spread along whole coasts rather than packing together, and it made bodies shrink again, so it was
-  undone; algae was thinned to two thirds instead (`ALGAE`).
+  undone; algae was thinned to two thirds instead (`ALGAE`). That brought populations back into range (after 20 minutes: 30–52 for five of
+  six balance designs, 146 for the fully aquatic one; 9% of the time over 100) and every adaptation came out clear
+  in one batch for the first time: tail by water 36 of 39, straws by water 29 of 39, beaks in thickets 24 of 30,
+  smaller in thickets 26 of 30, rounder in water 28 of 39 (full swimmers 8 of 9, about 33 points), with size
+  steady overall (up in 22 runs, down in 18).
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
