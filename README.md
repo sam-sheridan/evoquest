@@ -1453,6 +1453,9 @@ python3 tests/scenarios.py 6 15
   in one batch for the first time: tail by water 36 of 39, straws by water 29 of 39, beaks in thickets 24 of 30,
   smaller in thickets 26 of 30, rounder in water 28 of 39 (full swimmers 8 of 9, about 33 points), with size
   steady overall (up in 22 runs, down in 18).
+  Breeding at 80% energy with offspring varying a quarter less (`VAR` 1.2) then overshot: populations of 6–74 after
+  20 minutes (median 18 at 30 minutes in the adaptation test), 6 of 45 runs died out, and only tail and straws by
+  water stayed clear.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.
