@@ -244,39 +244,49 @@ const WADE = { speed: 0.35 };
 // len = length of a full tail, as a share of body length; first = how long the smallest tail is, as a share of a
 // full one, so a tail appears as a short proper tail rather than a spike (both drawing only)
 const TAIL = { min: 0.15, len: 1.1, first: 0.3 };
-// roundness: a fully round body swims swim faster and walks walk slower than a middling one (roundness 0.5); a fully
-// blocky one the reverse, so water creatures drift smooth and round and land creatures blocky
-const ROUND = { swim: 0.1, walk: 0.1 };
+// roundness: streamlining. Moving through water costs a fully round body this share less energy than a middling
+// one (roundness 0.5) and a fully blocky one this share more, as smooth bodies meet less drag. It doesn't change
+// speed, and on land it makes no difference, so land creatures' roundness drifts freely while swimmers turn round
+const ROUND = { swim: 0.5 };
 // mouths: each creature's mouth runs from a snapping beak (0) through tweezers and prongs to a sucking straw (1).
-//   nut: energy from a nut for a middling mouth (x FOOD); how many thicket food sites are nuts is in THICKET
-//   bonus: a beak gets 1 + bonus times the energy from a nut and 1 - bonus from algae; a straw the reverse;
-//   berries give every mouth the same (the tail doesn't change what food gives)
-const MOUTH = { nut: 1.25, bonus: 0.25 };
-// speed comes from the body. A creature of size 0.9 with legs at 50%, no tail and roundness 0.5 walks at about
-// base px/s; bigger bodies are slower, smaller ones faster.
-//   land: how much leg length scales land speed [shortest legs, longest legs]; water: the shortest legs swim this
-//   share faster and the longest this share slower (medium legs make no difference)
+//   gap: a middling mouth (tweezers) gets FOOD from every food, as from a berry; a beak gets gap more from a nut and
+//   gap less from algae, a straw the reverse. So nuts and algae mirror each other: the right mouth gets FOOD + gap
+//   (15), the wrong one FOOD - gap (1), changing evenly in between. Berries give every mouth FOOD (the tail doesn't
+//   change what food gives)
+const MOUTH = { gap: 7 };
+// speed comes from the body. A creature of size 0.9 with no tail and roundness 0.5 walks at about base px/s;
+// bigger bodies are slower, smaller ones faster. Legs are all the same length (len, in px, drawn; a tail shortens
+// them) and don't change speed: leg length was a trait until October 2026 but adapted to nothing.
 //   sixFrom: the size from which a creature is drawn with 6 legs rather than 4 (only a look: it changes nothing)
-const LEGS = { base: 32, land: [0.4, 1.6], water: 0.15, sixFrom: 1.0 };
-// energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, for a middling creature
-// (size 0.9); size: the whole burn is multiplied by 1 + size x (0.9 - the creature's size), so bigger bodies burn less;
-// stride: moving costs a further 1 + stride x (0.9 - size) times as much, so big bodies cover ground cheaply (long strides)
-const BURN = { rest: 0.32, move: 0.81, size: 0.5, stride: 1 };
+const LEGS = { base: 32, len: 3.8, sixFrom: 1.0 };
+// energy burnt per second: rest standing still, plus move x (speed / 30)^2 while moving, the same for every size.
+// Only the energy tank grows with size, so a big body goes further on a full tank (and, being slower, pays less per
+// px travelled), while a small one has to eat often
+const BURN = { rest: 0.32, move: 0.81 };
 // thickets: size sets how far into a thicket a creature can go, measured from the thicket's edge (an edge cell is
 // 16 px in). The biggest body (size 1.26) gets edge px in, a middling one (0.9) about 40, and the smallest (0.48)
 // anywhere: edge + depth x ((1.26 - size) / (size - 0.48))^2.
-//   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly, more of it
-//   is nuts (nuts: [share at the edge, share from deep in]) and the trees on the map get bigger and closer together
+//   deep: how far in (px) the middle of a thicket starts: from the edge to there, food grows more thickly and the
+//   trees on the map get bigger and closer together (all thicket food is nuts, as all water food is algae)
 //   slow: moving through a thicket is slow.by slower for bodies of size slow.big or more, easing to no slower at all
 //   for size slow.small or less, since small creatures slip through the undergrowth
 const THICKET = {
   edge: 16,
   depth: 33,
   deep: 48,
-  nuts: [0.2, 0.8],
   slow: { by: 0.15, small: 0.75, big: 1.0 },
 };
-const VAR = 1.6; // how much offspring traits vary from their parent (1 = base amount)
+// open land is sparse: of the berry sites that would grow there, this share is kept [on the poorest ground, on the
+// most fertile], so food on open plains is far apart, which suits big bodies that go far on a full tank
+const BERRIES = { keep: [0.3, 0.85] };
+// water is thinned too: every kind of algae (on the shelf, in lakes, in open-water beds, and waiting for floods and
+// droughts) grows at this share of the world type's amount, so water feeds about as many creatures as land
+const ALGAE = 0.67;
+// competing for food: a creature gives way to food that one bigger by at least by (in size) is heading for, if the
+// bigger one is within r px of it or nearer to it. Big bodies win the scarce food of open land; small ones keep to
+// thickets, where big ones can't follow
+const GIVE = { by: 0.05, r: 80 };
+const VAR = 1.4; // how much offspring traits vary from their parent (1 = base amount; 1.6 until 31 October 2026)
 
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)
@@ -587,12 +597,13 @@ const SHAKE = {
 };
 
 /* ---- behaviour ---- */
-// home ranges: each creature has a home (where it was born) and prefers food within r px of it; food further out
-// counts as pull extra seconds of travel for every r px beyond; below starving (share of full energy) creatures
+// home ranges: each creature has a home (where it was born) and prefers food within its range of it, which grows with
+// size from r[0] px for the smallest body to r[1] px for the biggest, as big animals roam further; food further out
+// counts as pull extra seconds of travel for every range's worth of px beyond; below starving (share of full energy) creatures
 // range wider, up to 1 + hunger times r when nearly empty; a newborn's home lands up to disperse px from its
 // parent's home, which is how a population slowly spreads; the founders' homes are spread up to founders px
 // around the release spot
-const HOME = { r: 250, pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
+const HOME = { r: [150, 350], pull: 6, hunger: 3, starving: 0.5, disperse: 100, founders: 450 };
 // with no food free, a creature heads for the nearest regrowing or busy food and, once within r px of it, ambles
 // round it at pace (share of full speed) until something frees up, rather than standing still
 const AMBLE = { r: 60, pace: 0.5 };

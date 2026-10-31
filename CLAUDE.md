@@ -52,8 +52,8 @@ Read the relevant section before changing a mechanic.
   clusters; the old system is written up there, with how to bring it back. The same release added natural
   habitats (open-water algae for swimmers, amphibians near water, walkers wading rivers), breeding at 75% energy
   and full thicket speed for small creatures. Sam wants mechanics to follow nature: fix the world's causes rather
-  than adding penalties. Known gap: nothing yet gives big bodies the advantages they have in nature, which is why
-  a natural energy rule (small bodies need less food) made everything shrink and was left out.
+  than adding penalties. A natural energy rule (small bodies need less food) once made everything shrink; big bodies
+  now have natural advantages instead (see the 31 October entry below).
 
 - Sam's own music shipped on 28 October 2026 (README section 14): a title track on the title screen, intro and
   creator, a zoom track that fades in as you zoom (replacing the generated drum beat) and eight recorded ambient notes
@@ -61,6 +61,34 @@ Read the relevant section before changing a mechanic.
   now starts at 1× zoom. His recorded creature sounds (eating, birth, death) and end music (end-of-run screen and its replay)
   shipped on 29 October 2026; the chime,
   warning beep and event effects are still generated.
+
+- Traits were tied to the world on 31 October 2026 (README sections 3, 4 and 7), using a new adaptation test
+  (`tests/adapt.py`, README section 19), which checks each trait against the place it should suit across many runs.
+  Thickets grow only nuts and water only algae, with mirrored energies centred on a berry's 8 (beak 15 from nuts
+  and 1 from algae, straw the reverse). Roundness is streamlining: it makes swimming up to 50% cheaper or dearer,
+  shown as the creator's "Swim ×" tag. Every size burns the same; big bodies hold more, roam further and push
+  smaller ones off food, small ones reach deeper into thickets. Leg length was removed. Open land is sparser
+  (`BERRIES` 30% to 85%), algae thinned to two thirds, and offspring vary a little less (`VAR` 1.4). Tail and
+  mouth by water and smaller bodies in thickets adapt clearly.
+
+## Next steps (Sam's list, 31 October 2026)
+
+**At the start of every new session, remind Sam of this list before anything else** ("Last time you said to work
+on these next: …") and ask which he'd like to start with. Remove an item once it is done and shipped.
+
+1. **Beaks in thickets.** The weakest adaptation: in hour-long adaptation tests beaks showed in 25 of 31 runs, then
+   only 14 of 35 and 12 of 31. Likely cause: middling-mouthed migrants from open land keep swamping the thickets.
+   Natural fix to try first: make nuts more worth a beak (a wider `MOUTH.gap`), tested on its own.
+2. **Roundness** leans the right way (full swimmers rounder in about 70% of runs) but isn't clear yet.
+3. **Water populations swing**: the fully aquatic balance design ran 167 after 20 minutes in one check and 83 in
+   the next.
+4. **Size doesn't follow sparse food** on open land (it stays steady overall, which was the earlier problem).
+5. **Temperature barely matters**: cold high land doesn't make bodies bigger, and one batch leaned smaller.
+6. **Extinctions**: about 4 in 45 hour-long runs die out, mostly the middling land design after floods and droughts.
+   That is within the targets, so only revisit if it gets worse.
+
+Use `python3 tests/adapt.py 60 3 3` (45 hour-long runs, about 90 minutes) to check adaptation, and record each
+batch's results in the README's test log.
 
 ## How a batch of changes works
 

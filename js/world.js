@@ -281,20 +281,22 @@ function genWorld(seed, att = 0) {
       t = world.type[i];
     if (t !== 1 && t !== 2) continue;
     let f = clamp((world.fert[i] - world.fLo) / (world.fHi - world.fLo), 0, 1);
-    // thicket food grows more thickly towards the middle, and more of it is nuts there
+    // thicket food grows more thickly towards the middle
     const deep = t === 2 ? clamp((world.dThick[i] - THICKET.edge) / (THICKET.deep - THICKET.edge), 0, 1) : 0;
     if (t === 2) f = Math.min(1, f * 0.6 + 0.35 + 0.3 * deep);
     if (world.comp[i] !== world.main) f = Math.min(1, f + 0.35);
     if (rng() < f * f * 0.9 + 0.04) {
-      // some thicket food is nuts rather than berries, most of it in the middle
-      const kind =
-        t === 2 && rng() < THICKET.nuts[0] + (THICKET.nuts[1] - THICKET.nuts[0]) * deep ? 'n' : 'l';
-      world.sites.push({ x, y, i, kind, active: true, t: 0 });
+      // thickets grow nuts, open land berries; open land is sparse, poor ground most of all (BERRIES), so some
+      // berry sites never grow
       nl++;
+      if (t === 1 && rng() > BERRIES.keep[0] + (BERRIES.keep[1] - BERRIES.keep[0]) * f) continue;
+      world.sites.push({ x, y, i, kind: t === 2 ? 'n' : 'l', active: true, t: 0 });
     }
   }
   tries = 0;
-  while (nw < T.food[1] && tries < T.food[1] * 600) {
+  // water is thinned like open land (ALGAE): every kind of algae below grows at this share of the world type's amount
+  const nA = T.food[1] * ALGAE;
+  while (nw < nA && tries < T.food[1] * 600) {
     tries++;
     const x = rng() * W,
       y = rng() * H,
@@ -326,22 +328,21 @@ function genWorld(seed, att = 0) {
         active: true,
         t: 0,
       });
-  for (let k = Math.round(lake.length * LAKES.algae); k > 0 && lake.length; k--)
+  for (let k = Math.round(lake.length * LAKES.algae * ALGAE); k > 0 && lake.length; k--)
     put(lake[(rl2() * lake.length) | 0]);
-  for (let k = Math.round(T.food[1] * LAKES.flood); k > 0 && low.length; k--)
-    put(low[(rl2() * low.length) | 0]);
+  for (let k = Math.round(nA * LAKES.flood); k > 0 && low.length; k--) put(low[(rl2() * low.length) | 0]);
   // and some waits in the deep water just beyond the shelf, for when a drought pulls the shallows out to it
   const beyond = [];
   for (let i = 0; i < GW * GH; i++)
     if (world.type[i] === 0 && world.deep[i] && !border(i) && world.depth[i] < 1 + SEA.beyond) beyond.push(i);
-  for (let k = Math.round(T.food[1] * SEA.drought); k > 0 && beyond.length; k--)
+  for (let k = Math.round(nA * SEA.drought); k > 0 && beyond.length; k--)
     put(beyond[(rl2() * beyond.length) | 0]);
   // and algae beds out in open water, far from any land, that only strong swimmers reach (SEA.open)
   const open = [],
     ro = mulberry32(seed * 53 + 11);
   for (let i = 0; i < GW * GH; i++)
     if (world.type[i] === 0 && sea[i] && !border(i) && world.dLand[i] >= SEA.openFrom) open.push(i);
-  for (let k = Math.round(T.food[1] * SEA.open); k > 0 && open.length; k--) {
+  for (let k = Math.round(nA * SEA.open); k > 0 && open.length; k--) {
     const i = open[(ro() * open.length) | 0];
     world.sites.push({
       x: ((i % GW) + ro()) * CS,

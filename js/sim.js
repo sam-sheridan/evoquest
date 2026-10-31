@@ -13,7 +13,7 @@ function genus(n) {
   return s[0].toUpperCase() + s.slice(1) + 'us';
 }
 function newGame(design, seed) {
-  design = upgrade(design); // designs saved before mouths or leg length existed
+  design = upgrade(design); // designs saved before mouths existed
   if (!world || world.seed !== seed || world.dirty) genWorld(seed);
   nextId = 1;
   // S: everything about the current run
@@ -64,6 +64,7 @@ function newGame(design, seed) {
     f.gone = false;
     f.t = 0;
     f.cl = 0;
+    f.by = [];
   });
   const probe = { ...design };
   enforce(probe);
@@ -326,11 +327,11 @@ function hpop() {
   }
 }
 // home range in px: wider when hungry, so a creature will roam rather than starve
-const homeRange = c => HOME.r * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
+const homeRange = c => c.homeR * (1 + HOME.hunger * clamp(1 - c.E / (c.cap * HOME.starving), 0, 1));
 // extra cost, in seconds of travel, of food beyond the home range
 function awayCost(c, f, range) {
   const d = Math.hypot(f.x - c.home[0], f.y - c.home[1]);
-  return d > range ? ((d - range) / HOME.r) * HOME.pull : 0;
+  return d > range ? ((d - range) / c.homeR) * HOME.pull : 0;
 }
 // Dijkstra outwards from the creature; stops as soon as nothing further away could beat the best food found
 function dijkstra(c) {
@@ -351,7 +352,7 @@ function dijkstra(c) {
   const range = homeRange(c),
     // the most a food can be worth to this creature beyond a berry, in seconds (see FOOD_PREF), so the search
     // doesn't stop before a richer food further away
-    pref = FOOD_PREF * FOOD * Math.max(0, mouthGain(c, 'n') - 1, mouthGain(c, 'w') - 1);
+    pref = FOOD_PREF * Math.max(0, mouthEnergy(c, 'n') - FOOD, mouthEnergy(c, 'w') - FOOD);
   while (hn) {
     hpop();
     const i = PI,
@@ -361,7 +362,7 @@ function dijkstra(c) {
     const L = idx.get(i);
     if (L)
       for (const f of L) {
-        if (f.gone || !allowed(c, f.i, world.type[f.i])) continue;
+        if (f.gone || !allowed(c, f.i, world.type[f.i]) || outranked(c, f)) continue;
         const mine = f === c.target,
           cl = (f.cl || 0) - (mine ? 1 : 0);
         // food that is regrowing or already has three heading for it is somewhere to wait if nothing else is free
@@ -437,11 +438,25 @@ function lineOk(c, x0, y0, x1, y1, strand) {
   }
   return true;
 }
+// competing for food: a creature gives way to food that a clearly bigger one (by GIVE.by in size) is heading for,
+// if that one is near it (GIVE.r px) or nearer to it, as small animals give way to big ones and keep to cover
+const d2 = (a, f) => (a.x - f.x) ** 2 + (a.y - f.y) ** 2;
+const outranks = (o, c, f) =>
+  o.size >= c.size + GIVE.by && (d2(o, f) < GIVE.r * GIVE.r || d2(o, f) < d2(c, f));
+const outranked = (c, f) => (f.by || []).some(o => o !== c && outranks(o, c, f));
 function setTarget(c, f) {
   if (c.target === f) return;
-  if (c.target) c.target.cl = Math.max(0, (c.target.cl || 0) - 1);
+  if (c.target) {
+    c.target.cl = Math.max(0, (c.target.cl || 0) - 1);
+    c.target.by = (c.target.by || []).filter(o => o !== c);
+  }
   c.target = f;
-  if (f) f.cl = (f.cl || 0) + 1;
+  if (f) {
+    f.cl = (f.cl || 0) + 1;
+    // smaller creatures already heading for it give way and look again
+    for (const o of (f.by ||= [])) if (outranks(c, o, f)) o.rt = 0;
+    f.by.push(c);
+  }
 }
 // pick the quickest food to reach that fewer than 3 others are already heading for, then a smoothed route to it
 function plan(c) {
@@ -614,15 +629,15 @@ function resolveClaims() {
   for (const c of S.claims) if (c.target && !edible(c.target)) c.rt = 0;
   S.claims = [];
 }
-// how much energy the mouth gets from each food, as a multiple of FOOD: a beak gets more from nuts, a straw more
-// from algae, and berries give every mouth the same
-const mouthGain = (c, kind) =>
+// how much energy the mouth gets from each food: a beak gets more from nuts, a straw more from algae (the two
+// mirror each other), and berries give every mouth the same
+const mouthEnergy = (c, kind) =>
   kind === 'n'
-    ? MOUTH.nut * (1 + MOUTH.bonus * (1 - 2 * c.mth))
+    ? FOOD + MOUTH.gap * (1 - 2 * c.mth)
     : kind === 'w'
-      ? 1 + MOUTH.bonus * (2 * c.mth - 1)
-      : 1;
-const foodEnergy = (c, f) => FOOD * mouthGain(c, f.kind);
+      ? FOOD + MOUTH.gap * (2 * c.mth - 1)
+      : FOOD;
+const foodEnergy = (c, f) => mouthEnergy(c, f.kind);
 function eat(c, f) {
   f.active = false;
   f.t = regrow(f);
@@ -1056,7 +1071,6 @@ function logEv(m) {
 const KEYS = [
   'w',
   'h',
-  'leg',
   'hab',
   'mth',
   'dTc',

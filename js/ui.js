@@ -517,7 +517,6 @@ function drawChart() {
 const SP_ROWS = [
   // [label, how to show it, trait compared for highlighting, how much difference counts as notable]
   ['Size', (m, c) => m.size.toFixed(2), 'size', 0.06],
-  ['Leg length', (m, c) => legLen(c).toFixed(1), 'leg', 0.12],
   ['Tail length', (m, c) => (c.tail > 0 ? tailLen(c).toFixed(1) : 'None'), 'hab', 0.12],
   ['Mouth', (m, c) => mouthTxt(m.mth), 'mth', 0.12],
   ['Roundness', (m, c) => roundTxt(m.round), 'round', 0.2],
@@ -527,7 +526,7 @@ function spAvg(sp) {
   const M = S.creatures.filter(c => c.sp === sp.id);
   return M.length ? summ(M) : sp.last || null;
 }
-// a creature built from average traits, for drawing and for leg and tail length
+// a creature built from average traits, for drawing and for tail length
 function avgCreature(m) {
   const c = { ...m, hue: S.design.hue, sat: S.design.sat, id: 0, dir: -Math.PI / 2, walk: 0.6, rest: 0 };
   enforce(c);
@@ -846,8 +845,8 @@ function syncUI() {
       <div><span>Earthquakes</span><b>${n.quake}</b></div><div><span>Meteor strikes</span><b>${n.meteor}</b></div></div>
       <div class="legend">
        ${K.meadow}<span><b>Meadow and plain.</b> Berries; eaten ones regrow after a while. Meadows (greener) fruit heavily in spring, plains sparsely.</span>
-       ${K.thicket}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in, where more of the food is nuts.</span>
-       ${K.nut}<span><b>Nuts.</b> Grow in thickets alongside berries. A beak gets more from them than a straw does.</span>
+       ${K.thicket}<span><b>Thicket.</b> Rich in autumn. Bigger, closer trees mean tighter growth: only smaller creatures get far in. Its only food is nuts.</span>
+       ${K.nut}<span><b>Nuts.</b> The only food in thickets. A beak gets more from them than a straw does.</span>
        ${K.shallows}<span><b>Shallows and rivers.</b> Algae grows here all year, for creatures that will go into the water.</span>
        ${K.river}<span><b>River.</b> Strong current. Needs ${RIVER} px/s of swimming to swim across; slower creatures wade.</span>
        ${K.sea}<span><b>Open sea.</b> Only creatures that lean towards water venture far from shore.</span>
@@ -857,8 +856,9 @@ function syncUI() {
 `;
   }
 }
-// how much the mouth gets from each food, compared with a berry
-const mouthFeed = c => `nuts ×${mouthGain(c, 'n').toFixed(2)} · algae ×${mouthGain(c, 'w').toFixed(2)}`;
+// how much energy the mouth gets from each food (a berry gives every mouth FOOD)
+const mouthFeed = c =>
+  `nuts ${Math.round(mouthEnergy(c, 'n'))} · algae ${Math.round(mouthEnergy(c, 'w'))} · berries ${FOOD}`;
 function rangeTxt(c) {
   // water is always at least one cell (16 px) from land and the other way round, so a smaller limit means never
   if (c.dW < CS) return 'Never enters water';

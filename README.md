@@ -88,8 +88,8 @@ between panes and Esc closes the intro. The creatures carry on behind the panes,
 height of the tallest, so the card and its buttons never move between panes, and each picture starts from the
 beginning when its pane is reached.
 
-1. **Design a species**: one creature changing smoothly from one random design to the next, with its size, legs,
-   tail and mouth written under it.
+1. **Design a species**: one creature changing smoothly from one random design to the next, with its size, tail
+   and mouth written under it.
 2. **Release it into the world**: a stretch of coast with berries, nuts under thicket trees and algae in the
    shallows, a beaked walker standing still eating a nut and a straw-mouthed swimmer eating algae.
 3. **Eat, breed, die. Repeat.**: a creature walks to a berry, eats, its energy bar fills and it has one offspring, with a
@@ -106,14 +106,13 @@ Clicking **EvoQuest** at the top left of the creator opens the intro again.
 | Control | What it does |
 |---|---|
 | **Species name** | Up to 20 characters. Also becomes the Latin genus (see [naming](#10-speciation-and-naming)). |
-| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but burns less energy and holds more, and can't go as far into thickets. |
-| **Legs** | Body trait, short to long (0–100%). Longer legs walk faster but swim slower. Moving fast burns much more energy, so long legs aren't free. |
+| **Width, Length** | Body traits, 1 to 7. They only matter through the body's **size**, so a long thin creature and a short stubby one of the same size do equally well. A bigger body is slower but holds more energy, so it goes further on a full tank and roams further from home, and can't go as far into thickets. |
 | **Tail** | Body trait, none (a land creature) to full (a water creature). Below 15% there is no tail ("None · land only"); a tail shows and counts from 15%. A bigger tail swims faster but walks slower, and lets the creature go further from shore but less far from water. You can see it: the back of the body curves into a longer tail. |
 | **Mouth** | Body trait, from beak to straw. A beak gets more from nuts; a straw gets more from algae. The label names the shape (Beak, Slim beak, Tweezers, Prongs, Straw) and the stats under the preview give how much it gets from each. |
-| **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims a little faster and walks a little slower; a blockier one the reverse. |
+| **Roundness** | Body trait, 0 (blocky) to 1 (round). Softens the body's corners. A rounder body swims more cheaply (streamlining: less drag); on land it makes no difference. |
 | **Colour** | Under the name. One of the 7 Okabe–Ito colours (a palette designed to stay distinguishable for colour-blind players). |
 | **World** | A new random world, the current world, or any world from a past run. Each world has a number (its seed) and the same number always builds the same world. |
-| **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (legs and mouth included), colour and shape. |
+| **Randomise** | The refresh button in the preview's top right corner. Random name (two made-up syllables from a list of 40, sometimes with an "s": 3,200 possible names, or 1,600 different Latin genus names, since the genus drops a trailing "s"), body (tail and mouth included), colour and shape. |
 | **Release into the world** | Starts the run, releasing 20 creatures (`START`). |
 
 The **preview** shows the creature at 7× zoom with a 10 px scale bar. Every few
@@ -123,13 +122,13 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
 1. Size, land speed and water speed (px/s).
 2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
-3. Energy store, energy burnt per second walking flat out, and what it gets from nuts and from algae (× a berry's
-   worth).
+3. Energy store, swim cost ("Swim ×0.50" to "Swim ×1.50": how much of the usual energy it pays to swim, from ×0.5
+   for a fully round body to ×1.5 for a fully blocky one: see [energy](#energy)), and the energy it gets from a nut and from algae. (Until 31
+   October 2026 this row showed the energy burnt per second walking flat out instead.)
 4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it swims or wades across rivers.
 
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
-design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
-scale, since a few extreme designs burn far more than the rest. Legs and rivers are either/or, so their tags have
+design can have (worked out once, over a grid of designs covering every slider's range). Rivers is either/or, so its tag has
 no fill. Each tag is as wide as its longest possible text, so tags don't change size as values gain or lose
 digits.
 
@@ -158,15 +157,12 @@ These affect survival, so natural selection pushes them in useful directions.
 |---|---|---|
 | Width (`w`) | 1–7 | Body width in pixels = 6 + 2.2 × width. Only matters through size. |
 | Length (`h`) | 1–7 | Body length in pixels = 6 + 2.2 × length. Only matters through size. |
-| Legs (`leg`) | 0–1 | Leg length: 0 = short, 1 = long. Long legs walk faster, short ones swim faster. |
 | Tail (`hab`) | 0–1 | Below 0.15 (`TAIL.min`): no tail, fully land. From 0.15 a tail shows and counts, up to 1 = full tail, fully water. (The code calls it `hab` because it began as an invisible "habitat" setting; now you can see it as the tail.) |
 | Mouth (`mth`) | 0–1 | 0 = beak, 1 = straw (see [mouths](#mouths)). |
-| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes land and water speed by up to 10% (see below). |
-
-From these, the game works out:
+| Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes the energy cost of swimming by up to 50% (see below). |
 
 Every ability comes from these. There is no separate speed or energy setting: what a creature can do is set by
-what you can see.
+what you can see. From these, the game works out:
 
 - **Size** = √(body width × body length) ÷ 17, from 0.48 (width and length 1) to 1.26 (both 7). Width and
   length do nothing else, so a 3 × 6 body and a 4.5 × 4 one are the same size and do equally well.
@@ -185,21 +181,24 @@ what you can see.
 
   Half of a typical thicket lies within about 32 px of its edge and nine tenths within about 80 px, so a middling
   creature reaches about half of it and only small ones its heart.
-- **Legs**: drawn as 4, or 6 from size 1.0 (`LEGS.sixFrom`), the same size at which a body counts as *campestris*. The number is only a look: it doesn't change speed,
-  energy or speciation, and isn't shown as a stat. Leg length is the trait that matters.
+- **Legs**: drawn as 4, or 6 from size 1.0 (`LEGS.sixFrom`), the same size at which a body counts as *campestris*, and
+  all the same length (`LEGS.len`). They are only a look: they don't change speed, energy or speciation. (Leg length
+  was a trait until October 2026, with long legs walking faster and short ones swimming faster. It was removed
+  because it adapted to nothing: the adaptation test (`tests/adapt.py`) found it followed no place on the map, only
+  drifting shorter, and it was barely visible. Legs are now fixed at what was the middle length.)
 - **Base speed** = 48 ÷ (0.6 + size) (`LEGS.base` × 1.5). Big bodies are slower: 32 px/s at size 0.9, 44 at the
   smallest and 26 at the biggest.
 - **Effective tail** = (tail − 0.15) ÷ 0.85, and 0 below 0.15. Everything below uses this, so 15% and below
   behave exactly alike, as a creature with no tail.
-- **Land speed** = base × (0.4 + 1.2 × legs) × (1 − 0.85 × tail) ×
-  (1 − 0.1 × (2 × roundness − 1)). Leg length takes walking from 0.4 to 1.6 times the base (`LEGS.land`).
-- **Water speed** = base × (1 + 0.15 × (1 − 2 × legs)) × (0.15 + 0.85 × tail) ×
-  (1 + 0.1 × (2 × roundness − 1)). The shortest legs swim 15% faster and the longest 15% slower (`LEGS.water`);
-  medium legs make no difference.
-  The roundness part (`ROUND`) is ±10% at the extremes and nothing at 0.5: a fully round body swims 10% faster
-  and walks 10% slower, a fully blocky one the reverse. So everything about a water creature pulls the same way:
-  short legs, a tail and a round body make smooth, round, tailed swimmers (rather like tadpoles),
-  and long legs, no tail and a blocky body make walkers.
+- **Land speed** = base × (1 − 0.85 × tail).
+- **Water speed** = base × (0.15 + 0.85 × tail).
+  Roundness doesn't change speed. It is streamlining, which makes swimming cheaper instead (see
+  [energy](#energy)): a smooth body meets less drag, which is why fish, seals and tadpoles all converge on it. On
+  land roundness makes no difference, so land creatures' roundness drifts freely by chance and separate
+  populations can end up blocky or round, while swimmers turn smooth and round. (Until 30 October 2026 it changed
+  speed instead: first ±10%, with round bodies also walking 10% slower, a cost with no natural cause; then ±25%
+  in water only. The adaptation test found neither followed anything, because a faster creature also burns more
+  energy per step, so speed alone is no advantage.)
   A creature with no tail still swims at 15% of its base speed. One with a full tail walks at 15%.
 - **Range.** Only a creature with no tail (0%) goes anywhere on land, and only one with a full tail (100%)
   anywhere in water. Everything in between has two limits:
@@ -228,11 +227,15 @@ what you can see.
 - **Food energy** doesn't depend on the tail or size; the mouth decides it (see [mouths](#mouths)).
 - **River crossing.** Swimming across a river's current needs water speed of at least 14 px/s (`RIVER`), and the
   creature must swim at least 16 px from shore, which every visible tail does. In practice a tail of about 33% or
-  more is needed to swim that fast, depending on legs and roundness. Every other creature **wades** across instead,
+  more is needed to swim that fast, depending on size and roundness. Every other creature **wades** across instead,
   at 35% of its walking speed (`WADE.speed`), as land animals ford streams, so rivers slow walkers down but no
   longer trap them on one piece of land. The creator's chip says "Swims rivers" or "Wades rivers".
 - **Reach** = half the longest side + 4 px.
-- **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest.
+- **Energy capacity** = 30 + 25 × size: 42 for the smallest, 62 for the biggest. Energy burn doesn't depend on
+  size, so a bigger tank simply lasts longer: standing still, a full tank lasts about 130 seconds for the smallest
+  and 195 for the biggest.
+- **Home range** grows with size, from 150 px for the smallest to 350 px for the biggest (`HOME.r`): big animals
+  roam further (see [choosing food](#choosing-food)).
 
 ### Mouths
 
@@ -240,15 +243,29 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
 
 | Mouth | Look | Energy from a nut | Energy from algae |
 |---|---|---|---|
-| 0 (Beak) | a stout beak that snaps shut | 12.5 | 6 |
-| 0.25 (Slim beak) | a slimmer beak | 11.3 | 7 |
-| 0.5 (Tweezers) | straighter jaws that stay a little open | 10 | 8 |
-| 0.75 (Prongs) | two thin prongs with a small gap | 8.8 | 9 |
-| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 7.5 | 10 |
+| 0 (Beak) | a stout beak that snaps shut | 15 | 1 |
+| 0.25 (Slim beak) | a slimmer beak | 11.5 | 4.5 |
+| 0.5 (Tweezers) | straighter jaws that stay a little open | 8 | 8 |
+| 0.75 (Prongs) | two thin prongs with a small gap | 4.5 | 11.5 |
+| 1 (Straw) | the prongs closed into one tube that flares slightly at the end | 1 | 15 |
 
-- **Nuts** give 1.25 times a berry's energy for a middling mouth (`MOUTH.nut`), and a beak gets 25% more than
-  that, a straw 25% less (`MOUTH.bonus`).
-- **Algae** gives 1 + 0.25 × (2 × mouth − 1) times a berry's energy: a straw gets 25% more, a beak 25% less.
+- **Nuts and algae mirror each other**: a middling mouth gets 8 from either, the same as from a berry (`FOOD`),
+  the right mouth 7 more and the wrong one 7 less (`MOUTH.gap`), changing evenly in between. So the mouth only
+  matters where nuts or algae grow: a middling mouth does equally well on every food. A straw can hardly crack a nut, and a beak is
+  poor at sipping algae.
+- Until 30 October 2026 the two weren't mirrored: a middling mouth got 1.25 times a berry from a nut (10) but only
+  a berry's worth from algae (8), and the mouth added or took away a share of that, so a beak got 16 from a nut
+  and a straw 12.8 from algae, and a middling mouth did better on nuts than on berries. The mirrored numbers centre
+  on a berry's 8 and stay round.
+- That share was 25% until October 2026. Then the adaptation test (`tests/adapt.py`) showed beaks didn't take hold in
+  thickets at all: a 0.1 beakier mouth earned only about 2% more food over a life, too little to beat chance and
+  the newcomers that keep arriving from the open land around each thicket (about 3 in 10 thicket dwellers have a
+  parent from outside it). Widening the gap to 60% made mouths follow water strongly (straws by water in 36 of 41
+  runs, up from 27 of 38) but still not thickets (beakier in thickets in 18 of 31, chance): berries were still
+  half of a thicket dweller's food. Since thickets grow only nuts, beaks take hold there too (beakier in thickets
+  in 28 of 34 runs), though not reliably: after the later changes to size, berries and inheritance, hour-long
+  batches found it in 25 of 31 runs, then 14 of 35 and 12 of 31. It is the weakest of the adaptations and the next
+  thing to work on (see [tests](#tests)).
 - **Berries** give every mouth the same 8.
 
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
@@ -258,8 +275,8 @@ charcoal. The jaws snap quickly
 while the creature eats and open and close gently the rest of the time. Mouths, like eyes and legs, are only drawn
 when zoomed in.
 
-Designs from before mouths existed (saved past lineages) start with a mouth of 0.5, and designs from before leg
-length existed get legs from their old speed setting (speed 1 = short, 10 = long). Designs saved when tails counted
+Designs from before mouths existed (saved past lineages) start with a mouth of 0.5, and the leg length that designs
+saved before 30 October 2026 carry is ignored. Designs saved when tails counted
 from 33% have their tail moved onto today's scale, so a tailless design stays tailless and a tail looks as it did.
 
 ### Tails
@@ -270,15 +287,15 @@ where the curve-in ends. A bigger tail is longer (up to
 1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (15% or less) the back of the body is
 rounded off like the front. Just above 15% the tail appears at once as a short but proper tail, 30% of the full
 length (`TAIL.first`), rather than a thin spike, and grows from there. The bottom 15% of the scale has no effect, so a
-tailless parent can't have a tailed child in one step (a child's tail moves at most 8 points), but a land lineage
+tailless parent can't have a tailed child in one step (a child's tail moves at most 7 points), but a land lineage
 near water can drift up to 15% within a run and start using a tail when the water pays. (Tails used to count from
 33%, which a lineage starting at 0% would take 30–40 minutes of drifting to reach.)
 
 **Randomise** gives about a third of designs no tail (0–13%) and the rest a visible one (25–90%). Zoomed in, the tail sways: strongly while swimming, gently while walking. In water it is drawn
 under the surface with the back of the body, and the wake starts behind its tip.
 
-The middling design (width 4, length 4.5, legs 50%, no tail, roundness 0.5) is size 0.90 (drawn with 4 legs), goes 40 px
-into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
+The middling design (width 4, length 4.5, no tail, roundness 0.5) is size 0.90 (drawn with 4 legs), goes 40 px
+into thickets, walks at about 32 px/s, swims at about 5 px/s, wades across rivers, and holds about 53 energy.
 
 ### Colour: one per species
 
@@ -304,11 +321,13 @@ moves by a random amount up to:
 
 | Trait | Maximum change per generation |
 |---|---|
-| Width, length | ±0.8 (that is 0.5 × `VAR`, and `VAR` = 1.6) |
-| Legs, tail, mouth | ±8 percentage points (0.05 × `VAR`) |
-| Roundness | ±0.08 (0.05 × `VAR`) |
+| Width, length | ±0.7 (that is 0.5 × `VAR`, and `VAR` = 1.4) |
+| Tail, mouth | ±7 percentage points (0.05 × `VAR`) |
+| Roundness | ±0.07 (0.05 × `VAR`) |
 
-Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only.
+Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only. It was 1.6 (±0.8, ±8
+points, ±0.08) until 31 October 2026, when big changes came too quickly once traits had clear jobs in the world.
+1.2 was tried first, but populations adapted to their patches so slowly that land numbers fell to 14–25.
 
 ---
 
@@ -316,14 +335,20 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 
 ### Energy
 
-- **Burn per second** = (0.32 + 0.81 × (current speed ÷ 30)² × (1 + 0.9 − size)) × (1 + 0.5 × (0.9 − size)), plus
-  temperature, and more in deep water (`BURN`). The middle part (`BURN.stride`) makes moving cheaper for big bodies,
-  like long strides: a size-1.2 creature pays 30% less to move than a middling one, a size-0.6 one 30% more.
+- **Burn per second** = 0.32 + 0.81 × (current speed ÷ 30)², plus temperature, and more in deep water (`BURN`). It
+  is the same for every size: only the tank grows with size.
   - Standing still costs a little; moving fast costs a lot, because of the squared term. That is the cost of
-    long legs.
-  - Big bodies burn less: the smallest burn about 21% more than a size-0.9 creature, the biggest about 18% less.
-    Small bodies are faster, though, so on the move they burn much more: walking flat out, the smallest burns
-    about 3.1 a second and the biggest about 0.6.
+    a small, fast body.
+  - **Swimming** (moving through water): the moving part is multiplied by 1 − 0.5 × (2 × roundness − 1)
+    (`ROUND.swim`), so a fully round body pays 50% less to swim than a middling one and a fully blocky one 50% more.
+    This is streamlining, and a big gap is realistic: a blocky shape meets many times the drag of a streamlined one.
+  - Small bodies are faster, so on the move they burn more: walking flat out, the smallest burns about 2.1 a
+    second, a size-0.9 creature 1.2 and the biggest 0.9. Per px travelled the smallest pays about 4.7 energy per
+    100 px and the biggest about 3.6, so on a full tank a big creature can travel roughly 1,700 px and a small one
+    about 900. That is how big bodies cope with food spread far apart, and small ones need food close together.
+  - Until 30 October 2026 bigger bodies also burned less overall (`BURN.size`: the smallest 21% more than a
+    size-0.9 creature, the biggest 18% less) and paid up to 30% less to move (`BURN.stride`). Both were removed:
+    a big animal doesn't burn less in total than a small one in nature.
   - **Cold** (see [temperature](#temperature)): keeping warm costs up to 0.18 × (1.4 − 0.6 × size) energy per
     second (`TEMP.coldCost`), so small creatures pay most: about 0.20 for the smallest, 0.16 for a size-0.9
     creature and 0.12 for the biggest.
@@ -335,8 +360,9 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
     walking, so temperature adds roughly 5–15% to a moving creature's costs.
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
-  - The creator shows the burn when walking, without temperature or deep water.
-- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 6–12.5 depending on the mouth (see
+  - The Stats chart's *Energy use* shows the burn when walking flat out, without temperature or deep water. The
+    creator shows the swimming multiplier as its *Swim ×* tag.
+- **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 1–15 depending on the mouth (see
   [mouths](#mouths)). Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next
   meal.
@@ -346,7 +372,7 @@ Traits are then held inside their allowed ranges. `VAR` scales body-trait variat
 A creature may breed when it eats **and** all of these are true:
 
 - it is at least 15 seconds old (`MATURE`)
-- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20)
+- its energy after eating is at least 75% of capacity (`BREED.full`; 85% before October 2026, when most runs struggled to grow past about 20; 80% was tried on 31 October 2026 and cut populations far too hard)
 - it isn't already about to give birth
 - it passes the **crowding roll**
 
@@ -418,8 +444,10 @@ allowed into.
   or two. Only if there is no food at all in range does it wander further.
 - **Home range.** Every creature has a **home**: for the founders, a spot near where they were released; for everyone else,
   a spot up to 100 px from their parent's home (`HOME.disperse`). The founders' homes are spread up to 450 px
-  around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Food more than 250 px from home (`HOME.r`)
-  counts as 6 extra seconds of travel for every further 250 px (`HOME.pull`), so creatures prefer food near home.
+  around the release spot (`HOME.founders`), so they don't all compete for one patch of food. Each creature's
+  range grows with its size, from 150 px for the smallest to 350 px for the biggest (`HOME.r`; 250 px for every
+  size until 30 October 2026), as big animals roam further. Food beyond the range counts as 6 extra seconds of
+  travel for every further range's worth (`HOME.pull`), so creatures prefer food near home.
   Below half energy (`HOME.starving`) the range widens, up to four times as far when nearly empty
   (`HOME.hunger`), so a hungry creature roams rather than starves. Wanderers drift back towards home once they
   are outside their range, or once they stray into deep water (unless fully aquatic).
@@ -429,10 +457,15 @@ allowed into.
   areas apart, which helps different species form in different regions.
 - **No more than 3 creatures chase the same food.** Each creature already heading for a piece of food adds a
   2.5-second penalty to it, so others prefer free food nearby.
+- **Small gives way to big.** A creature leaves alone any food that a clearly bigger creature (by at least 0.05 in
+  size, `GIVE.by`) is heading for, if the bigger one is within 80 px of it (`GIVE.r`) or nearer to it than the
+  smaller one. When a big creature picks a food, smaller ones already heading for it give way and look again. So
+  on open land, where food is scarce and contested, big bodies get the best of it, while small ones do best in
+  thickets, where big ones can't follow, as small animals keep to cover (added 30 October 2026).
 - A creature gets a 1.5-second bonus for sticking with its current target, which stops it flip-flopping.
 - **Richer food counts as closer.** Every point of energy a food gives this creature beyond a berry's 8 counts as
-  1.5 seconds less travel (`FOOD_PREF`). A beak gets 12.5 from a nut, so a nut counts as about 7 seconds closer, and
-  a straw's algae (10) as 3 seconds closer. So creatures go out of their way for the food their mouth suits, which
+  1.5 seconds less travel (`FOOD_PREF`). A beak gets 15 from a nut, so a nut counts as 10.5 seconds closer, and
+  a straw's algae (15) the same. So creatures go out of their way for the food their mouth suits, which
   pulls mouths, and the ways of life that go with them, apart.
 - The route is then smoothed into straight lines wherever the way is clear.
 
@@ -480,7 +513,7 @@ re-plan at once.
 Each world secretly rolls a **type** from its world number, each type equally likely. The player never sees it: the point is that you have
 no say in the world, and different worlds favour different designs. All the numbers are in `WORLD_TYPES`.
 
-| Type | How often | Land at start | Strait | Thicket | Rock | Food (berries / algae) | Temperature |
+| Type | How often | Land at start | Strait | Thicket | Rock | Food (land sites / algae) | Temperature |
 |---|---|---|---|---|---|---|---|
 | **Classic** | 1 in 5 | 31–35% | yes | 20% of land | 10% | 375 / 125 | normal |
 | **Archipelago** | 1 in 5 | 20–24%, broken into many islands, no strait or sea channels | no | 20% | 6% | 320 / 250 | a little warmer |
@@ -600,9 +633,9 @@ There are three kinds of food, at fixed sites that regrow after being eaten.
 
 | Food | Where | Placement |
 |---|---|---|
-| **Berries** (orange) | Land and thicket | 320–440 sites (nuts included), depending on the world type. More likely on fertile ground, in thickets (most towards the middle) and on islands. |
-| **Nuts** (acorns) | Thicket | In thickets, 1 in 5 food sites at the edge grow nuts instead of berries, rising to 4 in 5 from 48 px in (`THICKET.nuts`, `THICKET.deep`), about half overall. Richer than berries for a beak, poorer for a straw (see [mouths](#mouths)). |
-| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. |
+| **Berries** (orange) | Open land | 320–440 land food sites (berries and nuts together) are drawn up, depending on the world type, more likely on fertile ground, in thickets (where they are nuts, most towards the middle) and on islands. Open land is sparse, though: only some of its berry sites grow, from 30% on the poorest ground to 85% on the most fertile (`BERRIES`), about three quarters overall (about 195 berries on a typical world instead of 260; it was 20% to 75%, about two thirds, until 31 October 2026, which left land too poor to ride out world events; 25% to 80% was also tried that day and lost more runs), so berries are far apart on dry plains and closer together on meadows. That suits big bodies, which go further on a full tank (thinned from 30 October 2026; before, every site grew). |
+| **Nuts** (acorns) | Thicket | Every food site in a thicket grows nuts, just as all food in water is algae (until October 2026 thickets also grew berries, with nuts 1 in 5 at the edge rising to 4 in 5 in the middle). Richer than berries for a beak, much poorer for a straw (see [mouths](#mouths)). |
+| **Algae** (green) | Shallow shelf, rivers and lakes | 60–250 sites, depending on the world type, in rivers or on the sea's shallow shelf (not in the outer margin). On top of that, lakes get 8 sites for every 100 lake cells, so a world with big lakes has much more algae (a supercontinent, with 60 in its seas, ends up with about 120–190). Another 30% of the world type's algae waits on low land a major flood would drown, and grows only once the water arrives, and 40% waits in deep water just beyond the shelf, for when a drought moves the shallows out. On top of all that, **open-water beds** half as many again as the world type's algae grow out at sea, at least 200 px from any land (`SEA.open`, `SEA.openFrom`): food only strong swimmers reach. Each new meteor crater's lake starts 3 algae sites. Every kind of algae here (shelf, lakes, open-water beds and the algae waiting for floods and droughts) grows at two thirds of these amounts (`ALGAE`, from 30 October 2026), so water feeds about as many creatures as land: about 180 algae sites in water on a typical world, against about 330 berries and nuts on land. |
 
 **Regrowth.** An eaten site regrows after a time set by its region and the season:
 
@@ -962,13 +995,13 @@ Collapse or expand it with the arrow. It has four tabs.
     scrolls sideways while the row names stay in view. The first row
     is a drawing of each species' average creature (its average traits, in the species' colour), all at
     one scale, at the same height and right-aligned above the values. Then: population (on the end screen,
-    each species' peak), time alive (how long the species has existed, or did), size, leg length (in px, as drawn), tail length (in px, or None), mouth
+    each species' peak), time alive (how long the species has existed, or did), size, tail length (in px, or None), mouth
     (Beak to Straw) and roundness (Blocky, Squarish, Rounded or Round). Stats such as speed are in the Stats tab
     instead. In each species' column, the one or two traits that most set it apart from the species it first
     came from are highlighted in orange, with a tooltip saying so (there is no note under the table). In the
     inspector the released species has no highlights, since it didn't come from anything (on the end screen it is
     compared with the released design). A trait counts only if it
-    differs notably: by 0.06 in size, 0.2 in roundness, or 12 percentage points in the leg length, tail
+    differs notably: by 0.06 in size, 0.2 in roundness, or 12 percentage points in the tail
     or mouth traits.
 - **Stats**
   - **Chart**: pick Population, Land speed, Water speed, Swims from shore, Walks from water, Energy use (burnt per
@@ -990,9 +1023,9 @@ Collapse or expand it with the arrow. It has four tabs.
   - generation, parent, offspring and meals
   - energy and age
   - its stats: land and water speed, range (how far it goes from shore and from water), how far into thickets it
-    can go, mouth type and how it feeds (how much it gets from nuts and algae compared with a berry)
+    can go, mouth type and how it feeds (the energy it gets from a nut, from algae and from a berry)
 
-  Its visible features (size, legs, tail, roundness) aren't listed: you can see them on the creature, and the
+  Its visible features (size, tail, roundness) aren't listed: you can see them on the creature, and the
   Species tab gives them for its whole species.
 
   The selected creature has orange corner brackets and a dashed line to its food target.
@@ -1156,8 +1189,8 @@ diorama's numbers and colours are in `DIO` in `js/config.js`, and its drawing in
   - Legs: 4, or 6 from size 1.0 (`LEGS.sixFrom`, 0.9 before October 2026), so they follow size and change as it evolves (only a look). They sit in
     pairs along the full-width part of the sides only, never at the front, at the back or where the body curves
     into the tail: the front pair splays forwards, the back pair backwards, and the front pair keeps clear of the
-    mouth. On a short body the three pairs sit closer together. The bars' length shows the leg length trait (2.45
-    to 5.2 px before the tail shortens them), and wider, shorter bars mean a creature that leans towards water.
+    mouth. On a short body the three pairs sit closer together. The bars are all 3.8 px long (`LEGS.len`) before the tail
+    shortens them, and wider, shorter bars mean a creature that leans towards water.
     They are drawn in a dark shade of the creature's own colour.
   - Mouth: one charcoal mouthpart at the front, from a snapping beak to a slightly trumpeted straw (see
     [mouths](#mouths)).
@@ -1199,9 +1232,12 @@ accident.
   groups had been apart, but the drift was slow and hard to see. Now each species has one fixed colour and a new
   species gets a clearly different one, so species read at a glance and a new species is a visible moment. This
   also replaced the *Creature colour* setting (body colour or species colour), since the two are now the same.
-- **Leg count follows size, leg length evolves.** Small bodies have 4 legs and big ones 6, on the sides only,
-  which keeps the front for the mouth and the back for the tail. The count is only a look (since October 2026):
-  it used to change speed by 5%, which made a sudden jump at size 0.9 and duplicated what size already does.
+- **Legs are only a look.** Small bodies have 4 legs and big ones 6, on the sides only, which keeps the front for
+  the mouth and the back for the tail, and all legs are the same length. The count used to change speed by 5%,
+  which made a sudden jump at size 0.9 and duplicated what size already does. Leg length was a trait until 30
+  October 2026 (long legs walked faster, short ones swam faster), but the adaptation test showed it followed no
+  place on the map, it was barely visible and it repeated what size and the tail already do, so it was removed:
+  every remaining trait has one clear job you can see.
 - **Hidden world types.** Each world secretly rolls a type (classic, archipelago, supercontinent, highlands,
   forest) and a shape. They are never shown, so the player has no say in the world, and no single design is
   best everywhere.
@@ -1220,19 +1256,21 @@ accident.
   the water's edge, and land creatures that wade across rivers. Now the best body depends on the world: swimmers do
   best on archipelagos, walkers on supercontinents, part-tailed creatures on highlands and in forests. Walkers often
   still evolve a small tail, to wade out for shoreline algae, which is fine.
-- **Energy still favours bigger bodies, for now** (October 2026). A more natural energy rule was tried, where total
-  energy use grows with body size as in real animals (small animals need less food in all). It made small bodies
-  win in every world, so every design shrank to about size 0.7 and *campestris* almost vanished: nothing in the
-  game yet gives big bodies the advantages they have in nature (escaping predators, coping with cold, winning
-  fights over food). The older rule, with the habitat changes above, kept designs the most distinct of anything
-  tested, so it stays.
+- **Big bodies are travellers and win contested food; small ones live in dense cover** (30 October 2026). Energy
+  burn is the same for every size and only the tank grows, so a big body goes further on a full tank, big bodies
+  roam wider home ranges, as big animals do, and small creatures give way to bigger ones at food (see
+  [choosing food](#choosing-food)). So food spread far apart (open land) favours big bodies and food close together in
+  tight places (thickets) small ones, tied to the world rather than to an energy rule. Before, big bodies simply
+  burned less, which isn't how nature works but was kept because a natural rule tried earlier in October (total
+  energy use growing with size) made every design shrink to about size 0.7: nothing then gave big bodies a reason
+  to exist.
 - **Every ability comes from the body you can see.** Speed, energy use, range and what food gives all come from
-  size, legs, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
-  setting was replaced by leg length, the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
+  size, tail, roundness and mouth, so a new species always looks different from its parent. The old speed
+  setting was replaced by leg length (itself removed in October 2026), the three thicket gap widths by a reach into thickets set by size, and nut cracking by a simple
   energy bonus for beaks. Width and length only matter through size, so long thin and short stubby designs are
-  both fair choices. Each feature has a benefit and a cost: big bodies are thrifty but slow and kept to the
-  edges of thickets, long legs walk fast but swim slowly and burn energy, and the tail, roundness and leg count each trade
-  walking against swimming. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
+  both fair choices. Each feature has a benefit and a cost: big bodies go far on a full tank but are slow and kept
+  to the edges of thickets, a beak thrives on nuts but struggles with algae, the tail trades walking against swimming,
+  and roundness makes swimming cheaper. Earlier, the tail replaced an invisible habitat setting and taper was removed (it did
   nothing for survival).
 - **The sea edge is always water.** This avoids corner traps and odd edge behaviour.
 - **Species are ways of life.** Four fixed types, so species always look different, there are never more than four
@@ -1258,9 +1296,12 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Lifespan / breeding age | `LIFE` / `MATURE` |
 | Energy per food | `FOOD` |
 | How much offspring vary | `VAR` |
-| How leg length, leg count and size set speed | `LEGS` |
-| Energy burnt standing, moving, and by size | `BURN` |
-| How far into thickets each size goes, and where nuts and bigger trees begin | `THICKET` |
+| Base speed (set by size), leg count and leg length drawn | `LEGS` |
+| Energy burnt standing and moving | `BURN` |
+| How sparse berries are on open land | `BERRIES` |
+| How much algae grows | `ALGAE` |
+| When a small creature gives way to a bigger one at food | `GIVE` |
+| How far into thickets each size goes, and where thicker food and bigger trees begin | `THICKET` |
 | Size and spacing of thicket trees | `TREES` |
 | How rock is drawn (faces, tiers, strokes, stones) | `ROCKS` |
 | Typical population level | `CRW` (bigger `half` means more crowding allowed, so larger populations) |
@@ -1279,8 +1320,8 @@ editor, or directly on GitHub with the pencil icon. Then reload the game.
 | Lakes: how many per world type, size, depth, their algae, algae for floods and craters | `lakes` in `WORLD_TYPES`, `LAKES` |
 | How far tails let creatures go from shore and from water | `HAB` |
 | Where tails start to show and count, and how long a full tail looks | `TAIL` |
-| How much roundness helps swimming and blockiness walking | `ROUND` |
-| Nut energy, how much beaks gain from nuts and straws from algae | `MOUTH` |
+| How much roundness saves on swimming | `ROUND` |
+| How much the mouth changes the energy from nuts and algae | `MOUTH` |
 | How different regions are | `REGIONS` |
 | Land limits for floods and droughts | `LAND` |
 
@@ -1335,7 +1376,7 @@ In the code, achievements are called "badges".
 
 ### Tests
 
-Both tests need Python 3 and Playwright:
+The tests need Python 3 and Playwright:
 
 ```
 pip install playwright
@@ -1362,11 +1403,80 @@ python3 tests/scenarios.py 6 15
   Results vary from run to run, so compare batches rather than single runs.
 - **`study.py [minutes] [workers] [worlds per type] [results file]`** is the long study: every world type (three
   worlds each by default, with a mix of shapes) and five designs on each (middling, fully random, small beaked
-  walker, big long-legged walker, water creature), run several at a time. `python3 tests/study.py 45 4 3` makes 75
+  walker, big walker, water creature), run several at a time. `python3 tests/study.py 45 4 3` makes 75
   runs of 45 minutes and takes about half an hour. Each run is saved as a line of JSON: populations at 10, 20 and 30
   minutes and at the end, time over 100, seasonal swing, new species with when and how each split happened,
   extinctions and their causes, exploration, how far each body trait moved, and which creature type each species
   ended up as.
+- **`adapt.py [minutes] [workers] [worlds per type] [results file]`** checks whether body traits **adapt** to
+  where creatures live or just drift by chance. On every world it releases a middling design, a half-tailed one
+  and a random one, and from 10 minutes on records each creature's traits and its home patch once a minute
+  (water, near water or inland; thicket or open; high cold land or low warm land; how much land food grows near
+  it). For each pair of places it compares a trait's average in every run with enough creatures in both, and
+  counts how many runs went each way: drift goes either way and cancels out over many runs, adaptation goes the
+  same way every time (a sign test gives the chance of the split by pure luck). `python3 tests/adapt.py 30 4 3`
+  makes 45 runs of 30 minutes and takes about 25 minutes; `python3 tests/adapt.py --summary [results file]`
+  prints the summary of an earlier run again.
+
+  First results (30 October 2026, 45 runs): tail follows water strongly (more tail in water in 36 of 38 runs,
+  near water 36 of 40) and bodies are smaller in thickets (30 of 32). Mouths lean towards straws in water (27 of
+  38) but show nothing in thickets (17 of 32). Water creatures came out a little bigger than land ones (29 of 38).
+  Size on high cold land, legs in water and roundness anywhere were down to chance, and legs shortened over most
+  runs (29 of 42). With the wider mouth gap (`MOUTH.bonus` 0.6), mouths follow water in 36 of 41 runs but
+  thickets are still chance (18 of 31). With thickets growing only nuts as well, mouths follow both: straws by
+  water in 36 of 44 runs (about 14 points more straw-like) and beaks in thickets in 28 of 34 (about 5 points more
+  beak-like). Leg length was then removed (it adapted to nothing), so the test no longer measures it.
+  Roundness as streamlining (±25% swimming speed, no effect on land) still followed nothing (rounder in water in
+  23 of 41 runs): faster swimming also burns more energy, so speed alone is no advantage. As energy saved when
+  swimming it works: at 50% (`ROUND.swim` 0.5) creatures with water homes lean rounder (28 of 42 runs, about 5
+  points), held back by amphibians that swim little, while full swimmers (tail 80% or more) are clearly rounder
+  than tailless walkers (17 of 19 runs, about 20 points; at 30% it was 10 of 16). The test now makes this
+  comparison too. With nuts and algae mirrored around a berry's 8 (14 / 8 / 2), straws by water got stronger (33 of
+  36 runs, about 16 points) but beaks in thickets fell back to chance (17 of 33), in one batch. The gap was then
+  widened to 7 (15 / 8 / 1), and every mouth and roundness comparison came out clear: beaks in thickets in 25 of 31
+  runs (about 11 points, the strongest yet), straws by water in 35 of 39 (about 18 points), and creatures with
+  water homes rounder in 31 of 39 (about 6 points).
+  With the same burn for every size and home ranges growing with size, bodies stayed much smaller in thickets (35 of
+  36 runs) and leaned bigger where land food is sparse (30 of 45, but only 0.01 of size), while shrinking over most
+  runs (33 of 43, median 0.83 at 30 minutes, from about 0.9). Roundness showed nothing in that batch (21 of 42).
+  Thinning open-land berries by about a third (`BERRIES`) didn't help: size no longer followed sparse food (21 of
+  41) and shrank in 35 of 42 runs (median 0.81). A bigger tank isn't an advantage on its own, because breeding
+  needs 75% of the tank and costs 45% of it, so a big body has to gather proportionally more food for every
+  young. Populations came down (median 46 at 30 minutes, from 75).
+  With small creatures giving way to bigger ones at food (`GIVE`), size stopped shrinking (up in 21 runs, down in
+  20, median 0.89 at 30 minutes, ranging 0.70 to 1.16), stayed smaller in thickets (26 of 27 runs) and came out
+  bigger in water than on land (30 of 40): big bodies win contested food wherever they can go. It still didn't
+  follow sparse food (23 of 41). Populations rose again (median 73 at 30 minutes).
+  The 30-minute balance check then showed populations of straw-mouthed swimmers climbing to 150–280: water fed about
+  twice as many specialists as land. A crowding radius growing with size (50 to 140 px) didn't stop them, since
+  swimmers spread along whole coasts rather than packing together, and it made bodies shrink again, so it was
+  undone; algae was thinned to two thirds instead (`ALGAE`). That brought populations back into range (after 20 minutes: 30–52 for five of
+  six balance designs, 146 for the fully aquatic one; 9% of the time over 100) and every adaptation came out clear
+  in one batch for the first time: tail by water 36 of 39, straws by water 29 of 39, beaks in thickets 24 of 30,
+  smaller in thickets 26 of 30, rounder in water 28 of 39 (full swimmers 8 of 9, about 33 points), with size
+  steady overall (up in 22 runs, down in 18).
+  Breeding at 80% energy with offspring varying a quarter less (`VAR` 1.2) then overshot: populations of 6–74 after
+  20 minutes (median 18 at 30 minutes in the adaptation test), 6 of 45 runs died out, and only tail and straws by
+  water stayed clear. Back at 75% with `VAR` 1.4: populations after 20 minutes of 16–61 for land designs and 103 for
+  the aquatic one (4% of the time over 100; median 36 at 30 minutes in the adaptation test, 4 of 45 runs died out).
+  Tail by water (27 of 30) and smaller in thickets (23 of 27) stayed clear and size leaned bigger on sparse land
+  (27 of 39) for the first time, but beaks in thickets (18 of 27) and roundness (13 of 30) showed little within 30
+  minutes: with smaller steps, adaptation takes longer. Over 60-minute runs they do appear: tail by water 35 of 37, straws by water
+  32 of 37 (about 23 points in the last 20 minutes), beaks in thickets 25 of 31, smaller in thickets 28 of 31;
+  roundness leaned the right way (23 of 37, about 4 points) without being clear. But 10 of 45 hour-long runs died
+  out, 5 of them the middling land design, between 20 and 49 minutes, mostly soon after a world event: land had
+  become too poor to ride out floods and droughts.
+  Berries thinned by about a quarter instead of a third (`BERRIES` 30% to 85%) cut hour-long extinctions to 4 of
+  45 (median 69 alive at the end), and tail by water (38 of 40), tail near water (33 of 41), straws by water (35 of
+  40) and smaller in thickets (31 of 35) all stayed clear, with roundness among full swimmers leaning (15 of 21).
+  But beaks in thickets vanished (14 of 35): busier open land sends more straw-mouthed migrants into the thickets.
+  The aquatic balance design climbed again (167 after 20 minutes, 42% of the time over 100); the land designs ran
+  27–87.
+  Halfway (`BERRIES` 25% to 80%) didn't bring beaks back (12 of 31) and 7 of 45 runs died out (median 58 alive at
+  the end); tail, straws and smaller in thickets stayed clear, and size came out smaller on cold high land (21 of
+  27, against nature). In the 30-minute balance check the aquatic design ran 83, the land designs 14–49, and the
+  default design died out. So berries don't control beaks: beaks in thickets sit close to the edge of what the test
+  can detect, and the 25 of 31 in the earlier batch was probably partly luck. Berries went back to 30% to 85%.
 
 The tests use `window.EvoQuestDebug`, a small read-only hook at the end of `js/main.js`. The bundled file leaves
 it out.

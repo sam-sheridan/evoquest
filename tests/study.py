@@ -4,7 +4,7 @@ Usage:  python3 tests/study.py [minutes] [workers] [worlds per type] [results fi
         e.g.  python3 tests/study.py 45 4 3 study.jsonl      (75 runs of 45 minutes, four at a time)
 
 For each world type it picks worlds with a mix of shapes, and on every world it releases five designs: a middling
-one, a fully random one (as Randomise makes), a small beaked walker, a big long-legged walker and a water creature.
+one, a fully random one (as Randomise makes), a small beaked walker, a big walker and a water creature.
 Each run records, as one line of JSON: population at 10, 20 and 30 minutes and at the end, time over 100, seasonal swing, new
 species (when, which of the four types, and where the founding group lived), how many creatures moved between
 species and how often a species came back, most species alive at once, extinction (when, and what killed them),
@@ -29,11 +29,11 @@ OUT = sys.argv[4] if len(sys.argv) > 4 else os.path.join(ROOT, 'study.jsonl')
 ONLY = sys.argv[5].split(',') if len(sys.argv) > 5 else None  # run only these designs (comma-separated names)
 
 DESIGNS = {
-    'middling': {'w': 4, 'h': 4.5, 'leg': 0.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
+    'middling': {'w': 4, 'h': 4.5, 'hab': 0.1, 'mth': 0.5, 'round': 0.5},
     'random': None,  # made in the page by the creator's own Randomise
-    'small beaked walker': {'w': 2.5, 'h': 3, 'leg': 0.6, 'hab': 0.05, 'mth': 0.05, 'round': 0.2},
-    'big long-legged walker': {'w': 6, 'h': 6.5, 'leg': 0.9, 'hab': 0.05, 'mth': 0.5, 'round': 0.15},
-    'water creature': {'w': 3.8, 'h': 4.5, 'leg': 0.05, 'hab': 0.97, 'mth': 0.97, 'round': 0.95},
+    'small beaked walker': {'w': 2.5, 'h': 3, 'hab': 0.05, 'mth': 0.05, 'round': 0.2},
+    'big walker': {'w': 6, 'h': 6.5, 'hab': 0.05, 'mth': 0.5, 'round': 0.15},
+    'water creature': {'w': 3.8, 'h': 4.5, 'hab': 0.97, 'mth': 0.97, 'round': 0.95},
 }
 
 RUN = (
@@ -88,11 +88,11 @@ RUN = (
   // how spread out bodies are at the end (standard deviation across every living creature), and what share of
   // them lives each way (by body, whatever species they belong to)
   const C = S.creatures, sd = k => { const m = C.reduce((a, c) => a + c[k], 0) / C.length; return +Math.sqrt(C.reduce((a, c) => a + (c[k] - m) ** 2, 0) / C.length).toFixed(3); };
-  const endSpread = C.length > 1 ? { size: sd('size'), hab: sd('hab'), mth: sd('mth'), leg: sd('leg') } : null;
+  const endSpread = C.length > 1 ? { size: sd('size'), hab: sd('hab'), mth: sd('mth') } : null;
   const endTypes = C.length ? Object.fromEntries(TYPE_NAMES.map(z => [z, +(C.filter(c => typeOf(c) === z).length / C.length).toFixed(2)])) : null;
-  const drift = last && last.total ? Object.fromEntries(['size', 'leg', 'hab', 'mth', 'round'].map(k => [k, +(last.all[k] - first[k]).toFixed(2)])) : null;
+  const drift = last && last.total ? Object.fromEntries(['size', 'hab', 'mth', 'round'].map(k => [k, +(last.all[k] - first[k]).toFixed(2)])) : null;
   return {
-    design: designName, released: { size: +first.size.toFixed(2), leg: +first.leg.toFixed(2), hab: +first.hab.toFixed(2), mth: +first.mth.toFixed(2), round: +first.round.toFixed(2) },
+    design: designName, released: { size: +first.size.toFixed(2), hab: +first.hab.toFixed(2), mth: +first.mth.toFixed(2), round: +first.round.toFixed(2) },
     releasedType: typeOf(first), minutes: Math.round(S.t / 6) / 10, extinct: S.over, extinctAt: S.over ? Math.round(S.t) : null,
     deathBy: S.deathBy, pop10: pops[600] ?? 0, pop20: pops[1200] ?? 0, pop30: pops[1800] ?? 0, popEnd: S.over ? 0 : S.creatures.length,
     pctOver100: over[1] ? Math.round((100 * over[0]) / over[1]) : 0, seasonAverages: seasons.map(avg),

@@ -23,7 +23,7 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
     />
-    <link rel="stylesheet" href="css/style.css?v=2026-10-29f" />
+    <link rel="stylesheet" href="css/style.css?v=2026-10-31" />
   </head>
   <body>
     <canvas id="cv" aria-label="EvoQuest world map"></canvas>
@@ -173,8 +173,8 @@
           <div id="crHelp" class="panelx" hidden>
             <b>How it works</b>
             <p>
-              Each creature has an energy bar. Food fills it; moving fast drains it quicker, and small bodies
-              burn more than big ones. Once a creature is 15 seconds old, eating with a nearly full bar gives
+              Each creature has an energy bar. Food fills it; moving fast drains it quicker, and a bigger body
+              has a bigger bar, so it goes further between meals. Once a creature is 15 seconds old, eating with a nearly full bar gives
               it one offspring with slightly varied traits. The more neighbours it has, the less likely it is
               to breed. Everyone lives at most 90 seconds.
             </p>
@@ -230,19 +230,15 @@
               </div>
               <div class="two">
                 <div class="field">
-                  <label for="fL">Legs<output id="oL"></output></label
-                  ><input type="range" id="fL" min="0" max="100" step="1" />
-                </div>
-                <div class="field">
                   <label for="fHab">Tail<output id="oHab"></output></label
                   ><input type="range" id="fHab" min="0" max="100" step="1" />
                 </div>
-              </div>
-              <div class="two">
                 <div class="field">
                   <label for="fMth">Mouth<output id="oMth"></output></label
                   ><input type="range" id="fMth" min="0" max="100" step="1" />
                 </div>
+              </div>
+              <div class="two">
                 <div class="field">
                   <label for="fR">Roundness<output id="oR"></output></label
                   ><input type="range" id="fR" min="0" max="1" step="0.01" />
@@ -299,18 +295,18 @@
       <span id="rpLabel">Replay</span><button class="btn" id="rpExit">Exit replay</button>
     </div>
 
-    <script src="js/config.js?v=2026-10-29f"></script>
-    <script src="js/util.js?v=2026-10-29f"></script>
-    <script src="js/world.js?v=2026-10-29f"></script>
-    <script src="js/map.js?v=2026-10-29f"></script>
-    <script src="js/diorama.js?v=2026-10-29f"></script>
-    <script src="js/creatures.js?v=2026-10-29f"></script>
-    <script src="js/sim.js?v=2026-10-29f"></script>
-    <script src="js/audio.js?v=2026-10-29f"></script>
-    <script src="js/summary.js?v=2026-10-29f"></script>
-    <script src="js/ui.js?v=2026-10-29f"></script>
-    <script src="js/creator.js?v=2026-10-29f"></script>
-    <script src="js/intro.js?v=2026-10-29f"></script>
-    <script src="js/main.js?v=2026-10-29f"></script>
+    <script src="js/config.js?v=2026-10-31"></script>
+    <script src="js/util.js?v=2026-10-31"></script>
+    <script src="js/world.js?v=2026-10-31"></script>
+    <script src="js/map.js?v=2026-10-31"></script>
+    <script src="js/diorama.js?v=2026-10-31"></script>
+    <script src="js/creatures.js?v=2026-10-31"></script>
+    <script src="js/sim.js?v=2026-10-31"></script>
+    <script src="js/audio.js?v=2026-10-31"></script>
+    <script src="js/summary.js?v=2026-10-31"></script>
+    <script src="js/ui.js?v=2026-10-31"></script>
+    <script src="js/creator.js?v=2026-10-31"></script>
+    <script src="js/intro.js?v=2026-10-31"></script>
+    <script src="js/main.js?v=2026-10-31"></script>
   </body>
 </html>
