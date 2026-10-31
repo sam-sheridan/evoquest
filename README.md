@@ -161,10 +161,8 @@ These affect survival, so natural selection pushes them in useful directions.
 | Mouth (`mth`) | 0–1 | 0 = beak, 1 = straw (see [mouths](#mouths)). |
 | Roundness (`round`) | 0–1 | 0 = blocky, 1 = round. Changes the energy cost of swimming by up to 50% (see below). |
 
-From these, the game works out:
-
 Every ability comes from these. There is no separate speed or energy setting: what a creature can do is set by
-what you can see.
+what you can see. From these, the game works out:
 
 - **Size** = √(body width × body length) ÷ 17, from 0.48 (width and length 1) to 1.26 (both 7). Width and
   length do nothing else, so a 3 × 6 body and a 4.5 × 4 one are the same size and do equally well.
@@ -265,7 +263,9 @@ Every creature has one mouthpart at the front, which changes shape gradually alo
   parent from outside it). Widening the gap to 60% made mouths follow water strongly (straws by water in 36 of 41
   runs, up from 27 of 38) but still not thickets (beakier in thickets in 18 of 31, chance): berries were still
   half of a thicket dweller's food. Since thickets grow only nuts, beaks take hold there too (beakier in thickets
-  in 28 of 34 runs).
+  in 28 of 34 runs), though not reliably: after the later changes to size, berries and inheritance, hour-long
+  batches found it in 25 of 31 runs, then 14 of 35 and 12 of 31. It is the weakest of the adaptations and the next
+  thing to work on (see [tests](#tests)).
 - **Berries** give every mouth the same 8.
 
 So a world full of thickets favours beaks and a watery world favours straws, and the mouth evolves like any other
@@ -295,7 +295,7 @@ near water can drift up to 15% within a run and start using a tail when the wate
 under the surface with the back of the body, and the wake starts behind its tip.
 
 The middling design (width 4, length 4.5, no tail, roundness 0.5) is size 0.90 (drawn with 4 legs), goes 40 px
-into thickets, walks at about 32 px/s, swims at about 5 px/s, can't cross rivers, and holds about 53 energy.
+into thickets, walks at about 32 px/s, swims at about 5 px/s, wades across rivers, and holds about 53 energy.
 
 ### Colour: one per species
 
@@ -360,7 +360,8 @@ points, ±0.08) until 31 October 2026, when big changes came too quickly once tr
     walking, so temperature adds roughly 5–15% to a moving creature's costs.
   - **Deep water**: the whole burn is multiplied by 1 + 0.8 × (1 − tail) (`SEA.deepCost`). A creature with no
     tail burns 80% more there; one with a full tail burns nothing extra.
-  - The creator shows the burn when walking, without temperature or deep water.
+  - The Stats chart's *Energy use* shows the burn when walking flat out, without temperature or deep water. The
+    creator shows the swimming multiplier as its *Swim ×* tag.
 - **Food**: a berry gives 8 energy (`FOOD`), and nuts and algae 1–15 depending on the mouth (see
   [mouths](#mouths)). Energy never goes over the creature's capacity.
 - After eating, a creature **rests** for 0.8–1.4 seconds (burning only the standing cost), then plans its next

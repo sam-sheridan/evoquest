@@ -167,7 +167,7 @@ const PANES = [
     h: 'Design a species',
     p: [
       'Give it a name, a colour and a body. Its size, tail, mouth and roundness decide how fast it walks and swims, how much energy it burns and which food suits it best.',
-      'Every strength has a cost: a tail swims well but walks badly, a big body is thrifty but slow, and a beak thrives on nuts but struggles with algae.',
+      'Every strength has a cost: a tail swims well but walks badly, a big body goes far on a full tank but is slow, and a beak thrives on nuts but struggles with algae.',
     ],
     // one creature changing smoothly from one random design to the next
     draw(g, t, s) {
