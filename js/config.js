@@ -286,7 +286,7 @@ const ALGAE = 0.67;
 // bigger one is within r px of it or nearer to it. Big bodies win the scarce food of open land; small ones keep to
 // thickets, where big ones can't follow
 const GIVE = { by: 0.05, r: 80 };
-const VAR = 1.2; // how much offspring traits vary from their parent (1 = base amount; 1.6 until 31 October 2026)
+const VAR = 1.4; // how much offspring traits vary from their parent (1 = base amount; 1.6 until 31 October 2026)
 
 /* ---- map rendering ---- */
 const TS = 0.8; // resolution of the pre-drawn map image (pixels per world px)

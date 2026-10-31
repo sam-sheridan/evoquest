@@ -287,7 +287,7 @@ where the curve-in ends. A bigger tail is longer (up to
 1.1 times the body's length, `TAIL.len`) and a little broader. With no tail (15% or less) the back of the body is
 rounded off like the front. Just above 15% the tail appears at once as a short but proper tail, 30% of the full
 length (`TAIL.first`), rather than a thin spike, and grows from there. The bottom 15% of the scale has no effect, so a
-tailless parent can't have a tailed child in one step (a child's tail moves at most 6 points), but a land lineage
+tailless parent can't have a tailed child in one step (a child's tail moves at most 7 points), but a land lineage
 near water can drift up to 15% within a run and start using a tail when the water pays. (Tails used to count from
 33%, which a lineage starting at 0% would take 30–40 minutes of drifting to reach.)
 
@@ -321,12 +321,13 @@ moves by a random amount up to:
 
 | Trait | Maximum change per generation |
 |---|---|
-| Width, length | ±0.6 (that is 0.5 × `VAR`, and `VAR` = 1.2) |
-| Tail, mouth | ±6 percentage points (0.05 × `VAR`) |
-| Roundness | ±0.06 (0.05 × `VAR`) |
+| Width, length | ±0.7 (that is 0.5 × `VAR`, and `VAR` = 1.4) |
+| Tail, mouth | ±7 percentage points (0.05 × `VAR`) |
+| Roundness | ±0.07 (0.05 × `VAR`) |
 
 Traits are then held inside their allowed ranges. `VAR` scales body-trait variation only. It was 1.6 (±0.8, ±8
 points, ±0.08) until 31 October 2026, when big changes came too quickly once traits had clear jobs in the world.
+1.2 was tried first, but populations adapted to their patches so slowly that land numbers fell to 14–25.
 
 ---
 
