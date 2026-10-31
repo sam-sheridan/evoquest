@@ -145,7 +145,7 @@ function tagVals(c) {
     dW: cap(c.dW, c.dL),
     dL: cap(c.dL, c.dW),
     cap: c.cap,
-    burn: moveBurn(c, c.vL),
+    swim: 1 - ROUND.swim * (2 * c.round - 1), // share of the usual energy it pays to swim (ROUND)
     nut: mouthEnergy(c, 'n'),
     alg: mouthEnergy(c, 'w'),
     dT: Math.min(200, Math.round(c.dT)),
@@ -201,12 +201,7 @@ function syncCreator() {
     // don't change size as values gain or lose digits
     tag = (k, fmt, alts) => {
       const r = R[k],
-        // energy burnt spans a few extreme designs far above the rest, so it is measured on a log scale
-        f = !r
-          ? 0
-          : k === 'burn'
-            ? clamp(Math.log(v[k] / r[0]) / Math.log(r[1] / r[0]), 0, 1)
-            : clamp((v[k] - r[0]) / (r[1] - r[0] || 1), 0, 1),
+        f = !r ? 0 : clamp((v[k] - r[0]) / (r[1] - r[0] || 1), 0, 1),
         t = r ? fmt(v[k]) : fmt,
         w = Math.max(...(r ? [fmt(r[0]), fmt(r[1]), t] : alts).map(x => x.length));
       return `<span class="chip" style="--f:${(f * 100).toFixed(1)}%;width:calc(${w}ch + 16px)">${t}</span>`;
@@ -222,7 +217,7 @@ function syncCreator() {
     [tag('dW', x => `Swims out ${x} px`), tag('dL', x => `Walks inland ${x} px`)],
     [
       tag('cap', x => `Energy ${px(x)}`),
-      tag('burn', x => `Burns ${x.toFixed(2)}/s`),
+      tag('swim', x => `Swim ×${x.toFixed(2)}`),
       tag('nut', x => `Nuts ${Math.round(x)}`),
       tag('alg', x => `Algae ${Math.round(x)}`),
     ],

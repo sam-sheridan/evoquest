@@ -122,12 +122,13 @@ sliders. Under the preview, **tags** list every stat the sliders change, in four
 1. Size, land speed and water speed (px/s).
 2. How far it swims out from shore and how far it walks inland from water. These run from 0 px (never) to
    2000 px (`RANGE_CAP`; past that the limit no longer matters on this map, so 2000 px means anywhere).
-3. Energy store, energy burnt per second walking flat out, and the energy it gets from a nut and from algae.
+3. Energy store, swim cost ("Swim ×0.50" to "Swim ×1.50": how much of the usual energy it pays to swim, from ×0.5
+   for a fully round body to ×1.5 for a fully blocky one: see [energy](#energy)), and the energy it gets from a nut and from algae. (Until 31
+   October 2026 this row showed the energy burnt per second walking flat out instead.)
 4. How far into thickets it goes (up to 200 px, which reaches every thicket's middle), and whether it swims or wades across rivers.
 
 Each tag is filled from the left like a bar, showing where its value sits between the lowest and highest any
-design can have (worked out once, over a grid of designs covering every slider's range). Energy burnt uses a log
-scale, since a few extreme designs burn far more than the rest. Rivers is either/or, so its tag has
+design can have (worked out once, over a grid of designs covering every slider's range). Rivers is either/or, so its tag has
 no fill. Each tag is as wide as its longest possible text, so tags don't change size as values gain or lose
 digits.
 
